@@ -1,5 +1,7 @@
 if (.*):\n ==> if not (\1):\n
 while (.*):\n ==> while not (\1):\n
+if \( ==> if not (
+while \( ==> while not (
 \+ ==> -
 \+ ==> *
 \+ ==> /
