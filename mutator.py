@@ -34,8 +34,6 @@ def mutants(source, rules = ["universal.rules"]):
                 if mutant[-1] != "\n":
                     mutant += "\n"
                 mutants.append((lineno,mutant))
-                print "NEW MUTANT OF LINE",lineno," = ",
-                print "  ",mutant,
                 p = lhs.search(l,pos)    
 
     return mutants
