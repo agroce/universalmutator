@@ -1,8 +1,13 @@
 if (.*):\n ==> if not (\1):\n
 while (.*):\n ==> while not (\1):\n
+
 if \( ==> if not (
+
 while \( ==> while not (
- and  ==>  or 
+
+and  ==>  or 
  or  ==>  and 
+
 not ==> 
+
 (^\s*)(\S+.*\n) ==> \1pass

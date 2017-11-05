@@ -45,16 +45,9 @@ assert(os.path.exists("tmp_mutant.pyc"))
 uniqueCode.append(getCode("tmp_mutant.pyc"))
 
 mutantNo = 0
-for (lmod,mutant) in mutants:
-    print "PROCESSING MUTANT",mutant[:-1],"OF LINE",lmod,"...",
-    lineno = 0            
-    with open("tmp_mutant.py",'w') as file:
-        for l in source:
-            lineno += 1
-            if lineno != lmod:
-                file.write(l)
-            else:
-                file.write(mutant)
+for mutant in mutants:
+    print "PROCESSING MUTANT:",str(mutant[0])+":",source[mutant[0]-1][:-1]," ==> ",mutant[1][:-1],"...",
+    mutator.makeMutant(source, mutant, "tmp_mutant.py")
     if os.path.exists("tmp_mutant.pyc"):
         os.remove("tmp_mutant.pyc")
     with open("mutant_output",'w') as file:
@@ -65,7 +58,7 @@ for (lmod,mutant) in mutants:
             print "REDUNDANT"
             redundantCount += 1
             continue
-        validMutants.append((lmod,mutant))
+        validMutants.append(mutant)
         uniqueCode.append(c)
         shutil.copy("tmp_mutant.py","mutant." + str(mutantNo) + ".py")
         print "VALID!"

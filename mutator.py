@@ -13,7 +13,13 @@ def mutants(source, rules = ["universal.rules"]):
     rules = []
     
     for r in rulesText:
-        s = r.split(" ==> ")
+        if " ==> " not in r:
+            if " ==>" in r:
+                s = r.split(" ==>")
+            else:
+                continue # Allow blank lines and comments, just ignore lines without a transformation
+        else:
+            s = r.split(" ==> ")
         lhs = re.compile(s[0])
         if (len(s[1]) > 0) and (s[1][-1] == "\n"):
             rhs = s[1][:-1]
@@ -37,3 +43,14 @@ def mutants(source, rules = ["universal.rules"]):
                 p = lhs.search(l,pos)    
 
     return mutants
+
+def makeMutant(source, mutant, path):
+    (lineModified, newCode) = mutant
+    with open(path, 'w') as file:
+        lineno = 0
+        for l in source:
+            lineno += 1
+            if lineno != lineModified:
+                file.write(l)
+            else:
+                file.write(newCode)
