@@ -13,10 +13,19 @@ def mutants(source, rules = ["universal.rules"]):
     rules = []
     
     for r in rulesText:
+        if r == "\n":
+            continue
         if " ==> " not in r:
             if " ==>" in r:
                 s = r.split(" ==>")
             else:
+                if r[0] == "#": # Don't warn about comments
+                    continue
+                print "*" * 60
+                print "WARNING:"
+                print "RULE:",r
+                print "DOES NOT MATCH EXPECTED FORMAT, AND SO WAS IGNORED"
+                print "*" * 60                
                 continue # Allow blank lines and comments, just ignore lines without a transformation
         else:
             s = r.split(" ==> ")
