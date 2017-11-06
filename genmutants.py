@@ -16,11 +16,13 @@ except:
 handlers = {"python": python_handler,
             "python3": python3_handler,
             "c": c_handler,
-            "java": java_handler}
+            "java": java_handler,
+            "swift": swift_handler}
 
 languages = {".c": "c",
              ".py": "python",
-             ".java": "java"}    
+             ".java": "java",
+             ".swift": "swift"}    
 
 try:
     handlers["custom"] == "custom_handler"
@@ -64,9 +66,10 @@ for mutant in mutants:
     print "PROCESSING MUTANT:",str(mutant[0])+":",source[mutant[0]-1][:-1]," ==> ",mutant[1][:-1],"...",
     mutator.makeMutant(source, mutant, tmpMutantName)
     mutantResult = handler.handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
-    print mutantResult
+    print mutantResult,
     mutantName = base + ".mutant." + str(mutantNo) + ending
     if mutantResult == "VALID":
+        print "[written to",mutantName+"]",
         shutil.copy(tmpMutantName, mutantName)
         validMutants.append(mutant)
         mutantNo += 1
@@ -74,6 +77,7 @@ for mutant in mutants:
         invalidMutants.append(mutant)
     elif mutantResult == "REDUNDANT":
         redundantMutants.append(mutant)
+    print
 
 print len(validMutants),"VALID MUTANTS"
 print len(invalidMutants),"INVALID MUTANTS"
