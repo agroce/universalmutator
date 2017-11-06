@@ -17,16 +17,26 @@ handlers = {"python": python_handler,
             "c": c_handler,
             "java": java_handler}
 
+languages = {".c": "c",
+             ".py": "python",
+             ".java": "java"}    
+
 try:
     handlers["custom"] == "custom_handler"
 except:
     pass
 
 sourceFile = sys.argv[1]
-language = sys.argv[2]
-otherRules = sys.argv[3:]
-
 ending = "." + sourceFile.split(".")[-1]
+
+if len(sys.argv) < 3:
+    language = languages[ending]
+    otherRules = []
+else:
+    language = sys.argv[2]
+    otherRules = sys.argv[3:]
+
+base = ".".join((sourceFile.split(".")[:-1]))
 
 rules = ["universal.rules",language + ".rules"] + otherRules
 
@@ -54,7 +64,7 @@ for mutant in mutants:
     mutator.makeMutant(source, mutant, tmpMutantName)
     mutantResult = handler.handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
     print mutantResult
-    mutantName = "mutant." + str(mutantNo) + ending
+    mutantName = base + ".mutant." + str(mutantNo) + ending
     if mutantResult == "VALID":
         shutil.copy(tmpMutantName, mutantName)
         validMutants.append(mutant)
