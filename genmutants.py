@@ -41,6 +41,9 @@ else:
 
 base = ".".join((sourceFile.split(".")[:-1]))
 
+if language in ["c","java","swift"]:
+    otherRules.append("c_like.rules")
+
 rules = ["universal.rules",language + ".rules"] + otherRules
 
 source = []
