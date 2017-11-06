@@ -6,6 +6,7 @@ import python_handler
 import python3_handler
 import c_handler
 import java_handler
+import swift_handler
 
 try:
     import custom_handler
