@@ -11,3 +11,5 @@ and  ==>  or
 not ==> 
 
 (^\s*)(\S+.*\n) ==> \1pass
+
+(^\s*)(\S+.*)\n ==> \1try: \2\n\1except: pass\n
