@@ -8,25 +8,24 @@ setup(
     version='0.1',
     description='Universal regexp-based mutation tool',
     long_description=open('README.md').read(),
-    packages=['src',],
+    packages=['universalmutator',],
     include_package_data = True,
     package_data = {
-        'src': [
+        'universalmutator': [
             'static/universal.rules',
             'static/c_like.rules',
             'static/c.rules',
             'static/cpp.rules',
             'static/swift.rules',
             'static/java.rules',
-            'static/python.rules'
+            'static/python.rules',
             'static/handlemutant.py'            
             ]
     },
     license='MIT',
     entry_points="""
     [console_scripts]
-    mutate = src.genmutants:main
-    handle_python_mutant = src.handlemutant:main
+    mutate = universalmutator.genmutants:main
     """,
     keywords='testing mutation mutation-testing',
     classifiers=[

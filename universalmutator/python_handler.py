@@ -13,7 +13,7 @@ def getPythonCode(fname):
     return code
 
 def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
-    with pkg_resources.resource_stream('src', 'static/handlemutant.py') as pyhandler:
+    with pkg_resources.resource_stream('universalmutator', 'static/handlemutant.py') as pyhandler:
         with open("handlemutant.py",'w') as file:
             for l in pyhandler:
                 file.write(l)

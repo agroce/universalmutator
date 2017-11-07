@@ -7,7 +7,7 @@ def mutants(source, rules = ["universal.rules"]):
 
     for ruleFile in rules:
         try:
-            with pkg_resources.resource_stream('src', 'static/' + ruleFile) as builtInRule:
+            with pkg_resources.resource_stream('universalmutator', 'static/' + ruleFile) as builtInRule:
                 for l in builtInRule:
                     rulesText.append((l,"builtin:"+ruleFile))
         except Exception as e:
