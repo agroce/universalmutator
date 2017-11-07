@@ -1,3 +1,24 @@
+To use this, you should really just do:
+
+pip install universalmutator
+
+then
+
+mutate --help
+
+
+SIMPLE EXAMPLE:
+
+mutate foo.py
+
+or
+
+mutate foo.swift
+
+should, if you have the appropriate compilers installed, generate a bunch of valid, non-trivially redundant, mutants
+
+
+
 Start on a tool based purely on regexp-specified rewrite of code lines for mutation generation, including
 multi-language rules aided by special rules for languages or even projects.
 
