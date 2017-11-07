@@ -18,6 +18,7 @@ def mutants(source, rules = ["universal.rules"]):
                     rulesText.append((l,ruleFile))
 
     rules = []
+    skipRules = []
     
     for (r,ruleSource) in rulesText:
         if r == "\n":
@@ -41,11 +42,21 @@ def mutants(source, rules = ["universal.rules"]):
             rhs = s[1][:-1]
         else:
             rhs = s[1]
-        rules.append((lhs,rhs))
+        if rhs != "DO_NOT_MUTATE":
+            rules.append((lhs,rhs))
+        else:
+            skipRules.append(lhs)
 
     mutants = []
     lineno = 0
     for l in source:
+        skipLine = False
+        for lhs in skipRules:
+            if lhs.search(l):
+                skipLine = True
+                break
+        if skipLine:
+            continue
         lineno += 1
         for (lhs,rhs) in rules:
             pos = 0
