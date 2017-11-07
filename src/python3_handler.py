@@ -1,18 +1,23 @@
 import marshal
 import os
 import subprocess
+import pkg_resources
 
 def getPythonCode(fname):
     # Courtesy of Ned Batchelder, just get the code object from the .pyc file
     f = open(fname, "rb")
     magic = f.read(4)
     moddate = f.read(4)
-    size = f.read(4)
-    # Note that for Python 3.3+ you'd need another f.read(4) here since the format changed
+    ignored = f.read(4) # For python 3.3+
     code = marshal.load(f)
     return code
 
 def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
+    with pkg_resources.resource_stream('src', 'static/handlemutant.py') as pyhandler:
+        with open("handlemutant.py",'w') as file:
+            for l in pyhandler:
+                file.write(l)
+            
     if len(uniqueMutants) == 0:
             sourceCompiled = sourceFile.replace(".py",".pyc")
             if os.path.exists(sourceCompiled):
