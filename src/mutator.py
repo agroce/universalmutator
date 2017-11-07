@@ -1,18 +1,25 @@
 import sys
 import re
-
+import pkg_resources
 
 def mutants(source, rules = ["universal.rules"]):
     rulesText = []
 
     for ruleFile in rules:
-        with open(ruleFile,'r') as file:
-            for l in file:
-                rulesText.append(l)
+        try:
+            with pkg_resources.resource_stream('src', 'static/' + ruleFile) as builtInRule:
+                for l in builtInRule:
+                    rulesText.append((l,"builtin:"+ruleFile))
+        except Exception as e:
+            print e
+            print "FAILED TO FIND BUILT IN RULE"
+            with open(ruleFile,'r') as file:
+                for l in file:
+                    rulesText.append((l,ruleFile))
 
     rules = []
     
-    for r in rulesText:
+    for (r,ruleSource) in rulesText:
         if r == "\n":
             continue
         if " ==> " not in r:
@@ -23,7 +30,7 @@ def mutants(source, rules = ["universal.rules"]):
                     continue
                 print "*" * 60
                 print "WARNING:"
-                print "RULE:",r
+                print "RULE:",r,"FROM",ruleSource
                 print "DOES NOT MATCH EXPECTED FORMAT, AND SO WAS IGNORED"
                 print "*" * 60                
                 continue # Allow blank lines and comments, just ignore lines without a transformation
