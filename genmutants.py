@@ -5,6 +5,7 @@ import mutator
 import python_handler
 import python3_handler
 import c_handler
+ipmort cpp_handler
 import java_handler
 import swift_handler
 
@@ -13,17 +14,27 @@ try:
 except:
     pass
 
+if "--help" in sys.argv:
+    print "USAGE: genmutants <file> [<language>] [<rule1> <rule2>...]"
+    sys.exit(0)
+
 handlers = {"python": python_handler,
             "python3": python3_handler,
             "c": c_handler,
+            "c++": cpp_handler,
+            "cpp": cpp_handler,            
             "java": java_handler,
             "swift": swift_handler}
 
 languages = {".c": "c",
+             ".cpp": "cpp",
+             ".c++": "cpp",             
              ".py": "python",
              ".java": "java",
              ".swift": "swift"}    
 
+cLikeLanguages = ["c","java","swift", "cpp", "c++"]
+    
 try:
     handlers["custom"] == "custom_handler"
 except:
@@ -41,7 +52,7 @@ else:
 
 base = ".".join((sourceFile.split(".")[:-1]))
 
-if language in ["c","java","swift"]:
+if language in cLikeLanguages:
     otherRules.append("c_like.rules")
 
 rules = ["universal.rules",language + ".rules"] + otherRules
