@@ -37,7 +37,13 @@ def mutants(source, rules = ["universal.rules"]):
                 continue # Allow blank lines and comments, just ignore lines without a transformation
         else:
             s = r.split(" ==> ")
-        lhs = re.compile(s[0])
+        try:
+            lhs = re.compile(s[0])
+        except:
+            print "*"*60
+            print "FAILED TO COMPILE RULE:",lhs,"FROM",ruleSource
+            print "*"*60            
+            continue
         if (len(s[1]) > 0) and (s[1][-1] == "\n"):
             rhs = s[1][:-1]
         else:

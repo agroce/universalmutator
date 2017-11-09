@@ -22,8 +22,8 @@ def main():
     args = sys.argv
     
     if "--help" in args:
-        print "USAGE: genmutants <file> [--noCheck] [<language>] [<rule1> <rule2>...]"
-        print "          -- noCheck skips compilation/comparison and just generates mutant files"
+        print "USAGE: mutate <file> [--noCheck] [<language>] [<rule1> <rule2>...]"
+        print "          --noCheck: skips compilation/comparison and just generates mutant files"
         sys.exit(0)
 
     noCheck = False
