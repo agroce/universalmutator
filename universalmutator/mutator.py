@@ -42,7 +42,7 @@ def mutants(source, rules = ["universal.rules"]):
             lhs = re.compile(s[0])
         except:
             print "*"*60
-            print "FAILED TO COMPILE RULE:",lhs,"FROM",ruleSource
+            print "FAILED TO COMPILE RULE:",r,"FROM",ruleSource
             print "*"*60            
             continue
         if (len(s[1]) > 0) and (s[1][-1] == "\n"):
@@ -51,7 +51,7 @@ def mutants(source, rules = ["universal.rules"]):
             rhs = s[1]
         if rhs == "DO_NOT_MUTATE":
             ignoreRules.append(lhs)
-        elif rhs == "SKIP_MUTATING_REST"
+        elif rhs == "SKIP_MUTATING_REST":
             skipRules.append(lhs)
         else:
             rules.append((lhs,rhs))
@@ -70,7 +70,7 @@ def mutants(source, rules = ["universal.rules"]):
         for (lhs,rhs) in rules:
             skipPos = len(l)
             for skipRule in skipRules:
-                skipp = skipRule.search(l,0):
+                skipp = skipRule.search(l,0)
                 if skipp and (skipp.start() < skipPos):
                     skipPos = skipp.start()
             pos = 0
@@ -80,7 +80,8 @@ def mutants(source, rules = ["universal.rules"]):
                 mutant = l[:p.start()] + lhs.sub(rhs,l[p.start():],count=1)
                 if mutant[-1] != "\n":
                     mutant += "\n"
-                mutants.append((lineno,mutant))
+                if mutant != l:
+                    mutants.append((lineno,mutant))
                 p = lhs.search(l,pos)    
 
     return mutants
