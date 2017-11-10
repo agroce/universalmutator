@@ -6,6 +6,8 @@ def mutants(source, rules = ["universal.rules"]):
     rulesText = []
 
     for ruleFile in rules:
+        if ".rules" not in ruleFile:
+            ruleFile += ".rules"
         try:
             with pkg_resources.resource_stream('universalmutator', 'static/' + ruleFile) as builtInRule:
                 for l in builtInRule:
