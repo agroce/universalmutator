@@ -48,7 +48,11 @@ def main():
         args.remove("--noCheck")
 
     cmd = None
-    cmdpos = args.index("--cmd")
+    try:
+        cmdpos = args.index("--cmd")
+    except ValueError:
+        cmdpos = -1
+        
     if cmdpos != -1:
         cmd = args[cmdpos+1]
         args.remove("--cmd")
@@ -111,6 +115,8 @@ def main():
     if not noCheck:
         if cmd != None:
             handler = cmdHandler
+        elif language == "none":
+            handler = nullHandler
         else:
             handler = handlers[language].handler
     else:
