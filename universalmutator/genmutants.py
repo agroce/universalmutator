@@ -8,11 +8,25 @@ import c_handler
 import cpp_handler
 import java_handler
 import swift_handler
+import subprocess
+
+import os
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     return "VALID"
 
+def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
+    global cmd
+
+    with open("mutant_output",'w') as file:
+        r = subprocess.call([cmd.replace("MUTANT",tmpMutantName)],shell=True,stderr=file,stdout=file)
+    if r == 0:
+        return "VALID"
+    else:
+        return "INVALID"
+
 def main():
+    global cmd
 
     try:
         import custom_handler
@@ -22,14 +36,23 @@ def main():
     args = sys.argv
     
     if "--help" in args:
-        print "USAGE: mutate <file> [--noCheck] [<language>] [<rule1> <rule2>...]"
-        print "          --noCheck: skips compilation/comparison and just generates mutant files"
+        print "USAGE: mutate <file> [--noCheck] [<language>] [<rule1> <rule2>...] [--cmd <command string>]"
+        print "       --noCheck: skips compilation/comparison and just generates mutant files"
+        print "       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code"
+        print "             to determine mutant validity"
         sys.exit(0)
 
     noCheck = False
     if "--noCheck" in args:
         noCheck = True
         args.remove("--noCheck")
+
+    cmd = None
+    cmdpos = args.index("--cmd")
+    if cmdpos != -1:
+        cmd = args[cmdpos+1]
+        args.remove("--cmd")
+        args.remove(cmd)
 
     handlers = {"python": python_handler,
                 "python3": python3_handler,
@@ -86,7 +109,10 @@ def main():
     uniqueMutants = {}
 
     if not noCheck:
-        handler = handlers[language]
+        if cmd != None:
+            handler = cmdHandler
+        else:
+            handler = handlers[language].handler
     else:
         handler = nullHandler
 
@@ -95,7 +121,7 @@ def main():
         tmpMutantName = "tmp_mutant" + ending
         print "PROCESSING MUTANT:",str(mutant[0])+":",source[mutant[0]-1][:-1]," ==> ",mutant[1][:-1],"...",
         mutator.makeMutant(source, mutant, tmpMutantName)
-        mutantResult = handler.handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
+        mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
         print mutantResult,
         mutantName = base + ".mutant." + str(mutantNo) + ending
         if mutantResult == "VALID":
