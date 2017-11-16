@@ -21,6 +21,8 @@ def main():
             lines = []
             for l in file:
                 if "LINES" in l:
+                    if src not in l:
+                        continue
                     db = l.split("[")[1]
                     d = db[:-2].split(",")
                     for line in d:
