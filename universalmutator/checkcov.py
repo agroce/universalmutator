@@ -35,6 +35,10 @@ def main():
                 with l in file:
                     if "c" in l:
                         line = int(l.split("c")[0])
+                    elif "a" in l:
+                        line = int(l.split("a")[0])
+                    elif "d" in l:
+                        line = int(l.split("d")[0])                        
             if line not in lines:
                 notCovered.write(f+"\n")
 
