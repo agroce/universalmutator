@@ -16,7 +16,7 @@ def main():
 
     with open(coverFile) as file:
         if not tstl:
-            lines = map(int,coverFile.read().split())
+            lines = map(int,file.read().split())
         else:
             lines = []
             for l in file:
@@ -34,13 +34,16 @@ def main():
             with open(".mutant_diff",'w') as file:
                 diff = subprocess.call(["diff",src,f],stdout=file,stderr=file)
             with open(".mutant_diff") as file:
-                with l in file:
+                for l in file:
                     if "c" in l:
                         line = int(l.split("c")[0])
+                        break
                     elif "a" in l:
                         line = int(l.split("a")[0])
+                        break
                     elif "d" in l:
-                        line = int(l.split("d")[0])                        
+                        line = int(l.split("d")[0])
+                        break
             if line not in lines:
                 notCovered.write(f+"\n")
 
