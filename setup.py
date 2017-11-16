@@ -5,7 +5,7 @@ import sys, os
 
 setup(
     name='universalmutator',
-    version='0.6.7.1',
+    version='0.6.7.15',
     description='Universal regexp-based mutation tool',
     long_description=open('README.md').read(),
     packages=['universalmutator',],
@@ -19,6 +19,7 @@ setup(
             'static/swift.rules',
             'static/java.rules',
             'static/python.rules',
+            'static/none.rules',
             'static/handlemutant.py'            
             ]
     },
@@ -26,6 +27,8 @@ setup(
     entry_points="""
     [console_scripts]
     mutate = universalmutator.genmutants:main
+    analyze_mutants = universalmutator.analyze:main
+    check_covered = universalmutator.checkcov:main
     """,
     keywords='testing mutation mutation-testing',
     classifiers=[
