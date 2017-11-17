@@ -71,3 +71,5 @@ DO_NOT_MUTATE ==> DO_NOT_MUTATE
 (^\s*)(\S+.*)\n ==> \1\2\n\1break;\n
 
 ".+" ==> ""
+
+while ==> if
