@@ -73,7 +73,7 @@ def main():
                  ".java": "java",
                  ".swift": "swift"}    
 
-    cLikeLanguages = ["c","java","swift", "cpp", "c++"]
+    cLikeLanguages = ["c", "java", "swift", "cpp", "c++"]
 
     try:
         handlers["custom"] == "custom_handler"
