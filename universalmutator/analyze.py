@@ -20,7 +20,7 @@ def main():
         with open ("notkilled.txt",'w') as notkilled:
             for f in glob.glob(src.replace(srcEnd,"mutant.*." + srcEnd)):
                 print f,
-                if f in ignored;
+                if f in ignored:
                     print "SKIPPED"
                 try:
                     shutil.copy(src,".backup."+src)
