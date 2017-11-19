@@ -6,9 +6,28 @@ import os
 
 def main():
 
-    src = sys.argv[1]
-    coverFile = sys.argv[2]
-    outFile = sys.argv[3]
+    args = sys.argv
+
+    if "--help" in args:
+        print "USAGE: check_cover <sourcefile> <coverfile> <outfile> [--tstl] [--mutantDir directory]"
+        print "       --mutantDir: directory to put generated mutants in; defaults to current directory"
+        print "       --tstl: process <coverfile> that is output from TSTL internal report"                
+        sys.exit(0)    
+    
+    mdir = None
+    try:
+        mdirpos = args.index("--mutantDir")
+    except ValueError:
+        mdirpos = -1
+        
+    if mdirpos != -1:
+        mdir = args[mdirpos+1]
+        args.remove("--mutantDir")
+        args.remove(mdir)    
+    
+    src = args[1]
+    coverFile = args[2]
+    outFile = args[3]
 
     tstl = "--tstl" in sys.argv
 
