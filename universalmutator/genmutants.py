@@ -36,10 +36,11 @@ def main():
     args = sys.argv
     
     if "--help" in args:
-        print "USAGE: mutate <file> [--noCheck] [<language>] [<rule1> <rule2>...] [--cmd <command string>]"
+        print "USAGE: mutate <sourcefile> [--noCheck] [<language>] [<rule1> <rule2>...] [--cmd <command string>] [--mutantDir directory]"
         print "       --noCheck: skips compilation/comparison and just generates mutant files"
         print "       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code"
         print "             to determine mutant validity"
+        print "       --mutantDir: directory to put generated mutants in; defaults to current directory"
         sys.exit(0)
 
     noCheck = False
@@ -57,6 +58,17 @@ def main():
         cmd = args[cmdpos+1]
         args.remove("--cmd")
         args.remove(cmd)
+
+    mdir = None
+    try:
+        mdirpos = args.index("--mutantDir")
+    except ValueError:
+        mdirpos = -1
+        
+    if mdirpos != -1:
+        mdir = args[mdirpos+1]
+        args.remove("--mutantDir")
+        args.remove(mdir)        
 
     handlers = {"python": python_handler,
                 "python3": python3_handler,
@@ -90,7 +102,7 @@ def main():
         language = args[2]
         otherRules = args[3:]
 
-    base = ".".join((sourceFile.split(".")[:-1]))
+    base = (".".join((sourceFile.split(".")[:-1]))).split("/")[-1]
 
     if language in cLikeLanguages:
         otherRules.append("c_like.rules")
@@ -124,12 +136,12 @@ def main():
 
     mutantNo = 0
     for mutant in mutants:
-        tmpMutantName = ".um.tmp_mutant" + ending
+        tmpMutantName = mdir + "/.um.tmp_mutant" + ending
         print "PROCESSING MUTANT:",str(mutant[0])+":",source[mutant[0]-1][:-1]," ==> ",mutant[1][:-1],"...",
         mutator.makeMutant(source, mutant, tmpMutantName)
         mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
         print mutantResult,
-        mutantName = base + ".mutant." + str(mutantNo) + ending
+        mutantName = mdir + "/" + base + ".mutant." + str(mutantNo) + ending
         if mutantResult == "VALID":
             print "[written to",mutantName+"]",
             shutil.copy(tmpMutantName, mutantName)
