@@ -18,7 +18,7 @@ def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
 def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     global cmd
 
-    with open("mutant_output",'w') as file:
+    with open(".um.mutant_output",'w') as file:
         r = subprocess.call([cmd.replace("MUTANT",tmpMutantName)],shell=True,stderr=file,stdout=file)
     if r == 0:
         return "VALID"
@@ -124,7 +124,7 @@ def main():
 
     mutantNo = 0
     for mutant in mutants:
-        tmpMutantName = "tmp_mutant" + ending
+        tmpMutantName = ".um.tmp_mutant" + ending
         print "PROCESSING MUTANT:",str(mutant[0])+":",source[mutant[0]-1][:-1]," ==> ",mutant[1][:-1],"...",
         mutator.makeMutant(source, mutant, tmpMutantName)
         mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)

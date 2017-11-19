@@ -26,7 +26,7 @@ def main():
                 if f in ignore:
                     print "SKIPPED"
                 try:
-                    shutil.copy(src,".backup."+src)
+                    shutil.copy(src,".um.backup."+src)
                     shutil.copy(f,src)
                     with open(os.devnull,'w') as dnull:
                         r = subprocess.call(tstCmd,shell=True,stderr=dnull,stdout=dnull)
@@ -41,7 +41,7 @@ def main():
                         killed.write(f+"\n")
                         killed.flush()
                 finally:
-                    shutil.copy(".backup."+src,src)
+                    shutil.copy(".um.backup."+src,src)
     print "MUTATION SCORE:",killCount/count
     
 

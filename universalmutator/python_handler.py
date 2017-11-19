@@ -14,7 +14,7 @@ def getPythonCode(fname):
 
 def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     with pkg_resources.resource_stream('universalmutator', 'static/handlemutant.py') as pyhandler:
-        with open("handlemutant.py",'w') as file:
+        with open(".um.handlemutant.py",'w') as file:
             for l in pyhandler:
                 file.write(l)
             
@@ -26,8 +26,8 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     compiled = tmpMutantName.replace(".py",".pyc")
     if os.path.exists(compiled):
         os.remove(compiled)
-    with open("mutant_output",'w') as file:
-        subprocess.call(["python","handlemutant.py"],stdout=file,stderr=file)
+    with open(".um.mutant_output",'w') as file:
+        subprocess.call(["python",".um.handlemutant.py"],stdout=file,stderr=file)
     if os.path.exists(compiled):
         code = getPythonCode(compiled)
         if code in uniqueMutants:
