@@ -36,11 +36,13 @@ def main():
     args = sys.argv
     
     if "--help" in args:
-        print "USAGE: mutate <sourcefile> [--noCheck] [<language>] [<rule1> <rule2>...] [--cmd <command string>] [--mutantDir directory]"
+        print "USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...] [--noCheck] [--cmd <command string>] [--mutantDir <dir>] [--lines <coverfile> [--tstl]]"
         print "       --noCheck: skips compilation/comparison and just generates mutant files"
         print "       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code"
         print "             to determine mutant validity"
         print "       --mutantDir: directory to put generated mutants in; defaults to current directory"
+        print "       --lines: only generate mutants for lines contained in <coverfile>"
+        print "       --tstl: <coverfile> is TSTL output"
         sys.exit(0)
 
     noCheck = False
@@ -54,12 +56,43 @@ def main():
     except ValueError:
         cmdpos = -1
         
+    tstl = False
+    if "--tstl" in args:
+        tstl = True
+        args.remove("--tstl")
+
     if cmdpos != -1:
         cmd = args[cmdpos+1]
         args.remove("--cmd")
         args.remove(cmd)
 
-    mdir = None
+    lineFile = None
+    try:
+        linepos = args.index("--lines")
+    except ValueError:
+        linepos = -1
+        
+    if linepos != -1:
+        lineFile = args[linepos+1]
+        args.remove("--lines")
+        args.remove(lineFile)
+
+    if lineFile != None:
+        with open(lineFile) as file:
+            if not tstl:
+                lines = map(int,file.read().split())
+            else:
+                lines = []
+                for l in file:
+                    if "LINES" in l:
+                        if src not in l:
+                            continue
+                        db = l.split("[")[1]
+                        d = db[:-2].split(",")
+                        for line in d:
+                            lines.append(int(line))
+
+    mdir = ""
     try:
         mdirpos = args.index("--mutantDir")
     except ValueError:
@@ -68,7 +101,8 @@ def main():
     if mdirpos != -1:
         mdir = args[mdirpos+1]
         args.remove("--mutantDir")
-        args.remove(mdir)        
+        args.remove(mdir)
+        mdir += "/"
 
     handlers = {"python": python_handler,
                 "python3": python3_handler,
@@ -136,12 +170,15 @@ def main():
 
     mutantNo = 0
     for mutant in mutants:
-        tmpMutantName = mdir + "/.um.tmp_mutant" + ending
+        if (lineFile != None) and mutant[0] not in lines:
+            # skip if not a line to mutate
+            continue
+        tmpMutantName = ".um.tmp_mutant" + ending
         print "PROCESSING MUTANT:",str(mutant[0])+":",source[mutant[0]-1][:-1]," ==> ",mutant[1][:-1],"...",
         mutator.makeMutant(source, mutant, tmpMutantName)
         mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
         print mutantResult,
-        mutantName = mdir + "/" + base + ".mutant." + str(mutantNo) + ending
+        mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
         if mutantResult == "VALID":
             print "[written to",mutantName+"]",
             shutil.copy(tmpMutantName, mutantName)

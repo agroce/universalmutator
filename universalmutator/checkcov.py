@@ -14,7 +14,7 @@ def main():
         print "       --tstl: process <coverfile> that is output from TSTL internal report"                
         sys.exit(0)    
     
-    mdir = None
+    mdir = ""
     try:
         mdirpos = args.index("--mutantDir")
     except ValueError:
@@ -23,7 +23,8 @@ def main():
     if mdirpos != -1:
         mdir = args[mdirpos+1]
         args.remove("--mutantDir")
-        args.remove(mdir)    
+        args.remove(mdir)
+        mdir += "/"
     
     src = args[1]
     coverFile = args[2]
@@ -31,8 +32,9 @@ def main():
 
     tstl = "--tstl" in sys.argv
 
+    srcBase = src.split("/")[-1]
     srcEnd = src.split(".")[-1]
-
+    
     with open(coverFile) as file:
         if not tstl:
             lines = map(int,file.read().split())
@@ -49,7 +51,7 @@ def main():
     
 
     with open(outFile,'w') as notCovered:
-        for f in glob.glob(src.replace(srcEnd,"mutant.*." + srcEnd)):
+        for f in glob.glob(mdir + srcBase.replace(srcEnd,"mutant.*." + srcEnd)):
             with open(".mutant_diff",'w') as file:
                 diff = subprocess.call(["diff",src,f],stdout=file,stderr=file)
             with open(".mutant_diff") as file:
