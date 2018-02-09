@@ -66,6 +66,9 @@ def main():
         args.remove("--cmd")
         args.remove(cmd)
 
+    sourceFile = args[1]
+    ending = "." + sourceFile.split(".")[-1]
+        
     lineFile = None
     try:
         linepos = args.index("--lines")
@@ -85,7 +88,7 @@ def main():
                 lines = []
                 for l in file:
                     if "LINES" in l:
-                        if src not in l:
+                        if sourceFile not in l:
                             continue
                         db = l.split("[")[1]
                         d = db[:-2].split(",")
