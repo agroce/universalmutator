@@ -176,7 +176,7 @@ def main():
         if (lineFile != None) and mutant[0] not in lines:
             # skip if not a line to mutate
             continue
-        tmpMutantName = ".um.tmp_mutant" + ending
+        tmpMutantName = "tmp_mutant" + ending
         print "PROCESSING MUTANT:",str(mutant[0])+":",source[mutant[0]-1][:-1]," ==> ",mutant[1][:-1],"...",
         mutator.makeMutant(source, mutant, tmpMutantName)
         mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
