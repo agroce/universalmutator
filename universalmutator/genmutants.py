@@ -122,7 +122,7 @@ def main():
                  ".c++": "cpp",             
                  ".py": "python",
                  ".java": "java",
-                 ".swift": "swift"
+                 ".swift": "swift",
                  ".rs": "rust"}    
 
     cLikeLanguages = ["c", "java", "swift", "cpp", "c++", "rust"]
