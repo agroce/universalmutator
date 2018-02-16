@@ -28,6 +28,21 @@ should, if you have the appropriate compilers installed, generate a bunch of val
 It will, right now, also have the side effect of executing foo.py if it is a script, not a module,
 many times, and leave some junk files in the directory, just FYI.
 
+A MORE COMPLEX EXAMPLE
+======================
+
+Sometimes the mutated code needs to be built with a more complicated command than a simple compiler call, and of course you want help discovering which mutants are killed and not killed.  For example, to mutate and test mutants for the mandelbrot plotting example included in Programming Rust, just do this:
+
+
+    git clone https://github.com/ProgrammingRust/mandelbrot
+    cd mandelbrot
+    cargo build
+    target/debug/mandelbrot origmandel.png 1000x750 -1.20,0.35 -1,0.20
+    mkdir mutants
+    mutate src/main.rs --mutantDir mutants
+    analyze_mutants src/main.rs "cargo clean; cargo build; rm mandel.png; target/debug/mandelbrot mandel.png 1000x750 -1.20,0.35 -1,0.20; diff mandel.png origmandel.png" --mutantDir mutants
+
+
 MORE INFORMATON
 ===============
 
