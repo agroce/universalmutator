@@ -31,7 +31,7 @@ many times, and leave some junk files in the directory, just FYI.
 A MORE COMPLEX EXAMPLE
 ======================
 
-Sometimes the mutated code needs to be built with a more complicated command than a simple compiler call, and of course you want help discovering which mutants are killed and not killed.  For example, to mutate and test mutants for the mandelbrot plotting example included in Programming Rust, just do this:
+Sometimes the mutated code needs to be built with a more complicated command than a simple compiler call, and of course you want help discovering which mutants are killed and not killed.  For example, to mutate and test mutants for the mandelbrot plotting example included in _Programming Rust_ (http://shop.oreilly.com/product/0636920040385.do), just do this:
 
 
     git clone https://github.com/ProgrammingRust/mandelbrot
@@ -42,6 +42,7 @@ Sometimes the mutated code needs to be built with a more complicated command tha
     mutate src/main.rs --mutantDir mutants
     analyze_mutants src/main.rs "cargo clean; cargo build; rm mandel.png; target/debug/mandelbrot mandel.png 1000x750 -1.20,0.35 -1,0.20; diff mandel.png origmandel.png" --mutantDir mutants
 
+(It will go faster if you edit 'main.rs' to lower the maximum number of threads used to something like 8, not 90.)
 
 MORE INFORMATON
 ===============
