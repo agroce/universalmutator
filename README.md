@@ -44,6 +44,8 @@ Sometimes the mutated code needs to be built with a more complicated command tha
 
 (It will go faster if you edit `main.rs` to lower the maximum number of threads used to something like 8, not 90.) At the moment, this won't use any Trivial Compiler Equivalence, but still kills about 60% of the 1000+ mutants. The killed mutant filenames will be in `killed.txt` and the non-killed ones in `not-killed.txt`.
 
+Working with something like maven is very similar, except you can probably edit the complicated build/clean stuff to just a 'mvn test' or similar.
+
 MORE INFORMATON
 ===============
 
