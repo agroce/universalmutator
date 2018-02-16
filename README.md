@@ -39,10 +39,10 @@ Sometimes the mutated code needs to be built with a more complicated command tha
     cargo build
     target/debug/mandelbrot origmandel.png 1000x750 -1.20,0.35 -1,0.20
     mkdir mutants
-    mutate src/main.rs --mutantDir mutants
+    mutate src/main.rs --mutantDir mutants --noCheck
     analyze_mutants src/main.rs "cargo clean; cargo build; rm mandel.png; target/debug/mandelbrot mandel.png 1000x750 -1.20,0.35 -1,0.20; diff mandel.png origmandel.png" --mutantDir mutants
 
-(It will go faster if you edit 'main.rs' to lower the maximum number of threads used to something like 8, not 90.)
+(It will go faster if you edit `main.rs` to lower the maximum number of threads used to something like 8, not 90.) At the moment, this won't use any Trivial Compiler Equivalence, but still kills about 60% of the 1000+ mutants. The killed mutant filenames will be in `killed.txt` and the non-killed ones in `not-killed.txt`.
 
 MORE INFORMATON
 ===============
