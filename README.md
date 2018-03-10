@@ -46,6 +46,21 @@ Sometimes the mutated code needs to be built with a more complicated command tha
 
 Working with something like maven is very similar, except you can probably edit the complicated build/clean stuff to just a 'mvn test' or similar.
 
+CURRENTLY SUPPORTED LANGUAGES
+=============================
+
+The tool will likely mutate other things, if you tell it they are "c" or something, but there is auto-detection based on file ending and specific rule support for:
+
+C
+C++
+Java
+Python
+Swift
+Rust
+Solidity
+
+All but C and C++ will try, by default, to compile the mutated file and use TCE to detect redundancy.  Of course, build dependencies may frustrate this process, in which case --noCheck will turn off TCE and just dump all the mutants in the directory, for pruning using a real build process.  In the long run, we plan to integrate with standard build systems to avoid this problem.
+
 MORE INFORMATON
 ===============
 
