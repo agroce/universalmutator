@@ -28,6 +28,24 @@ should, if you have the appropriate compilers installed, generate a bunch of val
 It will, right now, also have the side effect of executing foo.py if it is a script, not a module,
 many times, and leave some junk files in the directory, just FYI.
 
+A MORE COMPLEX EXAMPLE
+======================
+
+Sometimes the mutated code needs to be built with a more complicated command than a simple compiler call, and of course you want help discovering which mutants are killed and not killed.  For example, to mutate and test mutants for the mandelbrot plotting example included in _Programming Rust_ (http://shop.oreilly.com/product/0636920040385.do), just do this:
+
+
+    git clone https://github.com/ProgrammingRust/mandelbrot
+    cd mandelbrot
+    cargo build
+    target/debug/mandelbrot origmandel.png 1000x750 -1.20,0.35 -1,0.20
+    mkdir mutants
+    mutate src/main.rs --mutantDir mutants --noCheck
+    analyze_mutants src/main.rs "cargo clean; cargo build; rm mandel.png; target/debug/mandelbrot mandel.png 1000x750 -1.20,0.35 -1,0.20; diff mandel.png origmandel.png" --mutantDir mutants
+
+(It will go faster if you edit `main.rs` to lower the maximum number of threads used to something like 8, not 90.) At the moment, this won't use any Trivial Compiler Equivalence, but still kills about 60% of the 1000+ mutants. The killed mutant filenames will be in `killed.txt` and the non-killed ones in `not-killed.txt`.
+
+Working with something like maven is very similar, except you can probably edit the complicated build/clean stuff to just a 'mvn test' or similar.
+
 MORE INFORMATON
 ===============
 
