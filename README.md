@@ -51,6 +51,7 @@ CURRENTLY SUPPORTED LANGUAGES
 
 The tool will likely mutate other things, if you tell it they are "c" or something, but there is auto-detection based on file ending and specific rule support for:
 
+```
 C
 C++
 Java
@@ -58,8 +59,9 @@ Python
 Swift
 Rust
 Solidity
+```
 
-All but C and C++ will try, by default, to compile the mutated file and use TCE to detect redundancy.  Of course, build dependencies may frustrate this process, in which case --noCheck will turn off TCE and just dump all the mutants in the directory, for pruning using a real build process.  In the long run, we plan to integrate with standard build systems to avoid this problem.
+All but C and C++ will try, by default, to compile the mutated file and use TCE to detect redundancy.  Of course, build dependencies may frustrate this process, in which case --noCheck will turn off TCE and just dump all the mutants in the directory, for pruning using a real build process.  In the long run, we plan to integrate with standard build systems to avoid this problem, and with automated test generation systems such as TSTL (https://github.com/agroce/tstl) for Python or Echidna for Solidity (https://github.com/trailofbits/echidna).  Even now, however, with `analyze_mutants` it is fairly easy to set up automatic evaluation of your automated test generator.
 
 MORE INFORMATON
 ===============
