@@ -1,0 +1,13 @@
+true ==> false
+false ==> true
+int ==> uint
+uint ==> int
+fixed ==> ufixed
+ufixed ==> fixed
+int16 ==> int8
+memory ==> storage
+storage ==> memory
+view ==> pure
+pure ==> view
+constant ==> view
+constant ==> pure

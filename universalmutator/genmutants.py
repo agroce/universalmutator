@@ -9,6 +9,7 @@ import cpp_handler
 import java_handler
 import swift_handler
 import rust_handler
+import solidity_handler
 import subprocess
 
 import os
@@ -115,7 +116,8 @@ def main():
                 "cpp": cpp_handler,            
                 "java": java_handler,
                 "swift": swift_handler,
-                "rust": rust_handler}
+                "rust": rust_handler,
+                "solidity": solidity_handler}
 
     languages = {".c": "c",
                  ".cpp": "cpp",
@@ -123,9 +125,10 @@ def main():
                  ".py": "python",
                  ".java": "java",
                  ".swift": "swift",
-                 ".rs": "rust"}    
+                 ".rs": "rust",
+                 ".sol": "solidity"}    
 
-    cLikeLanguages = ["c", "java", "swift", "cpp", "c++", "rust"]
+    cLikeLanguages = ["c", "java", "swift", "cpp", "c++", "rust", "solidity"]
 
     try:
         handlers["custom"] == "custom_handler"
