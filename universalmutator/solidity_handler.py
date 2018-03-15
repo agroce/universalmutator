@@ -18,11 +18,11 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         shutil.copy(tmpMutantName,tmpMutantName+".backup")
         shutil.copy(sourceFile,tmpMutantName)
         with open(".um.out.asm",'w') as file:    
-            r = subprocess.call(["solc",tmpMutantName,"--asm"],stdout=file,stderr=file)
+            r = subprocess.call(["solc",tmpMutantName,"--asm","--optimize"],stdout=file,stderr=file)
         with open(".um.out.asm",'r') as file:
             uniqueMutants[extractASM(file.read(),tmpMutantName)] = 1
     with open(".um.out.asm",'w') as file:    
-        r = subprocess.call(["solc",tmpMutantName,"--asm"],stdout=file,stderr=file)
+        r = subprocess.call(["solc",tmpMutantName,"--asm","--optimize"],stdout=file,stderr=file)
     if r == 0:
         with open(".um.out.asm",'r') as file:
             code = extractASM(file.read(),tmpMutantName)
