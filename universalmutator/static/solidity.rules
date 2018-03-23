@@ -11,3 +11,5 @@ view ==> pure
 pure ==> view
 constant ==> view
 constant ==> pure
+constant ==> 
+payable ==> 
