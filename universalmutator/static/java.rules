@@ -1,1 +1,6 @@
 synchronized ==>
+
+&& .* ==> && true
+\|\| .* ==> || false
+.* && ==> true &&
+.* \|\| ==> false ||
