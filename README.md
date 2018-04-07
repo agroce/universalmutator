@@ -58,6 +58,7 @@ Java
 Python
 Swift
 Rust
+Go
 Solidity
 ```
 
