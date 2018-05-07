@@ -93,7 +93,7 @@ def main():
                 if (onlyMutants is not None) and (
                         f.split("/")[-1] not in onlyMutants):
                     continue
-                print (f, end=" ")
+                print(f, end=" ")
                 if f in ignore:
                     print("SKIPPED")
                 try:

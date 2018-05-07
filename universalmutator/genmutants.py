@@ -211,7 +211,7 @@ def main():
             mutant,
             sourceFile,
             uniqueMutants)
-        print (mutantResult, end=" ")
+        print(mutantResult, end=" ")
         mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
         if mutantResult == "VALID":
             print("[written to", mutantName + "]", end=" ")
