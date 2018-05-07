@@ -7,9 +7,6 @@ python:
 install:
 - pip install pyflakes
 - pip install pycodestyle
-- pip install tstl
-env:
-- TRAVIS=TRUE
 script:
 - pyflakes universalmutator/*.py
 - pyflakes tests/*.py
