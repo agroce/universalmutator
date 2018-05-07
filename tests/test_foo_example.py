@@ -16,7 +16,7 @@ class TestFooExample(TestCase):
             r = subprocess.call(["mutate", "foo.py"], stdout=f, stderr=f)
         with open("mutate.out", 'r') as f:
             for line in f:
-                print(line, end=" ")            
+                print(line, end=" ")
         self.assertEqual(r, 0)
 
         with open("mutate.out", 'r') as f:
