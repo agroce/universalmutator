@@ -1,0 +1,20 @@
+language: python
+dist: trusty
+sudo: false
+python:
+- "2.7"
+- "3.6"
+install:
+- pip install pyflakes
+- pip install pycodestyle
+- pip install tstl
+env:
+- TRAVIS=TRUE
+script:
+- pyflakes universalmutator/*.py
+- pyflakes tests/*.py
+- pycodestyle universalmutator/*.py --max-line-length 120 --statistics --ignore W503,W504,E704
+- pycodestyle tests/*.py --max-line-length 120 --statistics
+- python setup.py install
+- nosetests --verbose
+

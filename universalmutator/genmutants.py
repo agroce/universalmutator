@@ -1,5 +1,9 @@
+from __future__ import print_function
+
 import sys
 import shutil
+import subprocess
+
 import mutator
 
 import python_handler
@@ -11,41 +15,46 @@ import swift_handler
 import rust_handler
 import go_handler
 import solidity_handler
-import subprocess
 
-import os
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     return "VALID"
 
+
 def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     global cmd
 
-    with open(".um.mutant_output",'w') as file:
-        r = subprocess.call([cmd.replace("MUTANT",tmpMutantName)],shell=True,stderr=file,stdout=file)
+    with open(".um.mutant_output", 'w') as file:
+        r = subprocess.call([cmd.replace("MUTANT", tmpMutantName)],
+                            shell=True, stderr=file, stdout=file)
     if r == 0:
         return "VALID"
     else:
         return "INVALID"
+
 
 def main():
     global cmd
 
     try:
         import custom_handler
-    except:
+    except BaseException:
         pass
 
     args = sys.argv
-    
+
+    print("*** UNIVERSALMUTATOR ***")
+
     if "--help" in args:
-        print "USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...] [--noCheck] [--cmd <command string>] [--mutantDir <dir>] [--lines <coverfile> [--tstl]]"
-        print "       --noCheck: skips compilation/comparison and just generates mutant files"
-        print "       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code"
-        print "             to determine mutant validity"
-        print "       --mutantDir: directory to put generated mutants in; defaults to current directory"
-        print "       --lines: only generate mutants for lines contained in <coverfile>"
-        print "       --tstl: <coverfile> is TSTL output"
+        print("USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...]",
+              "[--noCheck] [--cmd <command string>] [--mutantDir <dir>]",
+              "[--lines <coverfile> [--tstl]]")
+        print("       --noCheck: skips compilation/comparison and just generates mutant files")
+        print("       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code")
+        print("             to determine mutant validity")
+        print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
+        print("       --lines: only generate mutants for lines contained in <coverfile>")
+        print("       --tstl: <coverfile> is TSTL output")
         sys.exit(0)
 
     noCheck = False
@@ -58,35 +67,35 @@ def main():
         cmdpos = args.index("--cmd")
     except ValueError:
         cmdpos = -1
-        
+
     tstl = False
     if "--tstl" in args:
         tstl = True
         args.remove("--tstl")
 
     if cmdpos != -1:
-        cmd = args[cmdpos+1]
+        cmd = args[cmdpos + 1]
         args.remove("--cmd")
         args.remove(cmd)
 
     sourceFile = args[1]
     ending = "." + sourceFile.split(".")[-1]
-        
+
     lineFile = None
     try:
         linepos = args.index("--lines")
     except ValueError:
         linepos = -1
-        
+
     if linepos != -1:
-        lineFile = args[linepos+1]
+        lineFile = args[linepos + 1]
         args.remove("--lines")
         args.remove(lineFile)
 
-    if lineFile != None:
+    if lineFile is not None:
         with open(lineFile) as file:
             if not tstl:
-                lines = map(int,file.read().split())
+                lines = map(int, file.read().split())
             else:
                 lines = []
                 for l in file:
@@ -103,9 +112,9 @@ def main():
         mdirpos = args.index("--mutantDir")
     except ValueError:
         mdirpos = -1
-        
+
     if mdirpos != -1:
-        mdir = args[mdirpos+1]
+        mdir = args[mdirpos + 1]
         args.remove("--mutantDir")
         args.remove(mdir)
         mdir += "/"
@@ -114,7 +123,7 @@ def main():
                 "python3": python3_handler,
                 "c": c_handler,
                 "c++": cpp_handler,
-                "cpp": cpp_handler,            
+                "cpp": cpp_handler,
                 "java": java_handler,
                 "swift": swift_handler,
                 "rust": rust_handler,
@@ -123,19 +132,27 @@ def main():
 
     languages = {".c": "c",
                  ".cpp": "cpp",
-                 ".c++": "cpp",             
+                 ".c++": "cpp",
                  ".py": "python",
                  ".java": "java",
                  ".swift": "swift",
                  ".rs": "rust",
                  ".go": "go",
-                 ".sol": "solidity"}    
+                 ".sol": "solidity"}
 
-    cLikeLanguages = ["c", "java", "swift", "cpp", "c++", "rust", "solidity", "go"]
+    cLikeLanguages = [
+        "c",
+        "java",
+        "swift",
+        "cpp",
+        "c++",
+        "rust",
+        "solidity",
+        "go"]
 
     try:
-        handlers["custom"] == "custom_handler"
-    except:
+        handlers["custom"] == custom_handler
+    except BaseException:
         pass
 
     sourceFile = args[1]
@@ -153,17 +170,17 @@ def main():
     if language in cLikeLanguages:
         otherRules.append("c_like.rules")
 
-    rules = ["universal.rules",language + ".rules"] + otherRules
+    rules = ["universal.rules", language + ".rules"] + otherRules
 
     source = []
 
-    with open(sourceFile,'r') as file:
+    with open(sourceFile, 'r') as file:
         for l in file:
             source.append(l)
 
-    mutants = mutator.mutants(source, rules = rules)
+    mutants = mutator.mutants(source, rules=rules)
 
-    print len(mutants),"MUTANTS GENERATED BY RULES"
+    print(len(mutants), "MUTANTS GENERATED BY RULES")
 
     validMutants = []
     invalidMutants = []
@@ -171,7 +188,7 @@ def main():
     uniqueMutants = {}
 
     if not noCheck:
-        if cmd != None:
+        if cmd is not None:
             handler = cmdHandler
         elif language == "none":
             handler = nullHandler
@@ -182,17 +199,22 @@ def main():
 
     mutantNo = 0
     for mutant in mutants:
-        if (lineFile != None) and mutant[0] not in lines:
+        if (lineFile is not None) and mutant[0] not in lines:
             # skip if not a line to mutate
             continue
         tmpMutantName = "tmp_mutant" + ending
-        print "PROCESSING MUTANT:",str(mutant[0])+":",source[mutant[0]-1][:-1]," ==> ",mutant[1][:-1],"...",
+        print("PROCESSING MUTANT:",
+              str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
         mutator.makeMutant(source, mutant, tmpMutantName)
-        mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
-        print mutantResult,
+        mutantResult = handler(
+            tmpMutantName,
+            mutant,
+            sourceFile,
+            uniqueMutants)
+        print (mutantResult, end=" ")
         mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
         if mutantResult == "VALID":
-            print "[written to",mutantName+"]",
+            print("[written to", mutantName + "]", end=" ")
             shutil.copy(tmpMutantName, mutantName)
             validMutants.append(mutant)
             mutantNo += 1
@@ -200,12 +222,12 @@ def main():
             invalidMutants.append(mutant)
         elif mutantResult == "REDUNDANT":
             redundantMutants.append(mutant)
-        print
+        print()
 
-    print len(validMutants),"VALID MUTANTS"
-    print len(invalidMutants),"INVALID MUTANTS"
-    print len(redundantMutants),"REDUNDANT MUTANTS"
+    print(len(validMutants), "VALID MUTANTS")
+    print(len(invalidMutants), "INVALID MUTANTS")
+    print(len(redundantMutants), "REDUNDANT MUTANTS")
+
 
 if __name__ == '__main__':
     main()
-

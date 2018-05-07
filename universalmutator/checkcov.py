@@ -1,31 +1,32 @@
+from __future__ import print_function
+
 import subprocess
 import sys
 import glob
-import shutil
-import os
+
 
 def main():
 
     args = sys.argv
 
     if "--help" in args:
-        print "USAGE: check_cover <sourcefile> <coverfile> <outfile> [--tstl] [--mutantDir directory]"
-        print "       --mutantDir: directory to put generated mutants in; defaults to current directory"
-        print "       --tstl: process <coverfile> that is output from TSTL internal report"                
-        sys.exit(0)    
-    
+        print("USAGE: check_cover <sourcefile> <coverfile> <outfile> [--tstl] [--mutantDir directory]")
+        print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
+        print("       --tstl: process <coverfile> that is output from TSTL internal report")
+        sys.exit(0)
+
     mdir = ""
     try:
         mdirpos = args.index("--mutantDir")
     except ValueError:
         mdirpos = -1
-        
+
     if mdirpos != -1:
-        mdir = args[mdirpos+1]
+        mdir = args[mdirpos + 1]
         args.remove("--mutantDir")
         args.remove(mdir)
         mdir += "/"
-    
+
     src = args[1]
     coverFile = args[2]
     outFile = args[3]
@@ -34,10 +35,10 @@ def main():
 
     srcBase = src.split("/")[-1]
     srcEnd = src.split(".")[-1]
-    
+
     with open(coverFile) as file:
         if not tstl:
-            lines = map(int,file.read().split())
+            lines = map(int, file.read().split())
         else:
             lines = []
             for l in file:
@@ -48,12 +49,16 @@ def main():
                     d = db[:-2].split(",")
                     for line in d:
                         lines.append(int(line))
-    
 
-    with open(outFile,'w') as notCovered:
-        for f in glob.glob(mdir + srcBase.replace(srcEnd,"mutant.*." + srcEnd)):
-            with open(".mutant_diff",'w') as file:
-                diff = subprocess.call(["diff",src,f],stdout=file,stderr=file)
+    with open(outFile, 'w') as notCovered:
+        for f in glob.glob(
+            mdir +
+            srcBase.replace(
+                srcEnd,
+                "mutant.*." +
+                srcEnd)):
+            with open(".mutant_diff", 'w') as file:
+                subprocess.call(["diff", src, f], stdout=file, stderr=file)
             with open(".mutant_diff") as file:
                 for l in file:
                     if "c" in l:
@@ -66,8 +71,8 @@ def main():
                         line = int(l.split("d")[0])
                         break
             if line not in lines:
-                notCovered.write(f+"\n")
+                notCovered.write(f + "\n")
+
 
 if __name__ == '__main__':
-    main()        
-                       
+    main()
