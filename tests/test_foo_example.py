@@ -14,6 +14,9 @@ class TestFooExample(TestCase):
     def test_foo_example(self):
         with open("mutate.out", 'w') as f:
             r = subprocess.call(["mutate", "foo.py"], stdout=f, stderr=f)
+        with open("mutate.out", 'r') as f:
+            for line in f:
+                print(line, end=" ")            
         self.assertEqual(r, 0)
 
         with open("mutate.out", 'r') as f:
@@ -35,6 +38,9 @@ class TestFooExample(TestCase):
             r = subprocess.call(
                 ["analyze_mutants", "foo.py", 'python foo.py', "--verbose", "--timeout", "5"],
                 stdout=f, stderr=f)
+        with open("analyze.out", 'r') as f:
+            for line in f:
+                print(line, end=" ")
         self.assertEqual(r, 0)
 
         with open("analyze.out", 'r') as f:
