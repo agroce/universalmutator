@@ -1,7 +1,7 @@
 This is a tool based purely on regexp-specified rewrite of code lines for mutation generation, including
 multi-language rules aided by special rules for languages or even projects.
 
-More information on this project can be found at: https://www.cefns.nau.edu/~adg326/icse18t.pdf 
+More information on this project can be found at: https://agroce.github.io/icse18t.pdf 
 
 HOW TO USE IT
 =============
@@ -69,7 +69,7 @@ All but C, C++, and Go will try, by default, to compile the mutated file and use
 MORE INFORMATON
 ===============
 
-For much more information, again see https://www.cefns.nau.edu/~adg326/icse18t.pdf -- demo/tool paper at ICSE 18.
+For much more information, again see https://agroce.github.io/icse18t.pdf -- demo/tool paper at ICSE 18.
 
 The aim of this project is partly to see how quickly mutation can be applied to new languages, partly how much the work of a tool can be
 offloaded to the compiler / test analysis tools.
