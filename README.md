@@ -14,6 +14,8 @@ then
 
 `mutate --help`
 
+(Note:  right now the tool itself is Python 2.7 only, but it works to mutate Python 3+ code; soon it will also install under Python 3.)
+
 SIMPLE EXAMPLE USAGE
 ====================
 
