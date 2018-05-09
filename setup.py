@@ -19,8 +19,11 @@ setup(
             'static/swift.rules',
             'static/java.rules',
             'static/python.rules',
+            'static/rust.rules',
+            'static/go.rules',                        
+            'static/rust.rules',
+            'static/solidity.rules',            
             'static/none.rules',
-            'static/handlemutant.py'            
             ]
     },
     license='MIT',
