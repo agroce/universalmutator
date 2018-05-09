@@ -22,18 +22,15 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         os.remove(compiled)
 
     try:
-        py_compile.compile(tmpMutantName, doraise=True)
+        py_compile.compile(tmpMutantName, doraise=True, cfile=compiled)
     except py_compile.PyCompileError:
         return "INVALID"
 
     if len(uniqueMutants) == 0:
         sourceCompiled = sourceFile.replace(".py", ".pyc")
+        py_compile.compile(sourceFile, cfile=sourceCompiled)
         if os.path.exists(sourceCompiled):
             uniqueMutants[getPythonCode(sourceCompiled)] = 1
-        else:
-            py_compile.compile(sourceFile)
-            if os.path.exists(sourceCompiled):
-                uniqueMutants[getPythonCode(sourceCompiled)] = 1
 
     if os.path.exists(compiled):
         code = getPythonCode(compiled)
@@ -44,4 +41,5 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
             uniqueMutants[code] = 1
             return "VALID"
     else:
+        print("GOT HERE")
         return "INVALID"
