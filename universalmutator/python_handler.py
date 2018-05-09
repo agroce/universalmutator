@@ -1,8 +1,7 @@
 import marshal
 import os
-import subprocess
-import pkg_resources
 import sys
+import py_compile
 
 
 def getPythonCode(fname):
@@ -17,22 +16,25 @@ def getPythonCode(fname):
 
 
 def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
-    with pkg_resources.resource_stream('universalmutator', 'static/handlemutant.py') as pyhandler:
-        with open(".um.handlemutant.py", 'w') as file:
-            for l in pyhandler:
-                file.write(l.decode())
+    compiled = tmpMutantName.replace(".py", ".pyc")
+
+    if os.path.exists(compiled):
+        os.remove(compiled)
+
+    try:
+        py_compile.compile(tmpMutantName, doraise=True)
+    except py_compile.PyCompileError:
+        return "INVALID"
 
     if len(uniqueMutants) == 0:
         sourceCompiled = sourceFile.replace(".py", ".pyc")
         if os.path.exists(sourceCompiled):
             uniqueMutants[getPythonCode(sourceCompiled)] = 1
+        else:
+            py_compile.compile(sourceFile)
+            if os.path.exists(sourceCompiled):
+                uniqueMutants[getPythonCode(sourceCompiled)] = 1
 
-    compiled = tmpMutantName.replace(".py", ".pyc")
-    if os.path.exists(compiled):
-        os.remove(compiled)
-    with open(".um.mutant_output", 'w') as file:
-        subprocess.call(["python", ".um.handlemutant.py"],
-                        stdout=file, stderr=file)
     if os.path.exists(compiled):
         code = getPythonCode(compiled)
         if code in uniqueMutants:

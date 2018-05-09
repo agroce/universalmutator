@@ -14,7 +14,7 @@ def mutants(source, rules=["universal.rules"]):
             with pkg_resources.resource_stream('universalmutator', 'static/' + ruleFile) as builtInRule:
                 for line in builtInRule:
                     line = line.decode()
-                    rulesText.append((l, "builtin:" + ruleFile))
+                    rulesText.append((line, "builtin:" + ruleFile))
         except Exception as e:
             print(e)
             print("FAILED TO FIND BUILT IN RULE")
