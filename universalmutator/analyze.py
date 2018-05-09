@@ -66,7 +66,7 @@ def main():
         mdir += "/"
 
     src = args[1]
-    tstCmd = args[2].split()
+    tstCmd = [args[2]]
     ignore = []
     if len(args) > 3:
         with open(sys.argv[3]) as file:
@@ -105,9 +105,9 @@ def main():
                     if not verbose:
                         with open(os.devnull, 'w') as dnull:
                             P = subprocess.Popen(
-                                tstCmd, stderr=dnull, stdout=dnull)
+                                tstCmd, shell=True, stderr=dnull, stdout=dnull)
                     else:
-                        P = subprocess.Popen(tstCmd)
+                        P = subprocess.Popen(tstCmd, shell=True)
 
                     while P.poll() is None and (time.time() - start) < timeout:
                         time.sleep(0.05)
