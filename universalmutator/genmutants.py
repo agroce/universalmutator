@@ -4,17 +4,17 @@ import sys
 import shutil
 import subprocess
 
-import mutator
+import universalmutator.mutator as mutator
 
-import python_handler
-import python3_handler
-import c_handler
-import cpp_handler
-import java_handler
-import swift_handler
-import rust_handler
-import go_handler
-import solidity_handler
+import universalmutator.python_handler as python_handler
+# import universalmutator.python3_handler as python3_handler
+import universalmutator.c_handler as c_handler
+import universalmutator.cpp_handler as cpp_handler
+import universalmutator.java_handler as java_handler
+import universalmutator.swift_handler as swift_handler
+import universalmutator.rust_handler as rust_handler
+import universalmutator.go_handler as go_handler
+import universalmutator.solidity_handler as solidity_handler
 
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
@@ -120,7 +120,6 @@ def main():
         mdir += "/"
 
     handlers = {"python": python_handler,
-                "python3": python3_handler,
                 "c": c_handler,
                 "c++": cpp_handler,
                 "cpp": cpp_handler,

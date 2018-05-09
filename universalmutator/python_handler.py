@@ -2,6 +2,7 @@ import marshal
 import os
 import subprocess
 import pkg_resources
+import sys
 
 
 def getPythonCode(fname):
@@ -9,8 +10,8 @@ def getPythonCode(fname):
     f = open(fname, "rb")
     f.read(4)
     f.read(4)
-    # Note that for Python 3.3+ you'd need another f.read(4) here since the
-    # format changed
+    if sys.version_info >= (3, 3):
+        f.read(4)
     code = marshal.load(f)
     return code
 
@@ -19,7 +20,7 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     with pkg_resources.resource_stream('universalmutator', 'static/handlemutant.py') as pyhandler:
         with open(".um.handlemutant.py", 'w') as file:
             for l in pyhandler:
-                file.write(l)
+                file.write(l.decode())
 
     if len(uniqueMutants) == 0:
         sourceCompiled = sourceFile.replace(".py", ".pyc")
