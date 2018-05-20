@@ -25,8 +25,6 @@ or
 
 should, if you have the appropriate compilers installed, generate a bunch of valid, non-trivially redundant, mutants.
 
-It will, right now, also have the side effect of executing foo.py if it is a script, not a module,
-many times, and leave some junk files in the directory, just FYI.
 
 A MORE COMPLEX EXAMPLE
 ======================
