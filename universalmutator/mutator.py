@@ -6,6 +6,7 @@ import pkg_resources
 
 def mutants(source, rules=["universal.rules"]):
     rulesText = []
+    print("MUTATING WITH RULES:", ", ".join(rules))
 
     for ruleFile in rules:
         if ".rules" not in ruleFile:
@@ -15,12 +16,14 @@ def mutants(source, rules=["universal.rules"]):
                 for line in builtInRule:
                     line = line.decode()
                     rulesText.append((line, "builtin:" + ruleFile))
-        except Exception as e:
-            print(e)
-            print("FAILED TO FIND BUILT IN RULE")
-            with open(ruleFile, 'r') as file:
-                for l in file:
-                    rulesText.append((l, ruleFile))
+        except BaseException:
+            print("FAILED TO FIND RULE", ruleFile, "AS BUILT-IN...")
+            try:
+                with open(ruleFile, 'r') as file:
+                    for l in file:
+                        rulesText.append((l, ruleFile))
+            except BaseException:
+                print("COULD NOT FIND RULE FILE", ruleFile + "!  SKIPPING...")
 
     rules = []
     ignoreRules = []

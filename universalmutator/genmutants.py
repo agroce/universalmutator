@@ -59,7 +59,6 @@ def main():
         print("USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...]",
               "[--noCheck] [--cmd <command string>] [--mutantDir <dir>]",
               "[--lines <coverfile> [--tstl]]")
-        print("NOTE:  to specify extra rules, you must specify the language, or use full .rules names")
         print()
         print("       --noCheck: skips compilation/comparison and just generates mutant files")
         print("       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code")
@@ -164,16 +163,13 @@ def main():
     if len(args) < 3:
         language = languages[ending]
         otherRules = []
-    elif len(args) == 2:
+    else:
         if ".rules" in args[2]:
             language = languages[ending]
-            otherRules = [args[2]]
+            otherRules = args[2:]
         else:
             language = args[2]
-            otherRules = []
-    elif len(args) > 2:
-        language = args[2]
-        otherRules = args[3:]
+            otherRules = args[3:]
 
     if language not in handlers:
         if language.lower() in handlers:
