@@ -7,6 +7,7 @@ setup(
     name='universalmutator',
     version='0.8.13',
     description='Universal regexp-based mutation tool',
+    long_description_content_type="text/markdown",
     long_description=open('README.md').read(),
     packages=['universalmutator',],
     include_package_data = True,
