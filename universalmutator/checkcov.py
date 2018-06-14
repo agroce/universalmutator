@@ -50,7 +50,7 @@ def main():
                     for line in d:
                         lines.append(int(line))
 
-    with open(outFile, 'w') as notCovered:
+    with open(outFile, 'w') as coveredFile:
         for f in glob.glob(
             mdir +
             srcBase.replace(
@@ -70,8 +70,8 @@ def main():
                     elif "d" in l:
                         line = int(l.split("d")[0])
                         break
-            if line not in lines:
-                notCovered.write(f + "\n")
+            if line in lines:
+                coveredFile.write(f.split("/")[-1] + "\n")
 
 
 if __name__ == '__main__':

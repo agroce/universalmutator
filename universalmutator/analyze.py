@@ -122,12 +122,12 @@ def main():
                     count += 1
                     if r == 0:
                         print("NOT KILLED")
-                        notkilled.write(f + "\n")
+                        notkilled.write(f.split("/")[-1] + "\n")
                         notkilled.flush()
                     else:
                         killCount += 1
                         print("KILLED")
-                        killed.write(f + "\n")
+                        killed.write(f.split("/")[-1] + "\n")
                         killed.flush()
                 finally:
                     shutil.copy(src + ".um.backup", src)
