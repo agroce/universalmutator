@@ -5,6 +5,7 @@ import sys
 import glob
 import shutil
 import time
+import random
 import os
 
 
@@ -19,11 +20,16 @@ def main():
         print("       --fromFile: file containing list of mutants to process; others ignored")
         print("       --timeout <val>: change the timeout setting")
         print("       --verbose: show output of mutants")
+        print("       --noShuffle: do not randomize order of mutants")
         sys.exit(0)
 
     verbose = "--verbose" in sys.argv
     if verbose:
         args.remove("--verbose")
+
+    noShuffle = "--noShuffle" in sys.argv
+    if noShuffle:
+        args.remove("--noShuffle")
 
     fromFile = None
     try:
@@ -82,18 +88,27 @@ def main():
     print("ANALYZING", src)
     print("COMMAND: **", tstCmd, "**")
 
+    allTheMutants = glob.glob(mdir + srcBase.replace(srcEnd, "mutant.*." + srcEnd))
+
+    if onlyMutants is not None:
+        newMutants = []
+        for f in allTheMutants:
+            if f.split("/")[-1] in onlyMutants:
+                newMutants.append(f)
+        allTheMutants = newMutants
+
+    if not noShuffle:
+        random.shuffle(allTheMutants)
+
+    allStart = time.time()
+
     with open("killed.txt", 'w') as killed:
         with open("notkilled.txt", 'w') as notkilled:
-            for f in glob.glob(
-                mdir +
-                srcBase.replace(
-                    srcEnd,
-                    "mutant.*." +
-                    srcEnd)):
-                if (onlyMutants is not None) and (
-                        f.split("/")[-1] not in onlyMutants):
-                    continue
-                print(f, end=" ")
+            for f in allTheMutants:
+                print("#" + str(int(count)) + ":", end=" ")
+                print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
+                print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
+                print("  " + f, end=" ")
                 if f in ignore:
                     print("SKIPPED")
                 try:
@@ -129,6 +144,8 @@ def main():
                         print("KILLED")
                         killed.write(f.split("/")[-1] + "\n")
                         killed.flush()
+                    print("  RUNNING SCORE:", killCount / count)
+                    sys.stdout.flush()
                 finally:
                     shutil.copy(src + ".um.backup", src)
                     os.remove(src + ".um.backup")
