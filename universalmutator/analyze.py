@@ -119,14 +119,20 @@ def main():
                 for line in notkilled:
                     alreadyNotKilled.append(line[:-1])
                     count += 1
+            print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
 
     with open("killed.txt", 'w') as killed:
         with open("notkilled.txt", 'w') as notkilled:
+            if resume:
+                for line in alreadyKilled:
+                    killed.write(line + "\n")
+                for line in alreadyNotKilled:
+                    notkilled.write(line + "\n")
             for f in allTheMutants:
                 if resume:
                     if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
                         continue
-                print("#" + str(int(count)) + ":", end=" ")
+                print("#" + str(int(count) + 1) + ":", end=" ")
                 print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
                 print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
                 print("  " + f, end=" ")
