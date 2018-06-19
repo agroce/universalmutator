@@ -119,7 +119,7 @@ def main():
                 for line in notkilled:
                     alreadyNotKilled.append(line[:-1])
                     count += 1
-            print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
+        print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
 
     with open("killed.txt", 'w') as killed:
         with open("notkilled.txt", 'w') as notkilled:
