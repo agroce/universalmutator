@@ -21,11 +21,16 @@ def main():
         print("       --timeout <val>: change the timeout setting")
         print("       --verbose: show output of mutants")
         print("       --noShuffle: do not randomize order of mutants")
+        print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
         sys.exit(0)
 
     verbose = "--verbose" in sys.argv
     if verbose:
         args.remove("--verbose")
+
+    resume = "--resume" in sys.argv
+    if resume:
+        args.remove("--resume")
 
     noShuffle = "--noShuffle" in sys.argv
     if noShuffle:
@@ -102,9 +107,25 @@ def main():
 
     allStart = time.time()
 
+    if resume:
+        alreadyKilled = []
+        alreadyNotKilled = []
+        with open("killed.txt", 'r') as killed:
+            with open("notkilled.txt", 'r') as notkilled:
+                for line in killed:
+                    alreadyKilled.append(line[:-1])
+                    count += 1
+                    killCount += 1
+                for line in notkilled:
+                    alreadyNotKilled.append(line[:-1])
+                    count += 1
+
     with open("killed.txt", 'w') as killed:
         with open("notkilled.txt", 'w') as notkilled:
             for f in allTheMutants:
+                if resume:
+                    if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
+                        continue
                 print("#" + str(int(count)) + ":", end=" ")
                 print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
                 print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
