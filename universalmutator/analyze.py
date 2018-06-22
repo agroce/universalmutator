@@ -113,10 +113,14 @@ def main():
         with open("killed.txt", 'r') as killed:
             with open("notkilled.txt", 'r') as notkilled:
                 for line in killed:
+                    if line == "\n":
+                        continue
                     alreadyKilled.append(line[:-1])
                     count += 1
                     killCount += 1
                 for line in notkilled:
+                    if line == "\n":
+                        continue
                     alreadyNotKilled.append(line[:-1])
                     count += 1
         print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
