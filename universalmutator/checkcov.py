@@ -10,7 +10,7 @@ def main():
     args = sys.argv
 
     if "--help" in args:
-        print("USAGE: check_cover <sourcefile> <coverfile> <outfile> [--tstl] [--mutantDir directory]")
+        print("USAGE: check_covered <sourcefile> <coverfile> <outfile> [--tstl] [--mutantDir directory]")
         print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
         print("       --tstl: process <coverfile> that is output from TSTL internal report")
         sys.exit(0)
