@@ -20,6 +20,7 @@ def main():
         print("       --fromFile: file containing list of mutants to process; others ignored")
         print("       --timeout <val>: change the timeout setting")
         print("       --verbose: show output of mutants")
+        print("       --seed: random seed for shuffling of mutants")
         print("       --noShuffle: do not randomize order of mutants")
         print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
         sys.exit(0)
@@ -46,6 +47,18 @@ def main():
         fromFile = args[filepos + 1]
         args.remove("--fromFile")
         args.remove(fromFile)
+
+    seed = None
+    try:
+        seedpos = args.index("--seed")
+    except ValueError:
+        seedpos = -1
+
+    if seedpos != -1:
+        seed = args[seedpos + 1]
+        args.remove("--seed")
+        args.remove(seed)
+        seed = int(seed)
 
     timeout = 30
     try:
@@ -101,6 +114,9 @@ def main():
             if f.split("/")[-1] in onlyMutants:
                 newMutants.append(f)
         allTheMutants = newMutants
+
+    if seed is not None:
+        random.seed(seed)
 
     if not noShuffle:
         random.shuffle(allTheMutants)
