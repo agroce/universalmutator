@@ -180,6 +180,7 @@ def main():
                         P.terminate()
 
                     r = P.returncode
+                    runtime = time.time() - start
 
                     count += 1
                     if r == 0:
@@ -188,7 +189,7 @@ def main():
                         notkilled.flush()
                     else:
                         killCount += 1
-                        print("KILLED")
+                        print("KILLED IN", runtime)
                         killed.write(f.split("/")[-1] + "\n")
                         killed.flush()
                     print("  RUNNING SCORE:", killCount / count)
