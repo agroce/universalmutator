@@ -106,7 +106,7 @@ def main():
     print("ANALYZING", src)
     print("COMMAND: **", tstCmd, "**")
 
-    allTheMutants = glob.glob(mdir + srcBase.replace(srcEnd, ".mutant*." + srcEnd))
+    allTheMutants = glob.glob(mdir + srcBase.replace(srcEnd, ".mutant*" + srcEnd))
 
     if onlyMutants is not None:
         newMutants = []
