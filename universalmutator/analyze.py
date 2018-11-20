@@ -98,7 +98,7 @@ def main():
                 ignore.append(l.split()[0])
 
     srcBase = src.split("/")[-1]
-    srcEnd = (src.split(".")[-1]).split("/")[-1]
+    srcEnd = "." + ((src.split(".")[-1]).split("/")[-1])
 
     count = 0.0
     killCount = 0.0
@@ -106,7 +106,7 @@ def main():
     print("ANALYZING", src)
     print("COMMAND: **", tstCmd, "**")
 
-    allTheMutants = glob.glob(mdir + srcBase.replace(srcEnd, "mutant.*." + srcEnd))
+    allTheMutants = glob.glob(mdir + srcBase.replace(srcEnd, ".mutant*." + srcEnd))
 
     if onlyMutants is not None:
         newMutants = []
