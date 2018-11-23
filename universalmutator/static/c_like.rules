@@ -1,8 +1,11 @@
 (^\s*)(\S+[^{}]+.*)\n ==> \1/*\2*/\n
 if (\(.*\)) ==> if (!\1)
+if(\(.*\)) ==> if (!\1)
+if (\(.*\)) ==> if (0)
+if(\(.*\)) ==> if(0)
+if (\(.*\)) ==> if (1)
+if(\(.*\)) ==> if(1)
 while (\(.*\)) ==> while (!\1)
-if \( ==> if (!
-if\( ==> if(!
-while \( ==> while (!
-while\( ==> while(!
+while(\(.*\)) ==> while(!\1)
+else ==> 
 // ==> SKIP_MUTATING_REST
