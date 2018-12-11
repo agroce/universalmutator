@@ -4,6 +4,7 @@ import subprocess
 import sys
 import glob
 import shutil
+import signal
 import time
 import random
 import os
@@ -167,9 +168,10 @@ def main():
                     if not verbose:
                         with open(os.devnull, 'w') as dnull:
                             P = subprocess.Popen(
-                                tstCmd, shell=True, stderr=dnull, stdout=dnull)
+                                tstCmd, shell=True, stderr=dnull, stdout=dnull,
+                                preexec_fn=os.setsid)
                     else:
-                        P = subprocess.Popen(tstCmd, shell=True)
+                        P = subprocess.Popen(tstCmd, shell=True, preexec_fn=os.setsid)
 
                     while P.poll() is None and (time.time() - start) < timeout:
                         time.sleep(0.05)
@@ -177,7 +179,7 @@ def main():
                     if P.poll() is None:
                         if verbose:
                             print("HAD TO TERMINATE DUE TO TIMEOUT!")
-                        P.terminate()
+                        os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
 
                     r = P.returncode
                     runtime = time.time() - start
