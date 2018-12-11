@@ -179,7 +179,7 @@ def main():
                     if P.poll() is None:
                         if verbose:
                             print("HAD TO TERMINATE DUE TO TIMEOUT!")
-                        os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
+                        os.killpg(os.getpgid(P.pid), signal.SIGTERM)
 
                     r = P.returncode
                     runtime = time.time() - start
