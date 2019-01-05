@@ -1,18 +1,19 @@
 true ==> false
 false ==> true
-int ==> uint
+([^u])int ==> \1uint
 uint ==> int
-fixed ==> ufixed
+([^u])fixed ==> \1ufixed
 ufixed ==> fixed
 int16 ==> int8
+int32 ==> int16
+int64 ==> int32
 memory ==> storage
 storage ==> memory
 view ==> pure
 pure ==> view
-constant ==> view
 constant ==> pure
-constant ==> 
-payable ==> 
+payable ==>
+private ==>
 msg.sender ==> tx.origin
 tx.origin ==> msg.sender
 ether ==> wei
@@ -38,3 +39,5 @@ call ==> delegatecall
 delegatecall ==> call
 call ==> callcode
 callcode ==> call
+delegatecall ==> callcode
+callcode ==> delegatecall
