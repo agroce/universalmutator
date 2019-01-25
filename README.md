@@ -1,7 +1,11 @@
 This is a tool based purely on regexp-specified rewrite of code lines for mutation generation, including
 multi-language rules aided by special rules for languages or even projects.
 
-More information on this project can be found at: https://agroce.github.io/icse18t.pdf 
+More information on this project can be found in out 2018 ICSE tool paper: https://agroce.github.io/icse18t.pdf 
+
+A [guest blog post](https://blog.trailofbits.com/2019/01/23/fuzzing-an-api-with-deepstate-part-2/) for Trail of Bits shows how to use the universalmutator to help improve a C/C++ API fuzzing effort using [DeepState](https://github.com/trailofbits/deepstate) and libFuzzer.
+
+The universalmutator has support for extracting coverage information to guide mutation from the [TSTL](https://github.com/agroce/tstl) testing tool for Python.
 
 HOW TO USE IT
 =============
