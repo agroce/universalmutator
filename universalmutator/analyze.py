@@ -14,7 +14,9 @@ def main():
 
     args = sys.argv
 
-    if "--help" in args:
+    if ("--help" in args) or (len(sys.argv) < 3):
+        if len(sys.argv) < 3:
+            print("ERROR: analyze_mutants requires at least two arguments (a file to mutate, and a command to run)\n")
         print("USAGE: analyze_mutants <sourcefile> <cmd> [--mutantDir <dir>] [--fromFile <mutantfile>]")
         print("       <cmd> is command to execute to run tests")
         print("       --mutantDir: directory to put generated mutants in; defaults to current directory")

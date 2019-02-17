@@ -55,7 +55,9 @@ def main():
 
     print("*** UNIVERSALMUTATOR ***")
 
-    if "--help" in args:
+    if ("--help" in args) or (len(sys.argv) < 2):
+        if len(sys.argv) < 2:
+            print("ERROR: mutate requires at least one argument (a file to mutate)\n")
         print("USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...]",
               "[--noCheck] [--cmd <command string>] [--mutantDir <dir>]",
               "[--lines <coverfile> [--tstl]]")
