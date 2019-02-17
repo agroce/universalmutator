@@ -11,7 +11,7 @@ def main():
 
     if ("--help" in args) or (len(sys.argv) < 4):
         if len(sys.argv) < 4:
-            print("ERROR: check_covered requires at least three arguments (a file to mutate, and input and output files)\n")
+            print("ERROR: check_covered requires at least three arguments\n")
         print("USAGE: check_covered <sourcefile> <coverfile> <outfile> [--tstl] [--mutantDir directory]")
         print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
         print("       --tstl: process <coverfile> that is output from TSTL internal report")
