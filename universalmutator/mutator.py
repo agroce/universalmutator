@@ -65,6 +65,7 @@ def mutants(source, rules=["universal.rules"]):
             rules.append((lhs, rhs))
 
     mutants = []
+    produced = {}
     lineno = 0
     for l in source:
         skipLine = False
@@ -88,8 +89,9 @@ def mutants(source, rules=["universal.rules"]):
                 mutant = l[:p.start()] + lhs.sub(rhs, l[p.start():], count=1)
                 if mutant[-1] != "\n":
                     mutant += "\n"
-                if mutant != l:
+                if mutant != l and (lineno, mutant) not in produced:
                     mutants.append((lineno, mutant))
+                    produced[(lineno, mutant)] = True
                 p = lhs.search(l, pos)
 
     return mutants
