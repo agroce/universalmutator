@@ -7,7 +7,6 @@ import subprocess
 import universalmutator.mutator as mutator
 
 import universalmutator.python_handler as python_handler
-# import universalmutator.python3_handler as python3_handler
 import universalmutator.c_handler as c_handler
 import universalmutator.cpp_handler as cpp_handler
 import universalmutator.java_handler as java_handler
@@ -235,6 +234,7 @@ def main():
         elif mutantResult == "REDUNDANT":
             redundantMutants.append(mutant)
         print()
+        sys.stdout.flush()
 
     print(len(validMutants), "VALID MUTANTS")
     print(len(invalidMutants), "INVALID MUTANTS")
