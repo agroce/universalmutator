@@ -76,6 +76,7 @@ def mutants(source, rules=["universal.rules"]):
         if skipLine:
             continue
         lineno += 1
+        abandon = False
         for (lhs, rhs) in rules:
             skipPos = len(l)
             for skipRule in skipRules:
@@ -86,13 +87,23 @@ def mutants(source, rules=["universal.rules"]):
             p = lhs.search(l, pos)
             while p and (pos < skipPos):
                 pos = p.start() + 1
-                mutant = l[:p.start()] + lhs.sub(rhs, l[p.start():], count=1)
+                try:
+                    mutant = l[:p.start()] + lhs.sub(rhs, l[p.start():], count=1)
+                except KeyboardInterrupt:
+                    raise
+                except Exception as e:
+                    print("WARNING: Applying mutation raised an exception:", e)
+                    print("Abandoning mutation of line", lineno)
+                    abandon = True
+                    break
                 if mutant[-1] != "\n":
                     mutant += "\n"
                 if mutant != l and (lineno, mutant) not in produced:
                     mutants.append((lineno, mutant))
                     produced[(lineno, mutant)] = True
                 p = lhs.search(l, pos)
+            if abandon:
+                break
 
     return mutants
 
