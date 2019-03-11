@@ -1,17 +1,21 @@
+import os
 import subprocess
 import shutil
 
 
 def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
+    backupName = tmpMutantName + ".backup." + str(os.getpid())
+    outName = ".um.mutant.output." + str(os.getpid())
     if len(uniqueMutants) == 0:
-        shutil.copy(tmpMutantName, tmpMutantName + ".backup")
+        shutil.copy(tmpMutantName, backupName)
         shutil.copy(sourceFile, tmpMutantName)
-        with open(".um.mutant_output", 'w') as file:
+        with open(outName, 'w') as file:
             r = subprocess.call(["swiftc", tmpMutantName],
                                 stdout=file, stderr=file)
         with open(tmpMutantName.replace(".swift", ""), 'rb') as file:
             uniqueMutants[file.read()] = 1
-    with open(".um.mutant_output", 'w') as file:
+        shutil.copy(backupName, tmpMutantName)
+    with open(outName, 'w') as file:
         r = subprocess.call(["swiftc", tmpMutantName],
                             stdout=file, stderr=file)
     if r == 0:

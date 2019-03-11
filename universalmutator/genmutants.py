@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import sys
 import shutil
 import subprocess
@@ -23,7 +24,7 @@ def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
 def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     global cmd
 
-    with open(".um.mutant_output", 'w') as file:
+    with open(".um.mutant_output." + str(os.getpid()), 'w') as file:
         r = subprocess.call([cmd.replace("MUTANT", tmpMutantName)],
                             shell=True, stderr=file, stdout=file)
     if r == 0:
@@ -208,12 +209,12 @@ def main():
     else:
         handler = nullHandler
 
+    tmpMutantName = ".tmp_mutant." + str(os.getpid()) + ending
     mutantNo = 0
     for mutant in mutants:
         if (lineFile is not None) and mutant[0] not in lines:
             # skip if not a line to mutate
             continue
-        tmpMutantName = "tmp_mutant" + ending
         print("PROCESSING MUTANT:",
               str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
         mutator.makeMutant(source, mutant, tmpMutantName)
@@ -239,6 +240,11 @@ def main():
     print(len(validMutants), "VALID MUTANTS")
     print(len(invalidMutants), "INVALID MUTANTS")
     print(len(redundantMutants), "REDUNDANT MUTANTS")
+
+    try:
+        os.remove(tmpMutantName)
+    except BaseException:
+        pass
 
 
 if __name__ == '__main__':

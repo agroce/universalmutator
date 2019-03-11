@@ -26,6 +26,7 @@ def main():
         print("       --seed: random seed for shuffling of mutants")
         print("       --noShuffle: do not randomize order of mutants")
         print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
+        print("       --prefix: add a prefix to killed.txt and notkilled.txt")
         sys.exit(0)
 
     verbose = "--verbose" in sys.argv
@@ -39,6 +40,17 @@ def main():
     noShuffle = "--noShuffle" in sys.argv
     if noShuffle:
         args.remove("--noShuffle")
+
+    prefix = None
+    try:
+        prefixpos = args.index("--prefix")
+    except ValueError:
+        prefixpos = -1
+
+    if prefixpos != -1:
+        prefix = args[prefixpos + 1]
+        args.remove("--prefix")
+        args.remove(prefix)
 
     fromFile = None
     try:
@@ -106,6 +118,12 @@ def main():
     count = 0.0
     killCount = 0.0
 
+    killFileName = "killed.txt"
+    notkillFileName = "notkilled.txt"
+    if prefix is not None:
+        killFileName = prefix + "." + killFileName
+        notkillFileName = prefix + "." + notkillFileName
+
     print("ANALYZING", src)
     print("COMMAND: **", tstCmd, "**")
 
@@ -129,8 +147,8 @@ def main():
     if resume:
         alreadyKilled = []
         alreadyNotKilled = []
-        with open("killed.txt", 'r') as killed:
-            with open("notkilled.txt", 'r') as notkilled:
+        with open(killFileName, 'r') as killed:
+            with open(notkillFileName, 'r') as notkilled:
                 for line in killed:
                     if line == "\n":
                         continue
@@ -144,8 +162,8 @@ def main():
                     count += 1
         print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
 
-    with open("killed.txt", 'w') as killed:
-        with open("notkilled.txt", 'w') as notkilled:
+    with open(killFileName, 'w') as killed:
+        with open(notkillFileName, 'w') as notkilled:
             if resume:
                 for line in alreadyKilled:
                     killed.write(line + "\n")
