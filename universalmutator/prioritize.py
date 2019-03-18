@@ -12,7 +12,8 @@ def main():
     if ("--help" in args) or (len(sys.argv) < 3):
         if len(sys.argv) < 3:
             print("ERROR: prioritize_mutants requires at least two arguments\n")
-        print("USAGE: prioritize_mutants <infile[s]> <outfile> [N] [--cutoff <dist>] [--mutantDir <dir>] [--sourceDir <dir>]")
+        print("USAGE: prioritize_mutants <infile[s]> <outfile> [N] [--cutoff <dist>] [--mutantDir <dir>]" +
+                  "[--sourceDir <dir>]")
         print("       --mutantDir: directory with all mutants; defaults to current directory")
         print("       --sourceDir: directory of source files; defaults to current directory")
         print("       --cutoff:    if minimum distance is less than this, stop")
