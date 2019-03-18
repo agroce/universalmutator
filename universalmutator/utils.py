@@ -72,7 +72,7 @@ def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5
     return d
 
 
-def FPF(mlist, N, f=None):
+def FPF(mlist, N, f=None, d=d, cutoff=0.0):
     if f is None:
         ranking = [(mlist[0], -1)]
     else:
@@ -97,6 +97,8 @@ def FPF(mlist, N, f=None):
                 best = m1
                 maxMin = dmin
         ranking.append((best, maxMin))
+        if maxMin < cutoff:
+            break
     return ranking
 
 
