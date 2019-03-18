@@ -1,12 +1,21 @@
+from __future__ import print_function
 import Levenshtein
 
 
-def changeString(m):
+def show(m):
+    (mfile, sourcefile, pos, orig, mutant) = m
+    print(mfile + ": " + sourcefile + ":" + str(pos))
+    print(orig, end="")
+    print(" ==> ", change(m))
+    print(mutant, end="")
+
+
+def change(m):
     (mfile, sourcefile, pos, orig, mutant) = m
     eops = Levenshtein.editops(orig, mutant)
     blocks = Levenshtein.matching_blocks(eops, orig, mutant)
     if len(blocks) > 4:
-        return mutant
+        return mutant[:-1]
     keep = ''.join([orig[x[0]:x[0]+x[2]] for x in blocks])
     notKeep = ""
     pos = 0
@@ -33,6 +42,62 @@ def changeString(m):
             notKeep += mutant[c]
             wasDot = False
     return notKeep
+
+
+mdistanceCache = {}
+
+
+def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5, useCache=True):
+    global mdistanceCache
+    if m1 == m2:
+        return 0
+    if useCache:
+        if (m1, m2) in mdistanceCache:
+            return mdistanceCache[(m1, m2)]
+    (mfile1, sourcefile1, pos1, orig1, mutant1) = m1
+    (mfile2, sourcefile2, pos2, orig2, mutant2) = m2
+    d = changeWeight * (1.0 - (Levenshtein.ratio(change(m1), change(m2))))
+    d += origWeight * (1.0 - Levenshtein.ratio(orig1, orig2))
+    d += mutantWeight * (1.0 - Levenshtein.ratio(mutant1, mutant2))
+    if (sourcefile1 != sourcefile2):
+        d += codeWeight
+    else:
+        pd = abs(pos1 - pos2)
+        if pd > 10:
+            d += codeWeight * 0.5
+        else:
+            d += codeWeight * (0.5 * (pd / 11.0))
+    if useCache:
+        mdistanceCache[(m1, m2)] = d
+    return d
+
+
+def FPF(mlist, N, f=None):
+    if f is None:
+        ranking = [(mlist[0], -1)]
+    else:
+        maxf = 0
+        best = None
+        for m in mlist:
+            fm = f(m)
+            if fm > maxf:
+                best = m
+                maxf = fm
+        ranking = [(best, -1)]
+    while len(ranking) < N:
+        best = None
+        maxMin = -1
+        for m1 in mlist:
+            dmin = -1
+            for (m2, _) in ranking:
+                dm1m2 = d(m1, m2)
+                if (dm1m2 < dmin) or (dmin == -1):
+                    dmin = dm1m2
+            if dmin > maxMin:
+                best = m1
+                maxMin = dmin
+        ranking.append((best, maxMin))
+    return ranking
 
 
 def readMutant(mutant, source, mutantDir=None):
