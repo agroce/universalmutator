@@ -79,7 +79,7 @@ def main():
         N = len(mutants)
     print("PRIORITIZING FIRST", N, "MUTANTS")
     if cutoff != 0.0:
-        print ("CUTOFF:", cutoff)
+        print("CUTOFF:", cutoff)
 
     ranking = utils.FPF(mutants, N, cutoff=cutoff)
     with open(outfile, 'w') as outf:
