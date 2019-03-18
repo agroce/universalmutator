@@ -4,7 +4,7 @@ import Levenshtein
 
 def show(m):
     (mfile, sourcefile, pos, orig, mutant) = m
-    print(mfile + ": " + sourcefile + ":" + str(pos))
+    print(mfile + ": " + sourcefile + ":" + str(pos + 1))
     print(orig, end="")
     print(" ==> ", change(m))
     print(mutant, end="")
