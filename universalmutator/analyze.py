@@ -19,7 +19,7 @@ def main():
             print("ERROR: analyze_mutants requires at least two arguments\n")
         print("USAGE: analyze_mutants <sourcefile> <cmd> [--mutantDir <dir>] [--fromFile <mutantfile>]")
         print("       <cmd> is command to execute to run tests; non-zero return indicates mutant killed")
-        print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
+        print("       --mutantDir: directory with all mutants; defaults to current directory")
         print("       --fromFile: file containing list of mutants to process; others ignored")
         print("       --timeout <val>: change the timeout setting")
         print("       --verbose: show output of mutants")
