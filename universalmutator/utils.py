@@ -1,4 +1,6 @@
 from __future__ import print_function
+import time
+
 import Levenshtein
 
 
@@ -72,7 +74,8 @@ def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5
     return d
 
 
-def FPF(mlist, N, f=None, d=d, cutoff=0.0):
+def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True):
+    start = time.time()
     if f is None:
         ranking = [(mlist[0], -1)]
     else:
@@ -96,6 +99,12 @@ def FPF(mlist, N, f=None, d=d, cutoff=0.0):
             if dmin > maxMin:
                 best = m1
                 maxMin = dmin
+        if verbose:
+            print("*"*80)
+            elapsed = time.time() - start
+            print("RANKED", len(ranking) + 1, "MUTANTS IN", elapsed, "SECONDS")
+            show(best)
+            print("DISTANCE:", maxMin)
         ranking.append((best, maxMin))
         if maxMin < cutoff:
             break
