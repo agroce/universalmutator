@@ -33,7 +33,7 @@ def change(m):
     pos = 0
     wasDot = False
     for c in range(0, len(mutant)):
-        if mutant[c] == keep[pos]:
+        if (pos < len(keep)) and mutant[c] == keep[pos]:
             pos += 1
             if not wasDot:
                 notKeep += "..."
@@ -118,5 +118,5 @@ def readMutant(mutant, source, mutantDir=None):
             diffFound = True
             break
         pos += 1
-    assert diffFound, "mutant and source are identical!"
+    assert diffFound, "mutant " + mfile + " and source " + source + " are identical!"
     return (mutant, source, pos, scode[pos], mcode[pos])

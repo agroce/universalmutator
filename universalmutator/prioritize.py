@@ -72,7 +72,10 @@ def main():
                 suffix = "." + name.split(".")[-1]
                 mpart = ".mutant." + name.split(".mutant.")[1]
                 original = sdir + name.replace(mpart, suffix)
-                mutants.append(utils.readMutant(name, original, mutantDir=mdir))
+                try:
+                    mutants.append(utils.readMutant(name, original, mutantDir=mdir))
+                except AssertionError:
+                    print("WARNING:", name, "AND SOURCE ARE IDENTICAL")
     print("READ", len(mutants), "MUTANTS")
 
     if N == -1:
