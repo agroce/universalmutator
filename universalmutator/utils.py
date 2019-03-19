@@ -87,6 +87,9 @@ def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True):
                 best = m
                 maxf = fm
         ranking = [(best, -1)]
+    if verbose:
+        print("*"*80)
+        show(ranking[0][0])
     while (len(ranking) < N) and (len(ranking) < len(mlist)):
         best = None
         maxMin = -1

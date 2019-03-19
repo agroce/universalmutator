@@ -74,7 +74,7 @@ def main():
 
     N = -1
     if len(args) >= 4:
-        N = args[3]
+        N = int(args[3])
 
     mutants = []
     for f in infiles:
@@ -109,10 +109,13 @@ def main():
                 mname = m[0]
                 outf.write(mname + "\n")
         print()
+    else:
+        with open(outfile, 'w') as outf:
+            pass
 
-    print("PRIORITIZING", N, "MUTANTS")
+    print("PRIORITIZING", int(N) - len(sdmutants), "MUTANTS")
 
-    ranking = utils.FPF(mutants, N, cutoff=cutoff, verbose=verbose)
+    ranking = utils.FPF(mutants, N - len(sdmutants), cutoff=cutoff, verbose=verbose)
     with open(outfile, 'a') as outf:
         for (m, r) in ranking:
             mname = m[0]
