@@ -14,6 +14,7 @@ def main():
             print("ERROR: prioritize_mutants requires at least two arguments\n")
         print("USAGE: prioritize_mutants <infile[s]> <outfile> [N] [--cutoff <dist>]", end="")
         print("[--mutantDir <dir>] [--sourceDir <dir>]")
+        print("       --verbose:   produce verbose output")
         print("       --mutantDir: directory with all mutants; defaults to current directory")
         print("       --sourceDir: directory of source files; defaults to current directory")
         print("       --cutoff:    if minimum distance is less than this, stop")
@@ -23,6 +24,11 @@ def main():
     outfile = sys.argv[2]
 
     infiles = glob.glob(infile)
+
+    verbose = False
+    if "--verbose" in args:
+        args.remove("--verbose")
+        verbose = True
 
     mdir = ""
     try:
@@ -84,7 +90,7 @@ def main():
     if cutoff != 0.0:
         print("CUTOFF:", cutoff)
 
-    ranking = utils.FPF(mutants, N, cutoff=cutoff)
+    ranking = utils.FPF(mutants, N, cutoff=cutoff, verbose=verbose)
     with open(outfile, 'w') as outf:
         for (m, r) in ranking:
             mname = m[0]
