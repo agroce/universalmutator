@@ -87,7 +87,7 @@ def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True):
                 best = m
                 maxf = fm
         ranking = [(best, -1)]
-    while len(ranking) < N:
+    while (len(ranking) < N) and (len(ranking) < len(mlist)):
         best = None
         maxMin = -1
         for m1 in mlist:

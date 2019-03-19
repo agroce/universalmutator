@@ -14,10 +14,11 @@ def main():
             print("ERROR: prioritize_mutants requires at least two arguments\n")
         print("USAGE: prioritize_mutants <infile[s]> <outfile> [N] [--cutoff <dist>]", end="")
         print("[--mutantDir <dir>] [--sourceDir <dir>]")
-        print("       --verbose:   produce verbose output")
-        print("       --mutantDir: directory with all mutants; defaults to current directory")
-        print("       --sourceDir: directory of source files; defaults to current directory")
-        print("       --cutoff:    if minimum distance is less than this, stop")
+        print("       --verbose:       produce verbose output")
+        print("       --noSDPriority:  do not prioritize statement deletions over other mutants")
+        print("       --mutantDir:     directory with all mutants; defaults to current directory")
+        print("       --sourceDir:     directory of source files; defaults to current directory")
+        print("       --cutoff:        if minimum distance is less than <dist>, stop")
         sys.exit(0)
 
     infile = sys.argv[1]
@@ -29,6 +30,11 @@ def main():
     if "--verbose" in args:
         args.remove("--verbose")
         verbose = True
+
+    noSDPriority = False
+    if "--noSDPriority" in args:
+        args.remove("--noSDPriority")
+        noSDPriority = True
 
     mdir = ""
     try:
@@ -86,12 +92,28 @@ def main():
 
     if N == -1:
         N = len(mutants)
-    print("PRIORITIZING FIRST", N, "MUTANTS")
-    if cutoff != 0.0:
-        print("CUTOFF:", cutoff)
+
+    if not noSDPriority:
+        print("IDENTIFYING STATEMENT DELETION MUTANTS")
+        sdmutants = []
+        for m in mutants:
+            if utils.change(m) == "...==>.../*...*/...":
+                sdmutants.append(m)
+        for m in sdmutants:
+            mutants.remove(m)
+        print("PRIORITIZING", len(sdmutants), "STATEMENT DELETIONS")
+
+        ranking = utils.FPF(sdmutants, N, cutoff=cutoff, verbose=verbose)
+        with open(outfile, 'w') as outf:
+            for (m, r) in ranking:
+                mname = m[0]
+                outf.write(mname + "\n")
+        print()
+
+    print("PRIORITIZING", N, "MUTANTS")
 
     ranking = utils.FPF(mutants, N, cutoff=cutoff, verbose=verbose)
-    with open(outfile, 'w') as outf:
+    with open(outfile, 'a') as outf:
         for (m, r) in ranking:
             mname = m[0]
             outf.write(mname + "\n")
