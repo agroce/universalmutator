@@ -1,6 +1,9 @@
 if (.*):\n ==> if not (\1):\n
 while (.*):\n ==> while not (\1):\n
 
+continue ==> break
+break ==> continue
+
 if \( ==> if not (
 
 while \( ==> while not (
