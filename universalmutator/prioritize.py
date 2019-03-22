@@ -102,12 +102,12 @@ def main():
         for m in sdmutants:
             mutants.remove(m)
         print("PRIORITIZING", len(sdmutants), "STATEMENT DELETIONS")
-
-        ranking = utils.FPF(sdmutants, N, cutoff=cutoff, verbose=verbose)
-        with open(outfile, 'w') as outf:
-            for (m, r) in ranking:
-                mname = m[0]
-                outf.write(mname + "\n")
+        if len(sdmutants) > 0:
+            ranking = utils.FPF(sdmutants, N, cutoff=cutoff, verbose=verbose)
+            with open(outfile, 'w') as outf:
+                for (m, r) in ranking:
+                    mname = m[0]
+                    outf.write(mname + "\n")
         print()
     else:
         with open(outfile, 'w') as outf:
