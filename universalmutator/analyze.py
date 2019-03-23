@@ -147,20 +147,23 @@ def main():
     if resume:
         alreadyKilled = []
         alreadyNotKilled = []
-        with open(killFileName, 'r') as killed:
-            with open(notkillFileName, 'r') as notkilled:
-                for line in killed:
-                    if line == "\n":
-                        continue
-                    alreadyKilled.append(line[:-1])
-                    count += 1
-                    killCount += 1
-                for line in notkilled:
-                    if line == "\n":
-                        continue
-                    alreadyNotKilled.append(line[:-1])
-                    count += 1
-        print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
+        if not (os.path.exists(killFileName) and os.path.exists(notkillFileName)):
+            print("ATTEMPTING TO RESUME, BUT NO PREVIOUS RESULTS FOUND")
+        else:
+            with open(killFileName, 'r') as killed:
+                with open(notkillFileName, 'r') as notkilled:
+                    for line in killed:
+                        if line == "\n":
+                            continue
+                        alreadyKilled.append(line[:-1])
+                        count += 1
+                        killCount += 1
+                    for line in notkilled:
+                        if line == "\n":
+                            continue
+                        alreadyNotKilled.append(line[:-1])
+                        count += 1
+            print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
 
     with open(killFileName, 'w') as killed:
         with open(notkillFileName, 'w') as notkilled:

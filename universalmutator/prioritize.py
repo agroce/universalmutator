@@ -93,9 +93,9 @@ def main():
     if N == -1:
         N = len(mutants)
 
+    sdmutants = []
     if not noSDPriority:
         print("IDENTIFYING STATEMENT DELETION MUTANTS")
-        sdmutants = []
         for m in mutants:
             if utils.change(m) == "...==>.../*...*/...":
                 sdmutants.append(m)
@@ -115,7 +115,7 @@ def main():
 
     print("PRIORITIZING", int(N) - len(sdmutants), "MUTANTS")
 
-    ranking = utils.FPF(mutants, N - len(sdmutants), cutoff=cutoff, verbose=verbose)
+    ranking = utils.FPF(mutants, N - len(sdmutants), cutoff=cutoff, verbose=verbose, avoid=sdmutants)
     with open(outfile, 'a') as outf:
         for (m, r) in ranking:
             mname = m[0]
