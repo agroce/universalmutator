@@ -96,9 +96,7 @@ def main():
     sdmutants = []
     if not noSDPriority:
         print("IDENTIFYING STATEMENT DELETION MUTANTS")
-        for m in mutants:
-            if utils.change(m) == "...==>.../*...*/...":
-                sdmutants.append(m)
+        sdmutants = filter(utils.isStatementDeletion, mutants)
         for m in sdmutants:
             mutants.remove(m)
         print("PRIORITIZING", len(sdmutants), "STATEMENT DELETIONS")

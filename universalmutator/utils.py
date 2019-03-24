@@ -46,6 +46,10 @@ def change(m):
     return notKeep
 
 
+def isStatementDeletion(m):
+    return change(m) == "...==>.../*...*/..."
+
+
 mdistanceCache = {}
 
 
