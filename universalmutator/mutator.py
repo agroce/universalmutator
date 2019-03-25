@@ -68,6 +68,7 @@ def mutants(source, rules=["universal.rules"]):
     produced = {}
     lineno = 0
     for l in source:
+        lineno += 1
         skipLine = False
         for lhs in ignoreRules:
             if lhs.search(l):
@@ -75,7 +76,6 @@ def mutants(source, rules=["universal.rules"]):
                 break
         if skipLine:
             continue
-        lineno += 1
         abandon = False
         for (lhs, rhs) in rules:
             skipPos = len(l)
