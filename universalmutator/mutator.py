@@ -4,7 +4,8 @@ import re
 import pkg_resources
 
 
-def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=False):
+def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=False,
+            ignorePatterns=None):
     rulesText = []
     print("MUTATING WITH RULES:", ", ".join(rules))
 
@@ -64,6 +65,16 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
         else:
             rules.append((lhs, rhs))
 
+    for p in ignorePatterns:
+        try:
+            lhs = re.compile(p)
+        except BaseException:
+            print("*" * 60)
+            print("FAILED TO COMPILE IGNORE PATTERN:", p)
+            print("*" * 60)
+            continue
+        ignoreRules.append(lhs)
+
     mutants = []
     produced = {}
     lineno = 0
@@ -71,12 +82,12 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
     for l in source:
         lineno += 1
         if inTestCode:
-            if "END_TEST_CODE" in l:
+            if "@END_TEST_CODE" in l:
                 inTestCode = False
             if (not mutateTestCode) and (not mutateBoth):
                 continue
         else:
-            if "BEGIN_TEST_CODE" in l:
+            if "@BEGIN_TEST_CODE" in l:
                 inTestCode = True
                 continue
             if mutateTestCode and (not mutateBoth):
