@@ -180,6 +180,7 @@ def main():
                 print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
                 print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
                 print("  " + f, end=" ")
+                sys.stdout.flush()
                 if f in ignore:
                     print("SKIPPED")
                 try:
