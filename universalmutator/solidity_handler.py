@@ -26,6 +26,7 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
                 ["solc", tmpMutantName, "--asm", "--optimize"], stdout=file, stderr=file)
         with open(outName, 'r') as file:
             uniqueMutants[extractASM(file.read(), tmpMutantName)] = 1
+        shutil.copy(tmpMutantName + ".backup." + str(os.getpid()), tmpMutantName)
     with open(outName, 'w') as file:
         r = subprocess.call(["solc", tmpMutantName, "--asm",
                              "--optimize"], stdout=file, stderr=file)
