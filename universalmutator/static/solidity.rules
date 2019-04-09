@@ -1,3 +1,4 @@
+pragma solidity ==> DO_NOT_MUTATE
 true ==> false
 false ==> true
 ([^u])int ==> \1uint

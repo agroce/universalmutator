@@ -74,6 +74,7 @@ def main():
         print("       --mutateTestCode: mutate only test code")
         print("       --mutateBoth: mutate both test and normal code")
         print("       --ignore <file>: ignore lines matching patterns in <file>")
+        print("       --compile <file>: compile <file> instead of source (solidity handler only)")
         print()
         print("Currently supported languages: ", ", ".join(list(set(languages.values()))))
         sys.exit(0)
@@ -157,12 +158,24 @@ def main():
         ignorepos = -1
 
     if ignorepos != -1:
-        ignoreFile = args[mdirpos + 1]
+        ignoreFile = args[ignorepos + 1]
         args.remove("--ignore")
         args.remove(ignoreFile)
 
+    compileFile = None
+    try:
+        compilepos = args.index("--compile")
+    except ValueError:
+        compilepos = -1
+
+    if compilepos != -1:
+        compileFile = args[compilepos + 1]
+        args.remove("--compile")
+        args.remove(compileFile)
+
     ignorePatterns = []
     if ignoreFile is not None:
+        print("IGNORING PATTERNS DEFINED IN", ignoreFile)
         with open(ignoreFile, 'r') as ignoref:
             for l in ignoref:
                 ignorePatterns.append(l[:-1])
@@ -257,11 +270,10 @@ def main():
         print("PROCESSING MUTANT:",
               str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
         mutator.makeMutant(source, mutant, tmpMutantName)
-        mutantResult = handler(
-            tmpMutantName,
-            mutant,
-            sourceFile,
-            uniqueMutants)
+        if compileFile is None:
+            mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
+        else:
+            mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
         print(mutantResult, end=" ")
         mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
         if mutantResult == "VALID":

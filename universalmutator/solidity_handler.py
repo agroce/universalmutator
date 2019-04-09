@@ -16,20 +16,32 @@ def extractASM(text, filename):
     return newText
 
 
-def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
+def handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=None):
+    copyForImport = False
+    if compileFile is None:
+        compileFile = tmpMutantName
+    else:
+        shutil.copy(sourceFile, ".um.out." + str(os.getpid()) + ".src_backup")
+        copyForImport = True
     outName = ".um.out." + str(os.getpid()) + ".asm"
     if len(uniqueMutants) == 0:
         shutil.copy(tmpMutantName, tmpMutantName + ".backup." + str(os.getpid()))
         shutil.copy(sourceFile, tmpMutantName)
         with open(outName, 'w') as file:
             r = subprocess.call(
-                ["solc", tmpMutantName, "--asm", "--optimize"], stdout=file, stderr=file)
+                ["solc", compileFile, "--asm", "--optimize"], stdout=file, stderr=file)
         with open(outName, 'r') as file:
             uniqueMutants[extractASM(file.read(), tmpMutantName)] = 1
         shutil.copy(tmpMutantName + ".backup." + str(os.getpid()), tmpMutantName)
-    with open(outName, 'w') as file:
-        r = subprocess.call(["solc", tmpMutantName, "--asm",
-                             "--optimize"], stdout=file, stderr=file)
+    if copyForImport:
+        shutil.copy(tmpMutantName, sourceFile)
+    try:
+        with open(outName, 'w') as file:
+            r = subprocess.call(["solc", compileFile, "--asm",
+                                 "--optimize"], stdout=file, stderr=file)
+    finally:
+        if copyForImport:
+            shutil.copy(".um.out." + str(os.getpid()) + ".src_backup", sourceFile)
     if r == 0:
         with open(outName, 'r') as file:
             code = extractASM(file.read(), tmpMutantName)
