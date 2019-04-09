@@ -31,7 +31,10 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=None):
             r = subprocess.call(
                 ["solc", compileFile, "--asm", "--optimize"], stdout=file, stderr=file)
         with open(outName, 'r') as file:
-            uniqueMutants[extractASM(file.read(), tmpMutantName)] = 1
+            if not copyForImport:
+                uniqueMutants[extractASM(file.read(), tmpMutantName)] = 1
+            else:
+                uniqueMutants[extractASM(file.read(), sourceFile)] = 1
         shutil.copy(tmpMutantName + ".backup." + str(os.getpid()), tmpMutantName)
     if copyForImport:
         shutil.copy(tmpMutantName, sourceFile)
@@ -44,7 +47,10 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=None):
             shutil.copy(".um.out." + str(os.getpid()) + ".src_backup", sourceFile)
     if r == 0:
         with open(outName, 'r') as file:
-            code = extractASM(file.read(), tmpMutantName)
+            if not copyForImport:
+                code = extractASM(file.read(), tmpMutantName)
+            else:
+                code = extractASM(file.read(), sourceFile)
         if code in uniqueMutants:
             uniqueMutants[code] += 1
             return "REDUNDANT"
