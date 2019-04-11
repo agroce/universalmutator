@@ -287,9 +287,9 @@ def main():
         if (lineFile is not None) and mutant[0] not in lines:
             # skip if not a line to mutate
             continue
-        if mutant[0] in deadCodeLines:
+        if (mutant[0] in deadCodeLines) and ("\n" not in mutant[1][:-1]):
             continue
-        if (not noFastCheck) and (mutant[0] not in interestingLines):
+        if (not noFastCheck) and (mutant[0] not in interestingLines) and (mutant[0] not in deadCodeLines):
             fastCheckMutant = (mutant[0], toGarbage(source[mutant[0] - 1]))
             mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
             if compileFile is None:
@@ -300,6 +300,7 @@ def main():
                 deadCodeLines.append(mutant[0])
                 print("LINE", str(mutant[0]) + ":", source[mutant[0] - 1][:-1], end=" ")
                 print("APPEARS TO BE COMMENT OR DEAD CODE, SKIPPING...")
+                continue
             else:
                 interestingLines.append(mutant[0])
         print("PROCESSING MUTANT:",
