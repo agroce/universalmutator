@@ -34,6 +34,16 @@ def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         return "INVALID"
 
 
+def toGarbage(code):
+    newCode = ""
+    for c in code:
+        if c.isspace() or c in ["*", "/", "#"]:
+            newCode += c
+        else:
+            newCode += "Z"
+    return newCode
+
+
 def main():
     global cmd
 
@@ -75,6 +85,7 @@ def main():
         print("       --mutateBoth: mutate both test and normal code")
         print("       --ignore <file>: ignore lines matching patterns in <file>")
         print("       --compile <file>: compile <file> instead of source (solidity handler only)")
+        print("       --noFastCheck: do not use fast dead code/comment detection heuristic")
         print()
         print("Currently supported languages: ", ", ".join(list(set(languages.values()))))
         sys.exit(0)
@@ -93,6 +104,11 @@ def main():
     if "--mutateBoth" in args:
         mutateBoth = True
         args.remove("--mutateBoth")
+
+    noFastCheck = False
+    if "--noFastCheck" in args:
+        noFastCheck = True
+        args.remove("--noFastCheck")
 
     cmd = None
     try:
@@ -260,6 +276,10 @@ def main():
             handler = handlers[language].handler
     else:
         handler = nullHandler
+        noFastCheck = True
+
+    deadCodeLines = []
+    interestingLines = []
 
     tmpMutantName = ".tmp_mutant." + str(os.getpid()) + ending
     mutantNo = 0
@@ -267,6 +287,21 @@ def main():
         if (lineFile is not None) and mutant[0] not in lines:
             # skip if not a line to mutate
             continue
+        if mutant[0] in deadCodeLines:
+            continue
+        if (not noFastCheck) and (mutant[0] not in interestingLines):
+            fastCheckMutant = (mutant[0], toGarbage(source[mutant[0] - 1]))
+            mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
+            if compileFile is None:
+                mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
+            else:
+                mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
+            if mutantResult in ["VALID", "REDUNDANT"]:
+                deadCodeLines.append(mutant[0])
+                print("LINE", str(mutant[0]) + ":", source[mutant[0] - 1][:-1], end=" ")
+                print("APPEARS TO BE COMMENT OR DEAD CODE, SKIPPING...")
+            else:
+                interestingLines.append(mutant[0])
         print("PROCESSING MUTANT:",
               str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
         mutator.makeMutant(source, mutant, tmpMutantName)
