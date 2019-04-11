@@ -300,7 +300,7 @@ def main():
                 print("APPEARS TO BE COMMENT OR DEAD CODE, SKIPPING...")
             else:
                 interestingLines.append(mutant[0])
-        if (mutant[0] in deadCodeLines) and ("\n" not in mutant[1][:-1]):
+        if mutant[0] in deadCodeLines:
             continue
         print("PROCESSING MUTANT:",
               str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
