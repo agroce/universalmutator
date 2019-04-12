@@ -87,6 +87,7 @@ def main():
         print("       --compile <file>: compile <file> instead of source (solidity handler only)")
         print("       --noFastCheck: do not use fast dead code/comment detection heuristic")
         print("       --swap: also try adjacent-code swaps")
+        print("       --redundantOK: keep redundant mutants (for compiler output issues)")
         print()
         print("Currently supported languages: ", ", ".join(list(set(languages.values()))))
         sys.exit(0)
@@ -95,6 +96,11 @@ def main():
     if "--noCheck" in args:
         noCheck = True
         args.remove("--noCheck")
+
+    redundantOK = False
+    if "--redundantOK" in args:
+        redundantOK = True
+        args.remove("--redundantOK")
 
     mutateTestCode = False
     if "--mutateTestCode" in args:
@@ -317,7 +323,7 @@ def main():
             mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
         print(mutantResult, end=" ")
         mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
-        if mutantResult == "VALID":
+        if (mutantResult == "VALID") or (mutantResult == "REDUNDANT" and redundantOK):
             print("[written to", mutantName + "]", end=" ")
             shutil.copy(tmpMutantName, mutantName)
             validMutants.append(mutant)
@@ -354,7 +360,7 @@ def main():
                 mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
             print(mutantResult, end=" ")
             mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
-            if mutantResult == "VALID":
+            if (mutantResult == "VALID") or (mutantResult == "REDUNDANT" and redundantOK):
                 print("[written to", mutantName + "]", end=" ")
                 shutil.copy(tmpMutantName, mutantName)
                 validMutants.append(mutant)
