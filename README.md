@@ -65,7 +65,44 @@ Solidity
 Vyper
 ```
 
-All but C, C++, and Go will try, by default, to compile the mutated file and use TCE to detect redundancy.  Of course, build dependencies may frustrate this process, in which case --noCheck will turn off TCE and just dump all the mutants in the directory, for pruning using a real build process.  In the long run, we plan to integrate with standard build systems to avoid this problem, and with automated test generation systems such as TSTL (https://github.com/agroce/tstl) for Python or Echidna for Solidity (https://github.com/trailofbits/echidna).  Even now, however, with `analyze_mutants` it is fairly easy to set up automatic evaluation of your automated test generator.
+All but C, C++, and Go will try, by default, to compile the mutated
+file and use TCE to detect redundancy.  Of course, build dependencies
+may frustrate this process, in which case --noCheck will turn off TCE
+and just dump all the mutants in the directory, for pruning using a
+real build process.  In the long run, we plan to integrate with
+standard build systems to avoid this problem, and with automated test
+generation systems such as TSTL (https://github.com/agroce/tstl) for
+Python or Echidna for Solidity
+(https://github.com/trailofbits/echidna).  Even now, however, with
+`analyze_mutants` it is fairly easy to set up automatic evaluation of
+your automated test generator.
+
+MUTATING SOLIDITY CODE
+==================
+
+The universalmutator has been most frequently applied to smart
+contracts written in the Solidity language.  It supports a few special
+features that are particularly useful in this context.
+
+First,
+Solidity libraries are often written with only `internal` functions
+--- and the compiler will not emit code for such functions if you
+compile a library by itself, resulting in no non-redundant mutants.
+In order to handle this case, `mutate` can take a `--compile` option
+that specifies another file (a contract using the library, or the
+tests in question) that is used to check whether mutants are
+redundant.
+
+Second, swapping adjacent lines of code is a seldom-used mutation
+operator that is unusually attractive in a Solidity context because
+swapping a state-changing operation and a requirement may reveal that
+testing is incapable of detecting some
+[re-entrancy](https://github.com/crytic/not-so-smart-contracts/tree/master/reentrancy)
+vulnerabilities.  The testing may notice the absence of the check, but
+not a mis-ordering, and these mutants may reveal that.  To add code
+swaps to your mutations, just add `--swap` to the `mutate` call.  Note
+that swaps work in any language; they are just particularly appealing
+for smart contracts.
 
 MORE INFORMATON
 ===============

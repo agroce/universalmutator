@@ -86,6 +86,7 @@ def main():
         print("       --ignore <file>: ignore lines matching patterns in <file>")
         print("       --compile <file>: compile <file> instead of source (solidity handler only)")
         print("       --noFastCheck: do not use fast dead code/comment detection heuristic")
+        print("       --swap: also try adjacent-code swaps")
         print()
         print("Currently supported languages: ", ", ".join(list(set(languages.values()))))
         sys.exit(0)
@@ -109,6 +110,11 @@ def main():
     if "--noFastCheck" in args:
         noFastCheck = True
         args.remove("--noFastCheck")
+
+    doSwaps = False
+    if "--swap" in args:
+        doSwaps = True
+        args.remove("--swap")
 
     cmd = None
     try:
@@ -322,6 +328,43 @@ def main():
             redundantMutants.append(mutant)
         print()
         sys.stdout.flush()
+
+    if doSwaps:
+        print("TRYING CODE SWAPS...")
+        swapList = []
+        for lineNo in range(len(source)):
+            if (lineNo + 1) in deadCodeLines:
+                continue
+            swapList.append(lineNo)
+        for i in range(0, len(swapList)-1):
+            a = swapList[i]
+            b = swapList[i+1]
+            print("TRYING TO SWAP LINES", a + 1, "AND", b + 1, end="...")
+            newSource = source[:a]
+            newSource.append(source[b])
+            newSource += source[a+1:b]
+            newSource.append(source[a])
+            newSource += source[b+1:]
+            with open(tmpMutantName, 'w') as file:
+                for line in newSource:
+                    file.write(line)
+            if compileFile is None:
+                mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
+            else:
+                mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
+            print(mutantResult, end=" ")
+            mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
+            if mutantResult == "VALID":
+                print("[written to", mutantName + "]", end=" ")
+                shutil.copy(tmpMutantName, mutantName)
+                validMutants.append(mutant)
+                mutantNo += 1
+            elif mutantResult == "INVALID":
+                invalidMutants.append(mutant)
+            elif mutantResult == "REDUNDANT":
+                redundantMutants.append(mutant)
+            print()
+            sys.stdout.flush()
 
     print(len(validMutants), "VALID MUTANTS")
     print(len(invalidMutants), "INVALID MUTANTS")
