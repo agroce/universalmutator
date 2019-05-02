@@ -179,9 +179,19 @@ def main():
                     if resume:
                         if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
                             continue
+                    print("=" * 80)
                     print("#" + str(int(count) + 1) + ":", end=" ")
                     print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
                     print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
+                    if verbose:
+                        print("MUTANT:", f)
+                        with open(".mutant.diff", 'w') as mdiff:
+                            subprocess.call(["diff", src, f], stdout=mdiff, stderr=mdiff)
+                        with open(".mutant.diff", 'r') as mdiff:
+                            for line in mdiff:
+                                print(line, end="")
+                        print()
+                        sys.stdout.flush()
                     print("  " + f, end=" ")
                     sys.stdout.flush()
                     if f in ignore:
