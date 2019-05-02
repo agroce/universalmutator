@@ -171,8 +171,10 @@ def main():
                 if resume:
                     for line in alreadyKilled:
                         killed.write(line + "\n")
+                        killed.flush()
                     for line in alreadyNotKilled:
                         notkilled.write(line + "\n")
+                        notkilled.flush()
                 for f in allTheMutants:
                     if resume:
                         if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
