@@ -22,7 +22,8 @@ def main():
         print("       --mutantDir: directory with all mutants; defaults to current directory")
         print("       --fromFile: file containing list of mutants to process; others ignored")
         print("       --timeout <val>: change the timeout setting")
-        print("       --verbose: show output of mutants")
+        print("       --show: show mutants")
+        print("       --verbose: show mutants and output of analysis")
         print("       --seed: random seed for shuffling of mutants")
         print("       --noShuffle: do not randomize order of mutants")
         print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
@@ -32,6 +33,10 @@ def main():
     verbose = "--verbose" in sys.argv
     if verbose:
         args.remove("--verbose")
+
+    showM = "--show" in sys.argv
+    if showM:
+        args.remove("--show")
 
     resume = "--resume" in sys.argv
     if resume:
@@ -179,11 +184,13 @@ def main():
                     if resume:
                         if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
                             continue
+                    if f in ignore:
+                        print(f, "SKIPPED")
                     print("=" * 80)
                     print("#" + str(int(count) + 1) + ":", end=" ")
                     print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
                     print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
-                    if verbose:
+                    if verbose or showM:
                         print("MUTANT:", f)
                         with open(".mutant.diff", 'w') as mdiff:
                             subprocess.call(["diff", src, f], stdout=mdiff, stderr=mdiff)
@@ -192,10 +199,8 @@ def main():
                                 print(line, end="")
                         print()
                         sys.stdout.flush()
-                    print("  " + f, end=" ")
+                    print("RUNNING", f + "...")
                     sys.stdout.flush()
-                    if f in ignore:
-                        print("SKIPPED")
                     try:
                         shutil.copy(src, src + ".um.backup")
                         shutil.copy(f, src)
@@ -222,12 +227,12 @@ def main():
 
                         count += 1
                         if r == 0:
-                            print("NOT KILLED")
+                            print(f, "NOT KILLED")
                             notkilled.write(f.split("/")[-1] + "\n")
                             notkilled.flush()
                         else:
                             killCount += 1
-                            print("KILLED IN", runtime)
+                            print(f, "KILLED IN", runtime)
                             killed.write(f.split("/")[-1] + "\n")
                             killed.flush()
                         print("  RUNNING SCORE:", killCount / count)
