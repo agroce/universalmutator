@@ -165,64 +165,64 @@ def main():
                         count += 1
             print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
 
-    with open(killFileName, 'w') as killed:
-        with open(notkillFileName, 'w') as notkilled:
-            if resume:
-                for line in alreadyKilled:
-                    killed.write(line + "\n")
-                for line in alreadyNotKilled:
-                    notkilled.write(line + "\n")
-            for f in allTheMutants:
+    with open(os.devnull, 'w') as dnull:
+        with open(killFileName, 'w') as killed:
+            with open(notkillFileName, 'w') as notkilled:
                 if resume:
-                    if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
-                        continue
-                print("#" + str(int(count) + 1) + ":", end=" ")
-                print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
-                print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
-                print("  " + f, end=" ")
-                sys.stdout.flush()
-                if f in ignore:
-                    print("SKIPPED")
-                try:
-                    shutil.copy(src, src + ".um.backup")
-                    shutil.copy(f, src)
-
-                    start = time.time()
-
-                    if not verbose:
-                        with open(os.devnull, 'w') as dnull:
-                            P = subprocess.Popen(
-                                tstCmd, shell=True, stderr=dnull, stdout=dnull,
-                                preexec_fn=os.setsid)
-                    else:
-                        P = subprocess.Popen(tstCmd, shell=True, preexec_fn=os.setsid)
-
-                    while P.poll() is None and (time.time() - start) < timeout:
-                        time.sleep(0.05)
-
-                    if P.poll() is None:
-                        if verbose:
-                            print("HAD TO TERMINATE DUE TO TIMEOUT!")
-                        os.killpg(os.getpgid(P.pid), signal.SIGTERM)
-
-                    r = P.returncode
-                    runtime = time.time() - start
-
-                    count += 1
-                    if r == 0:
-                        print("NOT KILLED")
-                        notkilled.write(f.split("/")[-1] + "\n")
-                        notkilled.flush()
-                    else:
-                        killCount += 1
-                        print("KILLED IN", runtime)
-                        killed.write(f.split("/")[-1] + "\n")
-                        killed.flush()
-                    print("  RUNNING SCORE:", killCount / count)
+                    for line in alreadyKilled:
+                        killed.write(line + "\n")
+                    for line in alreadyNotKilled:
+                        notkilled.write(line + "\n")
+                for f in allTheMutants:
+                    if resume:
+                        if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
+                            continue
+                    print("#" + str(int(count) + 1) + ":", end=" ")
+                    print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
+                    print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
+                    print("  " + f, end=" ")
                     sys.stdout.flush()
-                finally:
-                    shutil.copy(src + ".um.backup", src)
-                    os.remove(src + ".um.backup")
+                    if f in ignore:
+                        print("SKIPPED")
+                    try:
+                        shutil.copy(src, src + ".um.backup")
+                        shutil.copy(f, src)
+
+                        start = time.time()
+
+                        if not verbose:
+                            P = subprocess.Popen(tstCmd, shell=True, stderr=dnull, stdout=dnull,
+                                                 preexec_fn=os.setsid)
+                        else:
+                            P = subprocess.Popen(tstCmd, shell=True, preexec_fn=os.setsid)
+
+                        try:
+                            while P.poll() is None and (time.time() - start) < timeout:
+                                time.sleep(0.05)
+                        finally:
+                            if P.poll() is None:
+                                print()
+                                print("HAD TO TERMINATE ANALYSIS (TIMEOUT OR EXCEPTION)")
+                                os.killpg(os.getpgid(P.pid), signal.SIGTERM)
+                            r = P.returncode
+
+                        runtime = time.time() - start
+
+                        count += 1
+                        if r == 0:
+                            print("NOT KILLED")
+                            notkilled.write(f.split("/")[-1] + "\n")
+                            notkilled.flush()
+                        else:
+                            killCount += 1
+                            print("KILLED IN", runtime)
+                            killed.write(f.split("/")[-1] + "\n")
+                            killed.flush()
+                        print("  RUNNING SCORE:", killCount / count)
+                        sys.stdout.flush()
+                    finally:
+                        shutil.copy(src + ".um.backup", src)
+                        os.remove(src + ".um.backup")
     print("MUTATION SCORE:", killCount / count)
 
 
