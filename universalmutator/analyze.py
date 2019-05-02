@@ -240,6 +240,7 @@ def main():
                     finally:
                         shutil.copy(src + ".um.backup", src)
                         os.remove(src + ".um.backup")
+    print("=" * 80)
     print("MUTATION SCORE:", killCount / count)
 
 
