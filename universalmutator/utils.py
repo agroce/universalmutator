@@ -3,6 +3,7 @@ import time
 
 import Levenshtein
 
+
 def solidityContract(m):
     (mfile, sourcefile, pos, orig, mutant) = m
     cname = "UNKNOWN"
@@ -15,7 +16,9 @@ def solidityContract(m):
                 cpos += 1
                 if cpos > pos:
                     break
-    except:
+    except KeyboardInterrupt:
+        raise
+    except BaseException:
         pass
     actualName = ""
     for c in cname:
@@ -23,6 +26,7 @@ def solidityContract(m):
             break
         actualName += c
     return actualName
+
 
 def solidityFunction(m):
     (mfile, sourcefile, pos, orig, mutant) = m
@@ -36,7 +40,9 @@ def solidityFunction(m):
                 fpos += 1
                 if fpos > pos:
                     break
-    except:
+    except KeyboardInterrupt:
+        raise
+    except BaseException:
         pass
     actualName = ""
     for c in fname:
@@ -44,6 +50,7 @@ def solidityFunction(m):
             break
         actualName += c
     return actualName
+
 
 def show(m):
     (mfile, sourcefile, pos, orig, mutant) = m
