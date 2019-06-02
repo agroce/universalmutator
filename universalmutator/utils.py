@@ -3,10 +3,53 @@ import time
 
 import Levenshtein
 
+def solidityContract(m):
+    (mfile, sourcefile, pos, orig, mutant) = m
+    cname = "UNKNOWN"
+    try:
+        with open(sourcefile, 'r') as readm:
+            cpos = 0
+            for line in readm:
+                if ("contract " in line) and (line.split()[0][:2] != "//"):
+                    cname = line.split("contract ")[1]
+                cpos += 1
+                if cpos > pos:
+                    break
+    except:
+        pass
+    actualName = ""
+    for c in cname:
+        if c.isspace() or (c == "("):
+            break
+        actualName += c
+    return actualName
+
+def solidityFunction(m):
+    (mfile, sourcefile, pos, orig, mutant) = m
+    fname = "UNKNOWN"
+    try:
+        with open(sourcefile, 'r') as readm:
+            fpos = 0
+            for line in readm:
+                if ("function " in line) and (line.split()[0][:2] != "//"):
+                    fname = line.split("function ")[1]
+                fpos += 1
+                if fpos > pos:
+                    break
+    except:
+        pass
+    actualName = ""
+    for c in fname:
+        if c.isspace() or (c == "("):
+            break
+        actualName += c
+    return actualName
 
 def show(m):
     (mfile, sourcefile, pos, orig, mutant) = m
     print(mfile + ": " + sourcefile + ":" + str(pos + 1))
+    if sourcefile.split(".")[1] == "sol":
+        print("Function", solidityFunction(m), "in contract", solidityContract(m))
     print(orig, end="")
     print(" ==> ", change(m))
     print(mutant, end="")
