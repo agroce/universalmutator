@@ -23,7 +23,8 @@ setup(
             'static/rust.rules',
             'static/go.rules',                        
             'static/rust.rules',
-            'static/solidity.rules',            
+            'static/solidity.rules',
+            'static/vyper.rules',
             'static/none.rules',
             ]
     },
@@ -35,6 +36,7 @@ setup(
     check_covered = universalmutator.checkcov:main
     prioritize_mutants = universalmutator.prioritize:main
     show_mutants = universalmutator.show:main
+    prune_mutants = universalmutator.prune:main
     intersect_mutants = universalmutator.intersect:main
     """,
     keywords='testing mutation mutation-testing',
