@@ -78,6 +78,7 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
     mutants = []
     produced = {}
     lineno = 0
+    stringSkipped = 0
     inTestCode = False
     for l in source:
         lineno += 1
@@ -155,6 +156,7 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
                                 inString = False
                     if noStringsOrig == noStringsMutant:
                         skipDueToString = True
+                        stringSkipped += 1
                 if (mutant != l) and ((lineno, mutant) not in produced) and (not skipDueToString):
                     mutants.append((lineno, mutant))
                     produced[(lineno, mutant)] = True
@@ -162,6 +164,8 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
             if abandon:
                 break
 
+    if stringSkipped > 0:
+        print("SKIPPED", stringSkipped, "MUTANTS ONLY CHANGING STRING LITERALS")
     return mutants
 
 
