@@ -5,7 +5,7 @@ import pkg_resources
 
 
 def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=False,
-            ignorePatterns=None):
+            ignorePatterns=None, ignoreStringOnly=False):
     rulesText = []
     print("MUTATING WITH RULES:", ", ".join(rules))
 
@@ -121,7 +121,42 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
                     break
                 if mutant[-1] != "\n":
                     mutant += "\n"
-                if mutant != l and (lineno, mutant) not in produced:
+                skipDueToString = False
+                if ignoreStringOnly:
+                    noStringsOrig = ""
+                    inString = False
+                    slen = 0
+                    for spos in range(0, len(l)):
+                        if not inString:
+                            noStringsOrig += l[spos]
+                            if l[spos] == '"':
+                                inString = True
+                                slen = 0
+                        else:
+                            slen += 1
+                            if l[spos] == '"':
+                                noStringsOrig += str(slen > 2)
+                                noStringsOrig += l[spos]
+                                inString = False
+                    noStringsMutant = ""
+                    inString = False
+                    slen = 0
+                    for spos in range(0, len(mutant)):
+                        if not inString:
+                            noStringsMutant += mutant[spos]
+                            if mutant[spos] == '"':
+                                inString = True
+                                slen = 0
+                        else:
+                            slen += 1
+                            if mutant[spos] == '"':
+                                noStringsMutant += str(slen > 2)
+                                noStringsMutant += mutant[spos]
+                                inString = False
+                    if noStringsOrig == noStringsMutant:
+                        print ("SKIPPING MUTANT ONLY INSIDE A STRING")
+                        skipDueToString = True
+                if (mutant != l) and ((lineno, mutant) not in produced) and (not skipDueToString):
                     mutants.append((lineno, mutant))
                     produced[(lineno, mutant)] = True
                 p = lhs.search(l, pos)
