@@ -154,7 +154,6 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
                                 noStringsMutant += mutant[spos]
                                 inString = False
                     if noStringsOrig == noStringsMutant:
-                        print ("SKIPPING MUTANT ONLY INSIDE A STRING")
                         skipDueToString = True
                 if (mutant != l) and ((lineno, mutant) not in produced) and (not skipDueToString):
                     mutants.append((lineno, mutant))
