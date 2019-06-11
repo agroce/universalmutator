@@ -103,7 +103,11 @@ def main():
             negated = ctype[0] == "!"
             regexp = "_RE" in ctype
             for c in constraints[ctype]:
-                if not regexp:
+                if "line" in ctype:
+                    cstart = int(c.split("-")[0])
+                    cend = int(c.split("-")[1])
+                    matched = (properties[field] >= cstart) and (properties[field] <= cend)
+                elif not regexp:
                     matched = c in properties[field]
                 else:
                     matched = regexp.search(c, properties[field])
