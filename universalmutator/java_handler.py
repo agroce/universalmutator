@@ -12,7 +12,7 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         if os.path.exists(classFile):
             shutil.copy(classFile, classBackupName)
         shutil.copy(tmpMutantName, sourceFile)
-        with open(".um.mutant_output" + os.getpid(), 'w') as file:
+        with open(".um.mutant_output" + str(os.getpid()), 'w') as file:
             r = subprocess.call(["javac", sourceFile],
                                 stdout=file, stderr=file)
     finally:
