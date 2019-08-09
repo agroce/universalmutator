@@ -308,6 +308,9 @@ def main():
 
     tmpMutantName = ".tmp_mutant." + str(os.getpid()) + ending
     mutantNo = 0
+    ending = "..."
+    if showRules:
+        ending = " "
     for mutant in mutants:
         if (lineFile is not None) and mutant[0] not in lines:
             # skip if not a line to mutate
@@ -328,9 +331,9 @@ def main():
         if mutant[0] in deadCodeLines:
             continue
         print("PROCESSING MUTANT:",
-              str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
+              str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end=ending)
         if showRules:
-            print("(FROM: ", mutant[2], end=")")
+            print("(FROM:", mutant[2][1], end=")...")
         mutator.makeMutant(source, mutant, tmpMutantName)
         if compileFile is None:
             mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
