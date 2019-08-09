@@ -4,12 +4,12 @@ import re
 import pkg_resources
 
 
-def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=False,
+def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False):
     rulesText = []
-    print("MUTATING WITH RULES:", ", ".join(rules))
+    print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
-    for ruleFile in rules:
+    for ruleFile in ruleFiles:
         if ".rules" not in ruleFile:
             ruleFile += ".rules"
         try:
@@ -29,8 +29,10 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
     rules = []
     ignoreRules = []
     skipRules = []
+    ruleLineNo = 0
 
     for (r, ruleSource) in rulesText:
+        ruleLineNo += 1
         if r == "\n":
             continue
         if " ==> " not in r:
@@ -63,7 +65,7 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
         elif rhs == "SKIP_MUTATING_REST":
             skipRules.append(lhs)
         else:
-            rules.append((lhs, rhs))
+            rules.append(((lhs, rhs), (r, ruleSource + ":" + str(ruleLineNo))))
 
     for p in ignorePatterns:
         try:
@@ -101,7 +103,7 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
         if skipLine:
             continue
         abandon = False
-        for (lhs, rhs) in rules:
+        for ((lhs, rhs), ruleUsed) in rules:
             skipPos = len(l)
             for skipRule in skipRules:
                 skipp = skipRule.search(l, 0)
@@ -158,7 +160,7 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
                         skipDueToString = True
                         stringSkipped += 1
                 if (mutant != l) and ((lineno, mutant) not in produced) and (not skipDueToString):
-                    mutants.append((lineno, mutant))
+                    mutants.append((lineno, mutant, ruleUsed))
                     produced[(lineno, mutant)] = True
                 p = lhs.search(l, pos)
             if abandon:
@@ -170,7 +172,8 @@ def mutants(source, rules=["universal.rules"], mutateTestCode=False, mutateBoth=
 
 
 def makeMutant(source, mutant, path):
-    (lineModified, newCode) = mutant
+    lineModified = mutant[0]
+    newCode = mutant[1]
     with open(path, 'w') as file:
         lineno = 0
         for l in source:
