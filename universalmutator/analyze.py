@@ -136,9 +136,10 @@ def main():
 
     if onlyMutants is not None:
         newMutants = []
-        for f in allTheMutants:
-            if f.split("/")[-1] in onlyMutants:
-                newMutants.append(f)
+        for f1 in onlyMutants:
+            for f2 in allTheMutants:
+                if f2.split("/")[-1] == f1:
+                    newMutants.append(f2)
         allTheMutants = newMutants
 
     if seed is not None:
