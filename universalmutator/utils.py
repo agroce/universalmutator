@@ -13,6 +13,8 @@ def solidityContract(m):
             for line in readm:
                 if ("contract " in line) and (line.split()[0][:2] != "//"):
                     cname = line.split("contract ")[1]
+                if ("library " in line) and (line.split()[0][:2] != "//"):
+                    cname = "library:" + line.split("library ")[1]
                 cpos += 1
                 if cpos > pos:
                     break
