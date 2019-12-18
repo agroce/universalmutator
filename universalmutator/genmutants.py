@@ -24,7 +24,7 @@ def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
 
 def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     global cmd
-    
+
     if "MUTANT" not in cmd:
         # We asssume if the MUTANT isn't part of the command,
         # we need to move it into place, before, e.g., make
@@ -34,7 +34,7 @@ def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     try:
         with open(".um.mutant_output." + str(os.getpid()), 'w') as file:
             r = subprocess.call([cmd.replace("MUTANT", tmpMutantName)],
-                            shell=True, stderr=file, stdout=file)
+                                shell=True, stderr=file, stdout=file)
         if r == 0:
             return "VALID"
         else:
