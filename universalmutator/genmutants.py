@@ -24,14 +24,25 @@ def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
 
 def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     global cmd
-
-    with open(".um.mutant_output." + str(os.getpid()), 'w') as file:
-        r = subprocess.call([cmd.replace("MUTANT", tmpMutantName)],
+    
+    if "MUTANT" not in cmd:
+        # We asssume if the MUTANT isn't part of the command,
+        # we need to move it into place, before, e.g., make
+        backupName = sourceFile + ".um.backup." + str(os.getpid())
+        shutil.copy(sourceFile, backupName)
+        shutil.copy(tmpMutantName, sourceFile)
+    try:
+        with open(".um.mutant_output." + str(os.getpid()), 'w') as file:
+            r = subprocess.call([cmd.replace("MUTANT", tmpMutantName)],
                             shell=True, stderr=file, stdout=file)
-    if r == 0:
-        return "VALID"
-    else:
-        return "INVALID"
+        if r == 0:
+            return "VALID"
+        else:
+            return "INVALID"
+    finally:
+        # If we moved the mutant in, restore original
+        if "MUTANT" not in cmd:
+            shutil.copy(backupName, sourceFile)
 
 
 def toGarbage(code):
