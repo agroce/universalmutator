@@ -81,6 +81,7 @@ DO_NOT_MUTATE ==> DO_NOT_MUTATE
 ([^|])\|([^|]) ==> \1&\2
 
 (^\s*)(\S+.*)\n ==> \1\2\n\1break;\n
+(^\s*)(\S+.*)\n ==> \1\2\n\1continue;\n
 
 ".+" ==> ""
 
