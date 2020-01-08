@@ -292,6 +292,8 @@ def main():
         otherRules.append("solidity.rules")
 
     rules = ["universal.rules", language + ".rules"] + otherRules
+    if fuzz:
+        rules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
 
     source = []
 
