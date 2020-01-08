@@ -4,8 +4,9 @@ import re
 import pkg_resources
 import random
 
+
 def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
-            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False): 
+            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
     rulesText = []
     print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
