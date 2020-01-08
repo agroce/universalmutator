@@ -2,10 +2,10 @@ from __future__ import print_function
 
 import re
 import pkg_resources
-
+import random
 
 def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
-            ignorePatterns=None, ignoreStringOnly=False):
+            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False): 
     rulesText = []
     print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
@@ -82,8 +82,13 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
     lineno = 0
     stringSkipped = 0
     inTestCode = False
+    if fuzzing:
+        # Pick a random target line, ignore others
+        targetLine = random.randrange(1, len(source) + 1)
     for l in source:
         lineno += 1
+        if fuzzing and (lineno != targetLine):
+            continue
         if inTestCode:
             if "@END_TEST_CODE" in l:
                 inTestCode = False
