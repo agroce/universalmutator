@@ -268,7 +268,10 @@ def main():
     ending = "." + sourceFile.split(".")[-1]
 
     if len(args) < 3:
-        language = languages[ending]
+        try:
+            language = languages[ending]
+        except KeyError:
+            language = "none"
         otherRules = []
     else:
         if ".rules" in args[2]:
@@ -293,7 +296,8 @@ def main():
 
     rules = ["universal.rules", language + ".rules"] + otherRules
     if fuzz:
-        rules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
+        fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
+        rules = list(set(fuzzRules + rules))
 
     source = []
 
