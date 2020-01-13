@@ -366,6 +366,8 @@ def main():
             mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
         print(mutantResult, end=" ")
         mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
+        if fuzz:
+            mutantName = mdir + "fuzz.out"
         if (mutantResult == "VALID") or (mutantResult == "REDUNDANT" and redundantOK):
             print("[written to", mutantName + "]", end=" ")
             shutil.copy(tmpMutantName, mutantName)
