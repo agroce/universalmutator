@@ -296,8 +296,9 @@ def main():
 
     rules = ["universal.rules", language + ".rules"] + otherRules
     if fuzz:
-        fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
-        rules = list(set(fuzzRules + rules))
+        if language == "none":
+            fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
+            rules = list(set(fuzzRules + rules))
 
     source = []
 
