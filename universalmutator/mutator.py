@@ -85,6 +85,8 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
     inTestCode = False
     if fuzzing:
         # Pick a random target line, ignore others
+        if len(source) == 0:
+            return []
         targetLine = random.randrange(1, len(source) + 1)
     for l in source:
         lineno += 1
