@@ -6,9 +6,10 @@ import random
 
 
 def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
-            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
+            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, loud=False):
     rulesText = []
-    print("MUTATING WITH RULES:", ", ".join(ruleFiles))
+    if loud:
+        print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
     for ruleFile in ruleFiles:
         if ".rules" not in ruleFile:
@@ -174,7 +175,7 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
             if abandon:
                 break
 
-    if stringSkipped > 0:
+    if loud and (stringSkipped > 0):
         print("SKIPPED", stringSkipped, "MUTANTS ONLY CHANGING STRING LITERALS")
     return mutants
 
