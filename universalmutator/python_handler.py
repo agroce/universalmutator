@@ -29,12 +29,14 @@ def buildCode(c):
 
 def getPythonCode(fname):
     # Courtesy of Ned Batchelder, just get the code object from the .pyc file
-    f = open(fname, "rb")
-    f.read(4)
-    f.read(4)
-    if sys.version_info >= (3, 3):
+    with open(fname, "rb") as f:
         f.read(4)
-    code = marshal.load(f)
+        f.read(4)
+        if sys.version_info >= (3, 3):
+            f.read(4)
+        if sys.version_info >= (3, 6):
+            f.read(4)
+        code = marshal.load(f)
     return buildCode(code)
 
 

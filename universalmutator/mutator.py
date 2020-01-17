@@ -5,10 +5,8 @@ import pkg_resources
 import random
 
 
-def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
-            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
+def compileRules(ruleFiles):
     rulesText = []
-    print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
     for ruleFile in ruleFiles:
         if ".rules" not in ruleFile:
@@ -67,6 +65,16 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
             skipRules.append(lhs)
         else:
             rules.append(((lhs, rhs), (r, ruleSource + ":" + str(ruleLineNo))))
+
+    return (rules, ignoreRules, skipRules)
+
+
+def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
+            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
+
+    print("MUTATING WITH RULES:", ", ".join(ruleFiles))
+
+    (rules, ignoreRules, skipRules) = compileRules(ruleFiles)
 
     for p in ignorePatterns:
         try:
