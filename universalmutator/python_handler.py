@@ -38,8 +38,8 @@ def getPythonCode(fname):
             code = marshal.load(f)
         except ValueError:
             with open(fname, "rb") as fRetry:
-                f.read(16)
-                code = marshal.load(f)
+                fRetry.read(16)
+                code = marshal.load(fRetry)
     return buildCode(code)
 
 
