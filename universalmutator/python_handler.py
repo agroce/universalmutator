@@ -34,9 +34,12 @@ def getPythonCode(fname):
         f.read(4)
         if sys.version_info >= (3, 3):
             f.read(4)
-        if sys.version_info >= (3, 6):
-            f.read(4)
-        code = marshal.load(f)
+        try:
+            code = marshal.load(f)
+        except ValueError:
+            with open(fname, "rb") as fRetry:
+                f.read(16)
+                code = marshal.load(f)
     return buildCode(code)
 
 
