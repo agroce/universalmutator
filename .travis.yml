@@ -10,8 +10,8 @@ install:
 script:
 - pyflakes universalmutator/*.py
 - pyflakes tests/*.py
-- pycodestyle universalmutator/*.py --max-line-length 120 --statistics
-- pycodestyle tests/*.py --max-line-length 120 --statistics
+- pycodestyle universalmutator/*.py --max-line-length 120 --statistics --ignore=E741
+- pycodestyle tests/*.py --max-line-length 120 --statistics --ignore=E741
 - python setup.py install
 - nosetests --verbose
 
