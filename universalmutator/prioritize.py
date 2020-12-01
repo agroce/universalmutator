@@ -2,7 +2,7 @@ from __future__ import print_function
 import glob
 import sys
 
-import utils
+import universalmutator.utils as utils
 
 
 def main():
@@ -96,7 +96,7 @@ def main():
     sdmutants = []
     if not noSDPriority:
         print("IDENTIFYING STATEMENT DELETION MUTANTS")
-        sdmutants = filter(utils.isStatementDeletion, mutants)
+        sdmutants = list(filter(utils.isStatementDeletion, mutants))
         for m in sdmutants:
             mutants.remove(m)
         print("PRIORITIZING", len(sdmutants), "STATEMENT DELETIONS")
