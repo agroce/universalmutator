@@ -190,5 +190,10 @@ def readMutant(mutant, source, mutantDir=None):
             diffFound = True
             break
         pos += 1
+    mpos = pos
+    if not diffFound:
+        if len(mcode) > len(scode):
+            pos = len(scode)-1
+            diffFound = True
     assert diffFound, "mutant " + mfile + " and source " + source + " are identical!"
-    return (mutant, source, pos, scode[pos], mcode[pos])
+    return (mutant, source, pos, scode[pos], mcode[mpos])

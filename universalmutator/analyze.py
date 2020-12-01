@@ -97,7 +97,7 @@ def main():
         with open(fromFile, 'r') as file:
             onlyMutants = file.read().split()
 
-    mdir = ""
+    mdir = "."
     try:
         mdirpos = args.index("--mutantDir")
     except ValueError:
@@ -107,6 +107,7 @@ def main():
         mdir = args[mdirpos + 1]
         args.remove("--mutantDir")
         args.remove(mdir)
+    if mdir[-1] != "/":
         mdir += "/"
 
     src = args[1]

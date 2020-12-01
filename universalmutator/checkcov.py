@@ -17,7 +17,7 @@ def main():
         print("       --tstl: process <coverfile> that is output from TSTL internal report")
         sys.exit(0)
 
-    mdir = ""
+    mdir = "."
     try:
         mdirpos = args.index("--mutantDir")
     except ValueError:
@@ -27,6 +27,7 @@ def main():
         mdir = args[mdirpos + 1]
         args.remove("--mutantDir")
         args.remove(mdir)
+    if mdir[-1] != "/":
         mdir += "/"
 
     src = args[1]

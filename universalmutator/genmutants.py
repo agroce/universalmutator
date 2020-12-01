@@ -197,7 +197,7 @@ def main():
                         for line in d:
                             lines.append(int(line))
 
-    mdir = ""
+    mdir = "."
     try:
         mdirpos = args.index("--mutantDir")
     except ValueError:
@@ -207,6 +207,7 @@ def main():
         mdir = args[mdirpos + 1]
         args.remove("--mutantDir")
         args.remove(mdir)
+    if mdir[-1] != "/":
         mdir += "/"
 
     ignoreFile = None

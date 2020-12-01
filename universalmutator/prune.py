@@ -21,7 +21,7 @@ def main():
     outfile = sys.argv[2]
     config = sys.argv[3]
 
-    mdir = ""
+    mdir = "."
     try:
         mdirpos = args.index("--mutantDir")
     except ValueError:
@@ -31,9 +31,10 @@ def main():
         mdir = args[mdirpos + 1]
         args.remove("--mutantDir")
         args.remove(mdir)
+    if mdir[-1] != "/":
         mdir += "/"
 
-    sdir = ""
+    sdir = "."
     try:
         sdirpos = args.index("--sourceDir")
     except ValueError:
@@ -43,6 +44,7 @@ def main():
         sdir = args[sdirpos + 1]
         args.remove("--sourceDir")
         args.remove(sdir)
+    if sdir[-1] != "/":
         sdir += "/"
 
     mutants = []
