@@ -30,7 +30,7 @@ def main():
         args.remove(mdir)
     if mdir[-1] != "/":
         mdir += "/"
- 
+
     sdir = "."
     try:
         sdirpos = args.index("--sourceDir")
