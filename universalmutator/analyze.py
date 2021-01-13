@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import difflib
 import subprocess
 import sys
 import glob
@@ -194,11 +195,12 @@ def main():
                     print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
                     if verbose or showM:
                         print("MUTANT:", f)
-                        with open(".mutant.diff", 'w') as mdiff:
-                            subprocess.call(["diff", src, f], stdout=mdiff, stderr=mdiff)
-                        with open(".mutant.diff", 'r') as mdiff:
-                            for line in mdiff:
-                                print(line, end="")
+                        with open(src, 'r') as ff:
+                            fromLines = ff.readlines()
+                        with open(f, 'r') as tf:
+                            toLines = tf.readlines()
+                        diff = difflib.context_diff(fromLines, toLines, "Original", "Mutant")
+                        print(''.join(diff))
                         print()
                         sys.stdout.flush()
                     print("RUNNING", f + "...")

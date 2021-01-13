@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import difflib
 import subprocess
 import sys
 import glob
@@ -41,7 +42,7 @@ def main():
 
     with open(coverFile) as file:
         if not tstl:
-            lines = map(int, file.read().split())
+            lines = list(map(int, file.read().split()))
         else:
             lines = []
             for l in file:
@@ -60,19 +61,16 @@ def main():
                 srcEnd,
                 "mutant.*." +
                 srcEnd)):
-            with open(".mutant_diff", 'w') as file:
-                subprocess.call(["diff", src, f], stdout=file, stderr=file)
-            with open(".mutant_diff") as file:
-                for l in file:
-                    if "c" in l:
-                        line = int(l.split("c")[0])
-                        break
-                    elif "a" in l:
-                        line = int(l.split("a")[0])
-                        break
-                    elif "d" in l:
-                        line = int(l.split("d")[0])
-                        break
+            with open(src, 'r') as sf:
+                sfLines = sf.readlines()
+            with open(f, 'r') as mf:
+                mfLines = mf.readlines()
+            line = 1
+            for i in range(0, min(len(sfLines), len(mfLines))):
+                if sfLines[i] != mfLines[i]:
+                    break
+                line += 1
+            print(f, line)
             if line in lines:
                 coveredFile.write(f.split("/")[-1] + "\n")
 
