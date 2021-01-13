@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-import difflib
-import subprocess
 import sys
 import glob
 
