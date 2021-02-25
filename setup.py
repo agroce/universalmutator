@@ -5,7 +5,7 @@ import sys, os
 
 setup(
     name='universalmutator',
-    version='1.0.2',
+    version='1.0.3',
     description='Universal regexp-based mutation tool',
     long_description_content_type="text/markdown",
     long_description=open('README.md').read(),

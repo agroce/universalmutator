@@ -9,6 +9,7 @@ import signal
 import time
 import random
 import os
+import py_compile
 
 
 def main():
@@ -208,6 +209,8 @@ def main():
                     try:
                         shutil.copy(src, src + ".um.backup")
                         shutil.copy(f, src)
+                        if srcEnd == ".py":
+                            py_compile.compile(src)
 
                         start = time.time()
 
@@ -225,6 +228,7 @@ def main():
                                 print()
                                 print("HAD TO TERMINATE ANALYSIS (TIMEOUT OR EXCEPTION)")
                                 os.killpg(os.getpgid(P.pid), signal.SIGTERM)
+                                time.sleep(0.05) # Avoid any weird race conditions from grabbing the return code
                             r = P.returncode
 
                         runtime = time.time() - start
@@ -236,7 +240,7 @@ def main():
                             notkilled.flush()
                         else:
                             killCount += 1
-                            print(f, "KILLED IN", runtime)
+                            print(f, "KILLED IN", runtime, "(RETURN CODE", str(r) + ")")
                             killed.write(f.split("/")[-1] + "\n")
                             killed.flush()
                         print("  RUNNING SCORE:", killCount / count)
