@@ -228,7 +228,8 @@ def main():
                                 print()
                                 print("HAD TO TERMINATE ANALYSIS (TIMEOUT OR EXCEPTION)")
                                 os.killpg(os.getpgid(P.pid), signal.SIGTERM)
-                                time.sleep(0.05) # Avoid any weird race conditions from grabbing the return code
+                                # Avoid any weird race conditions from grabbing the return code
+                                time.sleep(0.05)
                             r = P.returncode
 
                         runtime = time.time() - start
