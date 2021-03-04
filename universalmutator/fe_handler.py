@@ -15,7 +15,7 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         shutil.copy(sourceFile, tmpMutantName)
         try:
             shutil.rmtree(".tmp_mutant_fe")
-        except FileNotFoundError:
+        except EnvironmentError:
             pass
         with open(outName, 'w') as file:
             r = subprocess.call(
@@ -27,7 +27,7 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         uniqueMutants[code] = 1
     try:
         shutil.rmtree(".tmp_mutant_fe")
-    except FileNotFoundError:
+    except EnvironmentError
         pass
     with open(outName, 'w') as file:
         r = subprocess.call(["fe", tmpMutantName, "--emit",
