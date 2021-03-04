@@ -27,7 +27,7 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         uniqueMutants[code] = 1
     try:
         shutil.rmtree(".tmp_mutant_fe")
-    except EnvironmentError
+    except EnvironmentError:
         pass
     with open(outName, 'w') as file:
         r = subprocess.call(["fe", tmpMutantName, "--emit",
