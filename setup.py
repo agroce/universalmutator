@@ -5,7 +5,7 @@ import sys, os
 
 setup(
     name='universalmutator',
-    version='1.0.3',
+    version='1.0.4',
     description='Universal regexp-based mutation tool',
     long_description_content_type="text/markdown",
     long_description=open('README.md').read(),
@@ -26,6 +26,7 @@ setup(
             'static/solidity.rules',
             'static/vyper.rules',
             'static/none.rules',
+            'static/fe.rules'
             ]
     },
     license='MIT',

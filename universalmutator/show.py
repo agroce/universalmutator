@@ -14,9 +14,14 @@ def main():
         print("USAGE: show_mutants <infile> [--mutantDir <dir>] [--sourceDir <dir>]")
         print("       --mutantDir: directory with all mutants; defaults to current directory")
         print("       --sourceDir: directory of source files; defaults to current directory")
+        print("       --concise:   display in concise mutant format")
         sys.exit(0)
 
     infile = sys.argv[1]
+
+    concise = "--concise" in sys.argv
+    if concise:
+        args.remove("--concise")
 
     mdir = "."
     try:
@@ -59,7 +64,7 @@ def main():
         print("*"*80)
         print("MUTANT #" + str(pos) + ":")
         pos += 1
-        utils.show(m)
+        utils.show(m, concise=concise, mutantDir=mdir)
 
 
 if __name__ == '__main__':

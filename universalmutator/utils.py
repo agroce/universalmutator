@@ -1,4 +1,5 @@
 from __future__ import print_function
+import difflib
 import time
 
 import Levenshtein
@@ -54,14 +55,27 @@ def solidityFunction(m):
     return actualName
 
 
-def show(m):
+def show(m, concise=False, mutantDir=None, sourceDir=None):
     (mfile, sourcefile, pos, orig, mutant) = m
     print(mfile + ": " + sourcefile + ":" + str(pos + 1))
     if sourcefile.split(".")[1] == "sol":
         print("Function", solidityFunction(m), "in contract", solidityContract(m))
-    print(orig, end="")
-    print(" ==> ", change(m))
-    print(mutant, end="")
+    if concise:
+        print(orig, end="")
+        print(" ==> ", change(m))
+        print(mutant, end="")
+    else:
+        if mutantDir is not None:
+            mfile = mutantDir + "/" + mfile
+        if sourceDir is not None:
+            sourcefile = sourceDir + "/" + sourcefile
+        with open(sourcefile, 'r') as ff:
+            fromLines = ff.readlines()
+        with open(mfile, 'r') as tf:
+            toLines = tf.readlines()
+        diff = difflib.context_diff(fromLines, toLines, "Original", "Mutant")
+        print(''.join(diff))
+        print()
 
 
 def change(m):
@@ -174,11 +188,14 @@ def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=[]):
     return ranking
 
 
-def readMutant(mutant, source, mutantDir=None):
+def readMutant(mutant, source, mutantDir=None, sourceDir=None):
     mfile = mutant
     if mutantDir is not None:
         mfile = mutantDir + "/" + mfile
-    with open(source, 'r') as readSource:
+    sfile = source
+    if sourceDir is not None:
+        sfile = sourceDir + "/" + sfile
+    with open(sfile, 'r') as readSource:
         scode = readSource.readlines()
     with open(mfile, 'r') as readmfile:
         mcode = readmfile.readlines()

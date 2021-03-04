@@ -17,6 +17,7 @@ import universalmutator.rust_handler as rust_handler
 import universalmutator.go_handler as go_handler
 import universalmutator.solidity_handler as solidity_handler
 import universalmutator.vyper_handler as vyper_handler
+import universalmutator.fe_handler as fe_handler
 
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
@@ -75,7 +76,8 @@ def main():
                  ".rs": "rust",
                  ".go": "go",
                  ".sol": "solidity",
-                 ".vy": "vyper"}
+                 ".vy": "vyper",
+                 ".fe": "fe"}
 
     print("*** UNIVERSALMUTATOR ***")
 
@@ -248,7 +250,8 @@ def main():
                 "rust": rust_handler,
                 "go": go_handler,
                 "solidity": solidity_handler,
-                "vyper": vyper_handler}
+                "vyper": vyper_handler,
+                "fe": fe_handler}
 
     cLikeLanguages = [
         "c",
@@ -292,6 +295,10 @@ def main():
         otherRules.append("c_like.rules")
 
     if language == "vyper":
+        otherRules.append("python.rules")
+        otherRules.append("solidity.rules")
+
+    if language == "fe":
         otherRules.append("python.rules")
         otherRules.append("solidity.rules")
 
