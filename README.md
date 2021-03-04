@@ -63,7 +63,10 @@ Rust
 Go
 Solidity
 Vyper
+Fe
 ```
+
+(the last three are smart contract languages for the Ethereum blockchain).
 
 All but C, C++, and Go will try, by default, to compile the mutated
 file and use TCE to detect redundancy.  Of course, build dependencies
