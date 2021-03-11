@@ -36,7 +36,7 @@ def getPythonCode(fname):
             f.read(4)
         try:
             code = marshal.load(f)
-        except (TypeError, ValueError):
+        except (EOFError, TypeError, ValueError):
             with open(fname, "rb") as fRetry:
                 fRetry.read(16)
                 code = marshal.load(fRetry)
