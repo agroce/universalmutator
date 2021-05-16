@@ -212,13 +212,16 @@ def main():
                         if srcEnd == ".py":
                             py_compile.compile(src)
 
+                        ctstCmd = ['export aa="' + f + '"; ' + tstCmd[0]]
+                        os.environ["CURRENT_MUTANT_SOURCE"] = f
+
                         start = time.time()
 
                         if not verbose:
-                            P = subprocess.Popen(tstCmd, shell=True, stderr=dnull, stdout=dnull,
+                            P = subprocess.Popen(ctstCmd, shell=True, stderr=dnull, stdout=dnull,
                                                  preexec_fn=os.setsid)
                         else:
-                            P = subprocess.Popen(tstCmd, shell=True, preexec_fn=os.setsid)
+                            P = subprocess.Popen(ctstCmd, shell=True, preexec_fn=os.setsid)
 
                         try:
                             while P.poll() is None and (time.time() - start) < timeout:
