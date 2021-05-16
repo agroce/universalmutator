@@ -187,7 +187,7 @@ def main():
     if lineFile is not None:
         with open(lineFile) as file:
             if not tstl:
-                lines = map(int, file.read().split())
+                lines = list(map(int, file.read().split()))
             else:
                 lines = []
                 for l in file:
