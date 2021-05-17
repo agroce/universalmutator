@@ -212,8 +212,7 @@ def main():
                         if srcEnd == ".py":
                             py_compile.compile(src)
 
-                        ctstCmd = ['export aa="' + f + '"; ' + tstCmd[0]]
-                        os.environ["CURRENT_MUTANT_SOURCE"] = f
+                        ctstCmd = ['export CURRENT_MUTANT_SOURCE"' + f + '"; ' + tstCmd[0]]
 
                         start = time.time()
 
