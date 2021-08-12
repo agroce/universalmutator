@@ -18,6 +18,7 @@ import universalmutator.go_handler as go_handler
 import universalmutator.solidity_handler as solidity_handler
 import universalmutator.vyper_handler as vyper_handler
 import universalmutator.fe_handler as fe_handler
+import universalmutator.javascript_handler as javascript_handler
 
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
@@ -72,6 +73,7 @@ def main():
                  ".c++": "cpp",
                  ".py": "python",
                  ".java": "java",
+                 ".js": "javascript",
                  ".swift": "swift",
                  ".rs": "rust",
                  ".go": "go",
@@ -107,6 +109,8 @@ def main():
         print("       --showRules: show rule source used to generate each mutant")
         print()
         print("Currently supported languages: ", ", ".join(list(set(languages.values()))))
+        print("If not supplying a command to compile/build, you should use --noCheck for C, C++,")
+        print("javascript, and other languages with only a default handler.")
         sys.exit(0)
 
     noCheck = False
@@ -246,6 +250,7 @@ def main():
                 "c++": cpp_handler,
                 "cpp": cpp_handler,
                 "java": java_handler,
+                "javascript": javascript_handler,
                 "swift": swift_handler,
                 "rust": rust_handler,
                 "go": go_handler,
@@ -256,6 +261,7 @@ def main():
     cLikeLanguages = [
         "c",
         "java",
+        "javascript",
         "swift",
         "cpp",
         "c++",

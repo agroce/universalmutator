@@ -5,7 +5,7 @@ import sys, os
 
 setup(
     name='universalmutator',
-    version='1.0.10',
+    version='1.0.11',
     description='Universal regexp-based mutation tool',
     long_description_content_type="text/markdown",
     long_description=open('README.md').read(),
@@ -19,6 +19,7 @@ setup(
             'static/cpp.rules',
             'static/swift.rules',
             'static/java.rules',
+            'static/javascript.rules',
             'static/python.rules',
             'static/rust.rules',
             'static/go.rules',                        

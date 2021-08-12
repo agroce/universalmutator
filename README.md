@@ -57,6 +57,7 @@ The tool will likely mutate other things, if you tell it they are "c" or somethi
 C
 C++
 Java
+JavaScript
 Python
 Swift
 Rust
@@ -68,7 +69,7 @@ Fe
 
 (the last three are smart contract languages for the Ethereum blockchain).
 
-All but C, C++, and Go will try, by default, to compile the mutated
+All but C, C++, JavaScript, and Go will try, by default, to compile the mutated
 file and use TCE to detect redundancy.  Of course, build dependencies
 may frustrate this process, in which case --noCheck will turn off TCE
 and just dump all the mutants in the directory, for pruning using a
