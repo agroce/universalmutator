@@ -334,12 +334,19 @@ def main():
     redundantMutants = []
     uniqueMutants = {}
 
+    dumbHandler = False
     if not noCheck:
         if cmd is not None:
             handler = cmdHandler
         elif language == "none":
             handler = nullHandler
         else:
+            try:
+                if handlers[language].dumb:
+                    noFastCheck = True
+                    dumbHandler = True
+            except:
+                pass
             handler = handlers[language].handler
     else:
         handler = nullHandler
@@ -434,6 +441,14 @@ def main():
     print(len(validMutants), "VALID MUTANTS")
     print(len(invalidMutants), "INVALID MUTANTS")
     print(len(redundantMutants), "REDUNDANT MUTANTS")
+
+    if dumbHandler:
+        print()
+        print("*"*80)
+        print("WARNING:  because the handler does not compile and so has no pruning support,")
+        print("all mutants were considered valid.  Consider using --cmd to build the target!")
+        print("*"*80)
+        print()
 
     try:
         os.remove(tmpMutantName)
