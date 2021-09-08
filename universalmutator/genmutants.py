@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import random
+from re import T
 import sys
 import shutil
 import subprocess
@@ -20,10 +21,26 @@ import universalmutator.vyper_handler as vyper_handler
 import universalmutator.fe_handler as fe_handler
 import universalmutator.javascript_handler as javascript_handler
 
-
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     return "VALID"
 
+def fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, lineNo):
+    if compileFile is None:
+        mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
+    else:
+        mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
+    if mutantResult in ["VALID", "REDUNDANT"]:
+        deadCodeLines.append(lineNo)
+        print("LINE", str(lineNo) + ":", source[lineNo - 1][:-1], end=" ")
+        print("APPEARS TO BE COMMENT OR DEAD CODE, SKIPPING...")
+    else:
+        interestingLines.append(lineNo)
+
+def checkCombyDeadCode(deadCodeLines, mutant):
+    for i in range(mutant[3][0], mutant[3][1]+1):
+        if i not in deadCodeLines:
+            return False
+    return True
 
 def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     global cmd
@@ -103,6 +120,7 @@ def main():
         print("       --mutateBoth: mutate both test and normal code")
         print("       --ignore <file>: ignore lines matching patterns in <file>")
         print("       --compile <file>: compile <file> instead of source (solidity handler only)")
+        print("       --comby: use comby as the method of mutating code")
         print("       --noFastCheck: do not use fast dead code/comment detection heuristic")
         print("       --swap: also try adjacent-code swaps")
         print("       --redundantOK: keep redundant mutants (for compiler output issues)")
@@ -117,6 +135,11 @@ def main():
     if "--noCheck" in args:
         noCheck = True
         args.remove("--noCheck")
+
+    comby = False
+    if "--comby" in args:
+        comby = True
+        args.remove("--comby")
 
     redundantOK = False
     if "--redundantOK" in args:
@@ -320,7 +343,13 @@ def main():
         for l in file:
             source.append(l)
 
-    mutants = mutator.mutants(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
+    mutants = []
+
+    if comby:
+        mutants = mutator.mutants_comby(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
+                                ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz, language=ending)
+    else:
+        mutants = mutator.mutants(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
                               ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz)
     if fuzz:
         if len(mutants) == 0:
@@ -333,6 +362,7 @@ def main():
     invalidMutants = []
     redundantMutants = []
     uniqueMutants = {}
+    sourceJoined = ''
 
     dumbHandler = False
     if not noCheck:
@@ -361,26 +391,33 @@ def main():
         if (lineFile is not None) and mutant[0] not in lines:
             # skip if not a line to mutate
             continue
-        if (not noFastCheck) and (mutant[0] not in interestingLines) and (mutant[0] not in deadCodeLines):
+        if (not noFastCheck) and (not comby) and (mutant[0] not in interestingLines) and (mutant[0] not in deadCodeLines):
             fastCheckMutant = (mutant[0], toGarbage(source[mutant[0] - 1]))
             mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
-            if compileFile is None:
-                mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
-            else:
-                mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
-            if mutantResult in ["VALID", "REDUNDANT"]:
-                deadCodeLines.append(mutant[0])
-                print("LINE", str(mutant[0]) + ":", source[mutant[0] - 1][:-1], end=" ")
-                print("APPEARS TO BE COMMENT OR DEAD CODE, SKIPPING...")
-            else:
-                interestingLines.append(mutant[0])
-        if mutant[0] in deadCodeLines:
+            fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, mutant[0])
+        if (not noFastCheck) and comby:
+            checkLines = []
+            for i in range(mutant[3][0], mutant[3][1] + 1):
+                if i not in deadCodeLines or i not in interestingLines:
+                    checkLines.append(i)
+            for lineNo in checkLines:
+                fastCheckMutant = (lineNo, toGarbage(source[lineNo - 1]))
+                mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
+                fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, lineNo)
+        if (not noFastCheck) and (not comby) and mutant[0] in deadCodeLines:
             continue
-        print("PROCESSING MUTANT:",
+        if (not noFastCheck) and comby and checkCombyDeadCode(deadCodeLines, mutant):
+            continue
+        if comby:
+            sourceJoined = ''.join(source)
+            print("PROCESSING MUTANT:",
+              "range" + str(mutant[0]) + ":", sourceJoined[mutant[0][0]:mutant[0][1]].replace("\n", "\\n"), " ==> ", mutant[1], end="...")
+        else:
+            print("PROCESSING MUTANT:",
               str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
-        if showRules:
+        if (not comby) and showRules:
             print("(FROM:", mutant[2][1], end=")...")
-        mutator.makeMutant(source, mutant, tmpMutantName)
+        mutator.makeMutantComby(sourceJoined, mutant, tmpMutantName) if comby else mutator.makeMutant(source, mutant, tmpMutantName)
         if compileFile is None:
             mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
         else:
