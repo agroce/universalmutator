@@ -4,16 +4,20 @@ import re
 import pkg_resources
 import random
 from comby import Comby
+import os
 
-
-def compileRules(ruleFiles, comby):
+def parseRules(ruleFiles, comby=False):
     rulesText = []
 
     for ruleFile in ruleFiles:
         if ".rules" not in ruleFile:
             ruleFile += ".rules"
         try:
-            with pkg_resources.resource_stream('universalmutator', 'comby/' + ruleFile if comby else 'static/' + ruleFile) as builtInRule:
+            if comby:
+                rulePath = os.path.join('comby', ruleFile)
+            else:
+                rulePath = os.path.join('static', ruleFile)
+            with pkg_resources.resource_stream('universalmutator', rulePath) as builtInRule:
                 for line in builtInRule:
                     line = line.decode()
                     rulesText.append((line, "builtin:" + ruleFile))
@@ -52,7 +56,7 @@ def compileRules(ruleFiles, comby):
         
         if comby:
             lhs = s[0]
-            lhs = lhs.rstrip() # RVT(XXX) trailing whitespace in match will be treated significantly, so strip it. But stripping it means we can't specify it.
+            lhs = lhs.rstrip() # Trailing whitespace in rule file will be treated significantly unless stripped, so strip it. If matching trailing whitespace is desired, then regex holes should be used.
         else:
             try:
                 lhs = re.compile(s[0])
@@ -79,7 +83,7 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, language=".generic"):
     comby = Comby()
     print("MUTATING WITH RULES (COMBY):", ", ".join(ruleFiles))
-    (rules, ignoreRules, skipRules) = compileRules(ruleFiles, True)
+    (rules, ignoreRules, skipRules) = parseRules(ruleFiles, True)
     for p in ignorePatterns:
         ignoreRules.append(lhs)
     source = ''.join(source)
@@ -95,7 +99,8 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
                 substitutionRange = (match.location.start.offset, match.location.stop.offset)
                 lineRange = (match.location.start.line, match.location.stop.line)
                 mutants.append((substitutionRange, mutant, ruleUsed, lineRange))
-        except Exception:
+        except Exception as e:
+            print(f"WARNING: Got exception ${e} running rule ${ruleUsed}")
             continue
     return mutants
 
@@ -104,7 +109,7 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
 
     print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
-    (rules, ignoreRules, skipRules) = compileRules(ruleFiles, False)
+    (rules, ignoreRules, skipRules) = parseRules(ruleFiles)
 
     for p in ignorePatterns:
         try:

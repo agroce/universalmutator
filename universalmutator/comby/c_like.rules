@@ -1,4 +1,4 @@
-:[expr] ==> /*:[expr]*/
+:[expr:e] ==> /*:[expr:e]*/
 if (:[cond]) ==> if (!:[cond])
 if(:[cond]) ==> if (!:[cond])
 if (:[cond]) ==> if (0)

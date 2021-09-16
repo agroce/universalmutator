@@ -391,23 +391,26 @@ def main():
         if (lineFile is not None) and mutant[0] not in lines:
             # skip if not a line to mutate
             continue
-        if (not noFastCheck) and (not comby) and (mutant[0] not in interestingLines) and (mutant[0] not in deadCodeLines):
-            fastCheckMutant = (mutant[0], toGarbage(source[mutant[0] - 1]))
-            mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
-            fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, mutant[0])
-        if (not noFastCheck) and comby:
-            checkLines = []
-            for i in range(mutant[3][0], mutant[3][1] + 1):
-                if i not in deadCodeLines or i not in interestingLines:
-                    checkLines.append(i)
-            for lineNo in checkLines:
-                fastCheckMutant = (lineNo, toGarbage(source[lineNo - 1]))
-                mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
-                fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, lineNo)
-        if (not noFastCheck) and (not comby) and mutant[0] in deadCodeLines:
-            continue
-        if (not noFastCheck) and comby and checkCombyDeadCode(deadCodeLines, mutant):
-            continue
+        if (not noFastCheck):
+            if comby:
+                checkLines = []
+                for i in range(mutant[3][0], mutant[3][1] + 1):
+                    if i not in deadCodeLines or i not in interestingLines:
+                        checkLines.append(i)
+                for lineNo in checkLines:
+                    fastCheckMutant = (lineNo, toGarbage(source[lineNo - 1]))
+                    mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
+                    fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, lineNo)
+                if checkCombyDeadCode(deadCodeLines, mutant):
+                    continue
+            else:
+                if (mutant[0] not in interestingLines) and (mutant[0] not in deadCodeLines):
+                    fastCheckMutant = (mutant[0], toGarbage(source[mutant[0] - 1]))
+                    mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
+                    fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, mutant[0])
+                if mutant[0] in deadCodeLines:
+                    continue
+        
         if comby:
             sourceJoined = ''.join(source)
             print("PROCESSING MUTANT:",
@@ -417,7 +420,11 @@ def main():
               str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
         if (not comby) and showRules:
             print("(FROM:", mutant[2][1], end=")...")
-        mutator.makeMutantComby(sourceJoined, mutant, tmpMutantName) if comby else mutator.makeMutant(source, mutant, tmpMutantName)
+        
+        if comby:
+            mutator.makeMutantComby(sourceJoined, mutant, tmpMutantName)  
+        else: mutator.makeMutant(source, mutant, tmpMutantName)
+        
         if compileFile is None:
             mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
         else:
