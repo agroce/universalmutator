@@ -1,0 +1,14 @@
+:[expr:e] ==> /*:[expr:e]*/
+if (:[cond]) ==> if (!:[cond])
+if(:[cond]) ==> if (!:[cond])
+if (:[cond]) ==> if (0)
+if(:[cond]) ==> if(0)
+if (:[cond]) ==> if (1)
+if(:[cond]) ==> if(1)
+while (:[cond]) ==> while (!:[cond])
+while(:[cond]) ==> while(!:[cond])
+else ==> 
+:[[a]] && :[[b]] ==> :[[a]] && 1
+:[[a]] && :[[b]] ==> 1 && :[[b]]
+:[[a]] || :[[b]] ==> :[[a]] || 0
+:[[a]] || :[[b]] ==> :[[a]] || 0

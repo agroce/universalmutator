@@ -1,0 +1,24 @@
+print(:[1], :[2], :[3]) ==> print(:[3], :[2], :[1]) 
+:[[v]] = :[[fn]](:[x])  ==> :[[v]] = :[[fn]]((:[x] - 1))
+if :[cond] ==> if not :[cond]
+while :[cond] ==> while not :[cond]
+
+: :[body] continue ==> : :[body] break
+: :[body] break ==> : :[body] continue
+:[[a]] and :[[b]] ==> :[[a]] or :[[b]]
+:[[a]] or :[[b]] ==> :[[a]] and :[[b]]
+:[[a]] or :[[b]] ==> :[[a]] or False
+:[[a]] or :[[b]] ==> False or :[[b]]
+:[[a]] and :[[b]] ==> :[[a]] or True
+:[[a]] and :[[b]] ==> True or :[[b]]
+
+not :[[a]] ==> :[[a]]
+//:[[a]] ==> /:[[a]]
+/:[[a]] ==> //:[[a]]
+
+return :[expr] ==> return None
+
+[:[expr]] ==> []
+{:[expr]} ==> {}
+
+True ==> False

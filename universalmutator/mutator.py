@@ -3,16 +3,21 @@ from __future__ import print_function
 import re
 import pkg_resources
 import random
+from comby import Comby
+import os
 
-
-def compileRules(ruleFiles):
+def parseRules(ruleFiles, comby=False):
     rulesText = []
 
     for ruleFile in ruleFiles:
         if ".rules" not in ruleFile:
             ruleFile += ".rules"
         try:
-            with pkg_resources.resource_stream('universalmutator', 'static/' + ruleFile) as builtInRule:
+            if comby:
+                rulePath = os.path.join('comby', ruleFile)
+            else:
+                rulePath = os.path.join('static', ruleFile)
+            with pkg_resources.resource_stream('universalmutator', rulePath) as builtInRule:
                 for line in builtInRule:
                     line = line.decode()
                     rulesText.append((line, "builtin:" + ruleFile))
@@ -48,13 +53,18 @@ def compileRules(ruleFiles):
                 continue  # Allow blank lines and comments, just ignore lines without a transformation
         else:
             s = r.split(" ==> ")
-        try:
-            lhs = re.compile(s[0])
-        except BaseException:
-            print("*" * 60)
-            print("FAILED TO COMPILE RULE:", r, "FROM", ruleSource)
-            print("*" * 60)
-            continue
+        
+        if comby:
+            lhs = s[0]
+            lhs = lhs.rstrip() # Trailing whitespace in rule file will be treated significantly unless stripped, so strip it. If matching trailing whitespace is desired, then regex holes should be used.
+        else:
+            try:
+                lhs = re.compile(s[0])
+            except BaseException:
+                print("*" * 60)
+                print("FAILED TO COMPILE RULE:", r, "FROM", ruleSource)
+                print("*" * 60)
+                continue
         if (len(s[1]) > 0) and (s[1][-1] == "\n"):
             rhs = s[1][:-1]
         else:
@@ -69,12 +79,37 @@ def compileRules(ruleFiles):
     return (rules, ignoreRules, skipRules)
 
 
+def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
+            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, language=".generic"):
+    comby = Comby()
+    print("MUTATING WITH RULES (COMBY):", ", ".join(ruleFiles))
+    (rules, ignoreRules, skipRules) = parseRules(ruleFiles, True)
+    for p in ignorePatterns:
+        ignoreRules.append(lhs)
+    source = ''.join(source)
+    mutants = []
+    # Instead of line-by-line x rule-by-rule iterate rule-by-rule x match-by-match.
+    for ((lhs, rhs), ruleUsed) in rules:
+        try: 
+            for match in comby.matches(source, lhs, language=language):
+                environment = dict()
+                for entry in match.environment:
+                    environment[entry] = match.environment.get(entry).fragment
+                mutant = comby.substitute(rhs, environment)
+                substitutionRange = (match.location.start.offset, match.location.stop.offset)
+                lineRange = (match.location.start.line, match.location.stop.line)
+                mutants.append((substitutionRange, mutant, ruleUsed, lineRange))
+        except Exception as e:
+            print(f"WARNING: Got exception ${e} running rule ${ruleUsed}")
+            continue
+    return mutants
+
 def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
 
     print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
-    (rules, ignoreRules, skipRules) = compileRules(ruleFiles)
+    (rules, ignoreRules, skipRules) = parseRules(ruleFiles)
 
     for p in ignorePatterns:
         try:
@@ -198,3 +233,10 @@ def makeMutant(source, mutant, path):
                 file.write(l)
             else:
                 file.write(newCode)
+
+def makeMutantComby(source, mutant, path):
+    sourceBeforeFragment = source[:mutant[0][0]]
+    sourceAfterFragment = source[mutant[0][1]:]
+    mutantSource = sourceBeforeFragment + mutant[1] + sourceAfterFragment
+    with open(path, 'w') as file:
+        file.write(mutantSource)
