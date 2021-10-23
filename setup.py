@@ -5,7 +5,7 @@ import sys, os
 
 setup(
     name='universalmutator',
-    version='1.0.12',
+    version='1.0.14',
     description='Universal regexp-based mutation tool',
     long_description_content_type="text/markdown",
     long_description=open('README.md').read(),
@@ -63,6 +63,7 @@ setup(
       "Programming Language :: Python :: 3",      
       ],
     install_requires=[
+        "comby",
         "python-levenshtein"
     ],
     url='https://github.com/agroce/universalmutator',
