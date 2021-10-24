@@ -27,7 +27,7 @@ setup(
             'static/solidity.rules',
             'static/vyper.rules',
             'static/none.rules',
-            'static/fe.rules'
+            'static/fe.rules',
             'comby/universal.rules',
             'comby/c_like.rules',
             'comby/c.rules',

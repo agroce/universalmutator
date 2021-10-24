@@ -100,7 +100,7 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
                 lineRange = (match.location.start.line, match.location.stop.line)
                 mutants.append((substitutionRange, mutant, ruleUsed, lineRange))
         except Exception as e:
-            print(f"WARNING: Got exception ${e} running rule ${ruleUsed}")
+            print(f"WARNING: Got exception {e} running rule {ruleUsed}")
             continue
     return mutants
 
