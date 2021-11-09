@@ -145,6 +145,8 @@ def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5
 
 
 def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=[]):
+    if len(mlist) == 0:
+        return mlist
     start = time.time()
     if f is None:
         ranking = [(mlist[0], -1)]
