@@ -1,4 +1,4 @@
-(^(@.+)) ==> DO_NOT_MUTATE
+(^\s*(@.+)) ==> DO_NOT_MUTATE
 
 synchronized ==>
 
