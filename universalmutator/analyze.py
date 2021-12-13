@@ -30,6 +30,7 @@ def main():
         print("       --noShuffle: do not randomize order of mutants")
         print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
         print("       --prefix: add a prefix to killed.txt and notkilled.txt")
+        print("       --num_mutants: run with specific number of mutants")
         sys.exit(0)
 
     verbose = "--verbose" in sys.argv
@@ -94,6 +95,18 @@ def main():
         args.remove(timeout)
         timeout = float(timeout)
 
+    num_mutants = -1
+    try:
+        nmpos = args.index("--num_mutants")
+    except ValueError:
+        nmpos = -1
+
+    if nmpos != -1:
+        num_mutants = args[topos + 1]
+        args.remove("--num_mutants")
+        args.remove(num_mutants)
+        num_mutants = int(num_mutants)
+
     onlyMutants = None
     if fromFile is not None:
         with open(fromFile, 'r') as file:
@@ -150,6 +163,7 @@ def main():
 
     if not noShuffle:
         random.shuffle(allTheMutants)
+        allTheMutants = allTheMutants[:num_mutants] if num_mutants != -1 else allTheMutants
 
     allStart = time.time()
 

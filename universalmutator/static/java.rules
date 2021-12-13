@@ -1,3 +1,5 @@
+(^(@.+)) ==> DO_NOT_MUTATE
+
 synchronized ==>
 
 && .* ==> && true
