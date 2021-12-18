@@ -5,6 +5,7 @@ import pkg_resources
 import random
 from comby import Comby
 import os
+from json.decoder import JSONDecodeError
 
 def parseRules(ruleFiles, comby=False):
     rulesText = []
@@ -99,6 +100,8 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
                 substitutionRange = (match.location.start.offset, match.location.stop.offset)
                 lineRange = (match.location.start.line, match.location.stop.line)
                 mutants.append((substitutionRange, mutant, ruleUsed, lineRange))
+        except JSONDecodeError as e:
+            continue
         except Exception as e:
             print(f"WARNING: Got exception {e} running rule {ruleUsed}")
             continue

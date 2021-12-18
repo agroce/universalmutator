@@ -11,7 +11,6 @@ import random
 import os
 import py_compile
 
-
 def main():
 
     args = sys.argv
@@ -30,6 +29,8 @@ def main():
         print("       --noShuffle: do not randomize order of mutants")
         print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
         print("       --prefix: add a prefix to killed.txt and notkilled.txt")
+        print("       --numMutants: run with specific number of mutants")
+        print("       --compileCommand: compile command to run in selecting mutants")
         sys.exit(0)
 
     verbose = "--verbose" in sys.argv
@@ -93,6 +94,29 @@ def main():
         args.remove("--timeout")
         args.remove(timeout)
         timeout = float(timeout)
+
+    numMutants = -1
+    try:
+        nmpos = args.index("--numMutants")
+    except ValueError:
+        nmpos = -1
+
+    if nmpos != -1:
+        numMutants = args[nmpos + 1]
+        args.remove("--numMutants")
+        args.remove(numMutants)
+        numMutants = int(numMutants)
+    
+    compileCommand = None
+    try:
+        ccmdpos = args.index("--compileCommand")
+    except ValueError:
+        ccmdpos = -1
+
+    if ccmdpos != -1:
+        compileCommand = args[ccmdpos + 1]
+        args.remove("--compileCommand")
+        args.remove(compileCommand)
 
     onlyMutants = None
     if fromFile is not None:
@@ -174,6 +198,7 @@ def main():
                         count += 1
             print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
 
+    totalMutants = min(numMutants, len(allTheMutants))
     with open(os.devnull, 'w') as dnull:
         with open(killFileName, 'w') as killed:
             with open(notkillFileName, 'w') as notkilled:
@@ -190,10 +215,14 @@ def main():
                             continue
                     if f in ignore:
                         print(f, "SKIPPED")
+                    if numMutants != -1 and compileCommand != None:
+                        if runCmd(compileCommand, src, f) != "VALID":
+                            continue
+
                     print("=" * 80)
                     print("#" + str(int(count) + 1) + ":", end=" ")
                     print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
-                    print(str(round(count / len(allTheMutants) * 100.0, 2)) + "% DONE]")
+                    print(str(round(count / totalMutants * 100.0, 2)) + "% DONE]")
                     if verbose or showM:
                         print("MUTANT:", f)
                         with open(src, 'r') as ff:
@@ -213,7 +242,6 @@ def main():
                             py_compile.compile(src)
 
                         ctstCmd = ['export CURRENT_MUTANT_SOURCE="' + f + '"; ' + tstCmd[0]]
-
                         start = time.time()
 
                         if not verbose:
@@ -237,6 +265,8 @@ def main():
                         runtime = time.time() - start
 
                         count += 1
+                        if numMutants != -1 and count >= numMutants:
+                            break
                         if r == 0:
                             print(f, "NOT KILLED")
                             notkilled.write(f.split("/")[-1] + "\n")
@@ -253,6 +283,27 @@ def main():
                         os.remove(src + ".um.backup")
     print("=" * 80)
     print("MUTATION SCORE:", killCount / count)
+
+
+def runCmd(cmd, sourceFile, mutantFile):
+    if "MUTANT" not in cmd:
+        # We asssume if the MUTANT isn't part of the command,
+        # we need to move it into place, before, e.g., make
+        backupName = sourceFile + ".um.backup." + str(os.getpid())
+        shutil.copy(sourceFile, backupName)
+        shutil.copy(mutantFile, sourceFile)
+    try:
+        with open(".um.mutant_output." + str(os.getpid()), 'w') as file:
+            r = subprocess.call([cmd.replace("MUTANT", mutantFile)],
+                                shell=True, stderr=file, stdout=file)
+        if r == 0:
+            return "VALID"
+        else:
+            return "INVALID"
+    finally:
+        # If we moved the mutant in, restore original
+        if "MUTANT" not in cmd:
+            shutil.copy(backupName, sourceFile)
 
 
 if __name__ == '__main__':
