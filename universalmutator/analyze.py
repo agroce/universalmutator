@@ -281,6 +281,8 @@ def main():
                     finally:
                         shutil.copy(src + ".um.backup", src)
                         os.remove(src + ".um.backup")
+                if os.path.exists(".um.mutant_output." + str(os.getpid())):
+                    os.remove(".um.mutant_output." + str(os.getpid()))
     print("=" * 80)
     print("MUTATION SCORE:", killCount / count)
 
