@@ -108,6 +108,9 @@ def main():
                 for (m, r) in ranking:
                     mname = m[0]
                     outf.write(mname + "\n")
+        else:
+            with open(outfile, 'w') as outf:
+                pass
         print()
     else:
         with open(outfile, 'w') as outf:
