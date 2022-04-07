@@ -107,7 +107,7 @@ def main():
               "[--noCheck] [--cmd <command string>] [--mutantDir <dir>]",
               "[--lines <coverfile> [--tstl]] [--mutateTestCode] [--mutateBoth]",
               "[--ignore <file>] [--compile <file>] [--noFastCheck] [--swap]",
-              "[--redundantOK] [--showRules]")
+              "[--redundantOK] [--showRules] [--only <rule>]")
         print()
         print("       --noCheck: skips compilation/comparison and just generates mutant files")
         print("       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code")
@@ -125,6 +125,7 @@ def main():
         print("       --swap: also try adjacent-code swaps")
         print("       --redundantOK: keep redundant mutants (for compiler output issues)")
         print("       --showRules: show rule source used to generate each mutant")
+        print("       --only <rule>: only use rule file <rule>")
         print()
         print("Currently supported languages: ", ", ".join(list(set(languages.values()))))
         print("If not supplying a command to compile/build, you should use --noCheck for C, C++,")
@@ -336,6 +337,10 @@ def main():
         if language == "none":
             fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
             rules = list(set(fuzzRules + rules))
+
+    if "--only" in args:
+        onlyPos = args.index("--only")
+        rules = [args[onlyPos + 1]]
 
     source = []
 
