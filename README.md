@@ -82,7 +82,7 @@ Python or Echidna for Solidity
 your automated test generator.
 
 MUTATING SOLIDITY CODE
-==================
+==============================
 
 The universalmutator has been most frequently applied to smart
 contracts written in the Solidity language.  It supports a few special
