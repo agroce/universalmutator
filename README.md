@@ -1,7 +1,7 @@
 This is a tool based purely on regexp-specified rewrite of code lines for mutation generation, including
 multi-language rules aided by special rules for languages or even projects.
 
-More information on this project can be found in out 2018 ICSE tool paper: https://agroce.github.io/icse18t.pdf 
+More information on this project can be found in our 2018 ICSE tool paper: https://agroce.github.io/icse18t.pdf 
 
 A [guest blog post](https://blog.trailofbits.com/2019/01/23/fuzzing-an-api-with-deepstate-part-2/) for Trail of Bits shows how to use the universalmutator to help improve a C/C++ API fuzzing effort using [DeepState](https://github.com/trailofbits/deepstate) and libFuzzer.
 
@@ -33,7 +33,7 @@ should, if you have the appropriate compilers installed, generate a bunch of val
 A MORE COMPLEX EXAMPLE
 ======================
 
-Sometimes the mutated code needs to be built with a more complicated command than a simple compiler call, and of course you want help discovering which mutants are killed and not killed.  For example, to mutate and test mutants for the mandelbrot plotting example included in _Programming Rust_ (http://shop.oreilly.com/product/0636920040385.do), just do this:
+Sometimes the mutated code needs to be built with a more complicated command than a simple compiler call, and of course you want help discovering which mutants are killed and not killed.  For example, to mutate and test mutants for the mandelbrot plotting example included in the PROGRAMMING RUST book (http://shop.oreilly.com/product/0636920040385.do), just do this:
 
 
     git clone https://github.com/ProgrammingRust/mandelbrot
