@@ -88,6 +88,7 @@ def main():
     languages = {".c": "c",
                  ".cpp": "cpp",
                  ".c++": "cpp",
+                 ".cc": "cpp",
                  ".py": "python",
                  ".java": "java",
                  ".js": "javascript",
