@@ -14,6 +14,7 @@ def main():
         ".c": "c",
         ".cpp": "cpp",
         ".c++": "cpp",
+        ".cc": "cpp",
         ".py": "python",
         ".java": "java",
         ".swift": "swift",
