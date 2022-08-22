@@ -126,6 +126,8 @@ def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5
     if useCache:
         if (m1, m2) in mdistanceCache:
             return mdistanceCache[(m1, m2)]
+        if (m2, m1) in mdistanceCache:
+            return mdistanceCache[(m2, m1)]
     (mfile1, sourcefile1, pos1, orig1, mutant1) = m1
     (mfile2, sourcefile2, pos2, orig2, mutant2) = m2
     d = changeWeight * (1.0 - (Levenshtein.ratio(change(m1), change(m2))))
