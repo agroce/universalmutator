@@ -184,7 +184,7 @@ def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=[], mutantDir=Non
             print("*"*80)
             elapsed = time.time() - start
             print("RANKED", len(ranking) + 1, "MUTANTS IN", elapsed, "SECONDS")
-            show(best)
+            show(best, mutantDir=mutantDir, sourceDir=sourceDir)
             print("DISTANCE:", maxMin)
         ranking.append((best, maxMin))
         if maxMin < cutoff:

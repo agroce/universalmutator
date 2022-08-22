@@ -85,9 +85,9 @@ def main():
                 name = line[:-1]
                 suffix = "." + name.split(".")[-1]
                 mpart = ".mutant." + name.split(".mutant.")[1]
-                original = sdir + name.replace(mpart, suffix)
+                original = name.replace(mpart, suffix)
                 try:
-                    mutants.append(utils.readMutant(name, original, mutantDir=mdir))
+                    mutants.append(utils.readMutant(name, original, mutantDir=mdir, sourceDir=sdir))
                 except AssertionError:
                     print("WARNING:", name, "AND SOURCE ARE IDENTICAL")
     print("READ", len(mutants), "MUTANTS")
@@ -103,7 +103,8 @@ def main():
             mutants.remove(m)
         print("PRIORITIZING", len(sdmutants), "STATEMENT DELETIONS")
         if len(sdmutants) > 0:
-            ranking = utils.FPF(sdmutants, N, cutoff=cutoff, verbose=verbose, mutantDir=mutantDir, sourceDir=sourceDir)
+            ranking = utils.FPF(sdmutants, N, cutoff=cutoff, verbose=verbose, mutantDir=mdir,
+                                sourceDir=sdir)
             with open(outfile, 'w') as outf:
                 for (m, r) in ranking:
                     mname = m[0]
@@ -118,7 +119,8 @@ def main():
 
     print("PRIORITIZING", int(N) - len(sdmutants), "MUTANTS")
 
-    ranking = utils.FPF(mutants, N - len(sdmutants), cutoff=cutoff, verbose=verbose, avoid=sdmutants)
+    ranking = utils.FPF(mutants, N - len(sdmutants), cutoff=cutoff, verbose=verbose, avoid=sdmutants,
+                        mutantDir=mdir, sourceDir=sdir)
     with open(outfile, 'a') as outf:
         for (m, r) in ranking:
             mname = m[0]
