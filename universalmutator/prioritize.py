@@ -103,7 +103,7 @@ def main():
             mutants.remove(m)
         print("PRIORITIZING", len(sdmutants), "STATEMENT DELETIONS")
         if len(sdmutants) > 0:
-            ranking = utils.FPF(sdmutants, N, cutoff=cutoff, verbose=verbose)
+            ranking = utils.FPF(sdmutants, N, cutoff=cutoff, verbose=verbose, mutantDir=mutantDir, sourceDir=sourceDir)
             with open(outfile, 'w') as outf:
                 for (m, r) in ranking:
                     mname = m[0]

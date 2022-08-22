@@ -146,7 +146,7 @@ def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5
     return d
 
 
-def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=[]):
+def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=[], mutantDir=None, sourceDir=None):
     if len(mlist) == 0:
         return mlist
     start = time.time()
@@ -163,7 +163,7 @@ def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=[]):
         ranking = [(best, -1)]
     if verbose:
         print("*"*80)
-        show(ranking[0][0])
+        show(ranking[0][0], mutantDir=mutantDir, sourceDir=sourceDir)
     while (len(ranking) < N) and (len(ranking) < len(mlist)):
         best = None
         maxMin = -1
