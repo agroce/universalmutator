@@ -106,7 +106,7 @@ def main():
         args.remove("--numMutants")
         args.remove(numMutants)
         numMutants = int(numMutants)
-    
+
     compileCommand = None
     try:
         ccmdpos = args.index("--compileCommand")
@@ -198,7 +198,9 @@ def main():
                         count += 1
             print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
 
-    totalMutants = min(numMutants, len(allTheMutants))
+    # numMutants = -1 implies no --numMutants argument was provided
+    totalMutants = min(numMutants, len(allTheMutants)) if numMutants > 0 else len(allTheMutants)
+
     with open(os.devnull, 'w') as dnull:
         with open(killFileName, 'w') as killed:
             with open(notkillFileName, 'w') as notkilled:
@@ -283,7 +285,12 @@ def main():
                         os.remove(src + ".um.backup")
                 if os.path.exists(".um.mutant_output." + str(os.getpid())):
                     os.remove(".um.mutant_output." + str(os.getpid()))
+
     print("=" * 80)
+
+    if count == 0:
+        print("!!! No valid mutants found! Make sure you specified the right mutant directory !!!")
+        return
     print("MUTATION SCORE:", killCount / count)
 
 
