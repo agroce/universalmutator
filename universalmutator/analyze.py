@@ -3,6 +3,7 @@ from __future__ import print_function
 import difflib
 import subprocess
 import sys
+import platform
 import glob
 import shutil
 import signal
@@ -13,6 +14,7 @@ import py_compile
 
 def main():
 
+    isWindows = True if platform.system() == "Windows" else False #get system os
     args = sys.argv
 
     if ("--help" in args) or (len(sys.argv) < 3):
@@ -243,14 +245,22 @@ def main():
                         if srcEnd == ".py":
                             py_compile.compile(src)
 
-                        ctstCmd = ['export CURRENT_MUTANT_SOURCE="' + f + '"; ' + tstCmd[0]]
+                        #TODO: replace 'export' with 'set' command for windows
+                        ctstCmd = tstCmd[0] if isWindows else ['export CURRENT_MUTANT_SOURCE="' + f + '"; ' + tstCmd[0]]
                         start = time.time()
 
                         if not verbose:
-                            P = subprocess.Popen(ctstCmd, shell=True, stderr=dnull, stdout=dnull,
+                            if isWindows:
+                                P = subprocess.Popen(ctstCmd, shell=True, stderr=dnull, stdout=dnull,
+                                                 start_new_session=True)
+                            else:
+                                P = subprocess.Popen(ctstCmd, shell=True, stderr=dnull, stdout=dnull,
                                                  preexec_fn=os.setsid)
                         else:
-                            P = subprocess.Popen(ctstCmd, shell=True, preexec_fn=os.setsid)
+                            if isWindows:
+                                P = subprocess.Popen(ctstCmd, shell=True, start_new_session=True)
+                            else:
+                                P = subprocess.Popen(ctstCmd, shell=True, preexec_fn=os.setsid)
 
                         try:
                             while P.poll() is None and (time.time() - start) < timeout:
@@ -259,7 +269,12 @@ def main():
                             if P.poll() is None:
                                 print()
                                 print("HAD TO TERMINATE ANALYSIS (TIMEOUT OR EXCEPTION)")
-                                os.killpg(os.getpgid(P.pid), signal.SIGTERM)
+                                
+                                if isWindows:
+                                    os.kill(P.pid, signal.SIGTERM)
+                                else:
+                                    os.killpg(os.getpgid(P.pid), signal.SIGTERM)
+
                                 # Avoid any weird race conditions from grabbing the return code
                                 time.sleep(0.05)
                             r = P.returncode
