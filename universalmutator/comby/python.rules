@@ -22,3 +22,14 @@ return :[expr] ==> return None
 {:[expr]} ==> {}
 
 True ==> False
+
+@:[spaces~\s*]:[annot] :[body] ==> :[body]
+
+[:[first],:[rest]] ==>  [:[first]]
+[:[first],:[rest]] ==>  [:[rest]]
+
+{:[first],:[rest]} ==>  {:[first]}
+{:[first],:[rest]} ==>  {:[rest]}
+
+':[str]' ==> ''
+,:[item], ==> ,
