@@ -80,12 +80,12 @@ while :[cond:e] ==> if :[cond:e]
 (:[[v1]],:[[v2]]) ==> (:[[v2]],:[[v1]])
 [:[[v1]],:[[v2]]] ==> [:[[v2]],:[[v1]]]
 
-:[a]:[number~\d+]:[b] ==> :[a]0:[b]
-:[a]:[number~\d+]:[b] ==> :[a]1:[b]
-:[a]:[number~\d+]:[b] ==> :[a]-1:[b]
+:[a~\D]:[number~\d+]:[b~\D] ==> :[a]0:[b]
+:[a~\D]:[number~\d+]:[b~\D] ==> :[a]1:[b]
+:[a~\D]:[number~\d+]:[b~\D] ==> :[a]-1:[b]
 
-:[a]:[number~\d+]:[b] ==> :[a](:[number]+1):[b]
-:[a]:[number~\d+]:[b] ==> :[a](:[number]-1):[b]
+:[a~\D]:[number~\d+]:[b~\D] ==> :[a](:[number]+1):[b]
+:[a~\D]:[number~\d+]:[b~\D] ==> :[a](:[number]-1):[b]
 
 :[spaces~^\s*]:[a]:[newline~\n] ==> :[spaces]:[a]:[newline]:[spaces]break;:[newline]
 :[spaces~^\s*]:[a]:[newline~\n] ==> :[spaces]:[a]:[newline]:[spaces]continue;:[newline]

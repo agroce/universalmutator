@@ -23,7 +23,7 @@ return :[expr] ==> return None
 
 True ==> False
 
-@:[spaces~\s*]:[annot] :[body] ==> :[body]
+@:[spaces~\s*]:[annotation] :[body] ==> :[body]
 
 [:[first],:[rest]] ==>  [:[first]]
 [:[first],:[rest]] ==>  [:[rest]]
