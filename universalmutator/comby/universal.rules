@@ -8,10 +8,10 @@
 \-:[b] ==> /:[b]
 \-:[b] ==> %:[b]
 
-:[a]*:[b] ==> :[a]+:[b]
-:[a]*:[b] ==> :[a]-:[b]
-:[a]*:[b] ==> :[a]/:[b]
-:[a]*:[b] ==> :[a]%:[b]
+:[a~[^*]]*:[b~[^*]] ==> :[a]+:[b]
+:[a~[^*]]*:[b~[^*]] ==> :[a]-:[b]
+:[a~[^*]]*:[b~[^*]] ==> :[a]/:[b]
+:[a~[^*]]*:[b~[^*]] ==> :[a]%:[b]
 
 :[a]/:[b] ==> :[a]+:[b]
 :[a]/:[b] ==> :[a]-:[b]
@@ -87,5 +87,5 @@ while :[cond:e] ==> if :[cond:e]
 :[a~\D]:[number~\d+]:[b~\D] ==> :[a](:[number]+1):[b]
 :[a~\D]:[number~\d+]:[b~\D] ==> :[a](:[number]-1):[b]
 
-:[spaces~^\s*]:[a]:[newline~\n] ==> :[spaces]:[a]:[newline]:[spaces]break;:[newline]
-:[spaces~^\s*]:[a]:[newline~\n] ==> :[spaces]:[a]:[newline]:[spaces]continue;:[newline]
+:[spaces~[ \t]*]:[a]:[newline~[\n]]  ==> :[spaces]:[a]:[newline]:[spaces]break;:[newline]
+:[spaces~[ \t]*]:[a]:[newline~[\n]] ==> :[spaces]:[a]:[newline]:[spaces]continue;:[newline]
