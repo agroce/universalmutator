@@ -370,6 +370,9 @@ def main():
     uniqueMutants = {}
     sourceJoined = ''
 
+    if comby:
+        noFastCheck = True
+        
     dumbHandler = False
     if not noCheck:
         if cmd is not None:
@@ -491,6 +494,64 @@ def main():
     print(len(validMutants), "VALID MUTANTS")
     print(len(invalidMutants), "INVALID MUTANTS")
     print(len(redundantMutants), "REDUNDANT MUTANTS")
+    print(f"Valid Percentage: {len(validMutants)/(len(validMutants)+len(invalidMutants)+len(redundantMutants))}")
+    cnt = {}
+
+    fis = open("valids.txt", "w")
+    i = 0
+    for mutant in validMutants:
+        i += 1
+        sys.stdout.flush()
+
+        lhs, rhs = mutant[-1]
+        if (lhs,rhs) not in cnt:
+            cnt[(lhs,rhs)] = 0
+        cnt[(lhs,rhs)] += 1
+
+        fis.write(f"{i}.\n")
+        fis.write(mutant[2][0]); fis.write('\n')
+        if comby:
+            fis.write("source:\n"); fis.write(sourceJoined[mutant[0][0]:mutant[0][1]]); fis.write('\n')
+        fis.write("mutant:\n"); fis.write(mutant[1]); fis.write('\n')
+    fis.close()
+
+    (rules, ignoreRules, skipRules) = mutator.parseRules(["universal.rules","python.rules"], comby= comby)
+
+    fis = open("rules_cnt.txt", "w")
+    i = 0
+    for ((lhs, rhs), ruleUsed) in rules:
+        if (lhs,rhs) not in cnt:
+            cnt[(lhs,rhs)] = 0
+        i += 1
+        fis.write(f"{i}. {lhs} --> {rhs} == {cnt[(lhs,rhs)]}\n")
+        sys.stdout.flush()
+    fis.close()
+
+    fis = open("invalids.txt", "w")
+    i = 0
+    for mutant in invalidMutants:
+        i += 1
+        sys.stdout.flush()
+
+        fis.write(f"{i}.\n")
+        fis.write(mutant[2][0]); fis.write('\n')
+        if comby:
+            fis.write("source:\n"); fis.write(sourceJoined[mutant[0][0]:mutant[0][1]]); fis.write('\n')
+        fis.write("mutant:\n"); fis.write(mutant[1]); fis.write('\n')
+    fis.close()
+
+    fis = open("redundants.txt", "w")
+    i = 0
+    for mutant in redundantMutants:
+        i += 1
+        sys.stdout.flush()
+
+        fis.write(f"{i}.\n")
+        fis.write(mutant[2][0]); fis.write('\n')
+        if comby:
+            fis.write("source:\n"); fis.write(sourceJoined[mutant[0][0]:mutant[0][1]]); fis.write('\n')
+        fis.write("mutant:\n"); fis.write(mutant[1]); fis.write('\n')
+    fis.close()
 
     if dumbHandler:
         print()
