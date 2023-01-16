@@ -5,7 +5,7 @@ synchronized ==>
 :[[a]] || :[[b]] ==> :[[a]] || false
 :[[a]] || :[[b]] ==> :[[a]] || false
 
-:[spaces~^\s*]@:[annotation] ==> DO_NOT_MUTATE
-:[spaces~^\s*]/*:[comment~.+] ==> DO_NOT_MUTATE
-:[spaces~^\s*]//:[comment~.+] ==> DO_NOT_MUTATE
-:[spaces~^\s*]*:[comment~.+] ==> DO_NOT_MUTATE
+:[spaces~[ \t]*]@:[annotation] ==> DO_NOT_MUTATE
+:[spaces~[ \t]*]/*:[comment~.+] ==> DO_NOT_MUTATE
+:[spaces~[ \t]*]//:[comment~.+] ==> DO_NOT_MUTATE
+:[spaces~[ \t]*]*:[comment~.+] ==> DO_NOT_MUTATE
