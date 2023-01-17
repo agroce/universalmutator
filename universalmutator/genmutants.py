@@ -127,6 +127,7 @@ def main():
         print("       --redundantOK: keep redundant mutants (for compiler output issues)")
         print("       --showRules: show rule source used to generate each mutant")
         print("       --only <rule>: only use rule file <rule>")
+        print("       --printStat: print stats for the rules and generated mutants into files")
         print()
         print("Currently supported languages: ", ", ".join(list(set(languages.values()))))
         print("If not supplying a command to compile/build, you should use --noCheck for C, C++,")
@@ -193,6 +194,11 @@ def main():
     if "--fuzz" in args:
         fuzz = True
         args.remove("--fuzz")
+
+    printStat = False
+    if "--printStat" in args:
+        printStat = True
+        args.remove("--printStat")
 
     if cmdpos != -1:
         cmd = args[cmdpos + 1]
@@ -370,6 +376,9 @@ def main():
     uniqueMutants = {}
     sourceJoined = ''
 
+    if comby:
+        noFastCheck = True
+
     dumbHandler = False
     if not noCheck:
         if cmd is not None:
@@ -491,6 +500,14 @@ def main():
     print(len(validMutants), "VALID MUTANTS")
     print(len(invalidMutants), "INVALID MUTANTS")
     print(len(redundantMutants), "REDUNDANT MUTANTS")
+    print(f"Valid Percentage: {len(validMutants) * 100.0/(len(validMutants)+len(invalidMutants)+len(redundantMutants))}%")
+    
+    (rules, ignoreRules, skipRules) = mutator.parseRules(["universal.rules","python.rules"], comby= comby)
+
+    if printStat:
+        source = sourceJoined if comby else None
+        printMutantsStat((validMutants, invalidMutants, redundantMutants), source)
+        printRulesStat(rules, validMutants)
 
     if dumbHandler:
         print()
@@ -505,6 +522,45 @@ def main():
     except BaseException:
         pass
 
+def printMutantsStat(mutants, source = None):
+    def dumpToFile(fileName, mutants):
+        fis = open(fileName, "w")
+        i = 0
+        for mutant in mutants:
+            i += 1
+            sys.stdout.flush()
+
+            fis.write(f"{i}.\n")
+            fis.write(mutant[2][0]); fis.write('\n')
+            if source is not None:
+                fis.write("source:\n"); fis.write(source[mutant[0][0]:mutant[0][1]]); fis.write('\n')
+            fis.write("mutant:\n"); fis.write(mutant[1]); fis.write('\n\n')
+        fis.close()
+
+    validMutants, invalidMutants, redundantMutants = mutants
+    dumpToFile('valid_mutants.txt', validMutants)
+    dumpToFile('invalid_mutants.txt', invalidMutants)
+    dumpToFile('redundant_mutants.txt', redundantMutants)
+
+def printRulesStat(rules, validMutants):
+    cnt = {}
+
+    for mutant in validMutants:
+        lhs, rhs = mutant[-1]
+        if (lhs,rhs) not in cnt:
+            cnt[(lhs,rhs)] = 0
+        cnt[(lhs,rhs)] += 1    
+    
+    fis = open("rules_count.txt", "w")
+    i = 0
+
+    for ((lhs, rhs), ruleUsed) in rules:
+        if (lhs,rhs) not in cnt:
+            cnt[(lhs,rhs)] = 0
+        i += 1
+        fis.write(f"{i}. {lhs} --> {rhs} == {cnt[(lhs,rhs)]}\n")
+        sys.stdout.flush()
+    fis.close()
 
 if __name__ == '__main__':
     main()

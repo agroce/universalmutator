@@ -3,8 +3,8 @@ print(:[1], :[2], :[3]) ==> print(:[3], :[2], :[1])
 if :[cond] ==> if not :[cond]
 while :[cond] ==> while not :[cond]
 
-: :[body] continue ==> : :[body] break
-: :[body] break ==> : :[body] continue
+:[body]continue ==> :[body] break
+:[body]break ==> :[body] continue
 :[[a]] and :[[b]] ==> :[[a]] or :[[b]]
 :[[a]] or :[[b]] ==> :[[a]] and :[[b]]
 :[[a]] or :[[b]] ==> :[[a]] or False
@@ -16,9 +16,27 @@ not :[[a]] ==> :[[a]]
 //:[[a]] ==> /:[[a]]
 /:[[a]] ==> //:[[a]]
 
-return :[expr] ==> return None
+return :[expr]:[newline~[\n]] ==> return None:[newline]
+:[ spaces]:[expr]:[newline~[\n]] ==> :[spaces]pass:[newline]
 
 [:[expr]] ==> []
 {:[expr]} ==> {}
 
 True ==> False
+
+@:[spaces~[ \t]*]:[annotation] :[body] ==> :[body]
+
+[:[first],:[rest]] ==>  [:[first]]
+[:[first],:[rest]] ==>  [:[rest]]
+
+{:[first],:[rest]} ==>  {:[first]}
+{:[first],:[rest]} ==>  {:[rest]}
+,:[spaces~[ \t]*]:[[x]]:[bra~[\]]] ==> ]
+,:[spaces~[ \t]*]:[[x]]:[bra~[\}]] ==> }
+
+':[str]' ==> ''
+,:[item], ==> ,
+
+,:[spaces~[ \t]*]:[[item1]],:[spaces~[ \t]*]:[[item2]] ==> ,:[[item2]],:[[item1]]
+:[par~[(]]:[~[ \t]*]:[[item1]],:[~[ \t]*]:[[item2]] ==> :[par]:[[item2]],:[[item1]]
+:[bra~[\[]]:[~[ \t]*]:[[item1]],:[~[ \t]*]:[[item2]] ==> :[bra]:[[item2]],:[[item1]]
