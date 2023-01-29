@@ -2,8 +2,7 @@ This is a tool based on source-based rewrite of code lines for mutation generati
 multi-language rules aided by special rules for languages or even projects.  Originally, the approach used only regular expressions,
 treating code as text.  However, there is also a mode that can use the [Comby](https://github.com/comby-tools/comby) tool
 for more sophisticated mutation that produces fewer invalid mutants.  Regular-expression based mutation works well, in our experience;
-comby-aided mutation works even better.  The key advantage of either approach is that, other than specifying any desired language-specific
-additional rules, the tool can probably mutate approximately *any* interesting source code you have, and language changes don't force
+comby-aided mutation works even better.  The key advantage of either approach is that the tool can probably mutate approximately *any* interesting source code you have, and language changes don't force
 rewriting of the mutation tool.  To use the comby mode, just make sure comby is installed and add `--comby` when you run `mutate`.
 
 More information on this project can be found in our 2018 ICSE tool paper: https://agroce.github.io/icse18t.pdf 
