@@ -1,9 +1,9 @@
 synchronized ==>
 
-:[[a]] && :[[b]] ==> :[[a]] && true
-:[[a]] && :[[b]] ==> true && :[[b]]
-:[[a]] || :[[b]] ==> :[[a]] || false
-:[[a]] || :[[b]] ==> :[[a]] || false
+:[a]&&:[b] ==> :[a] && true
+:[a]&&:[b] ==> true && :[b]
+:[a]||:[b] ==> :[a] || false
+:[a]||:[b] ==> false || :[b]
 
 :[spaces~[ \t]*]@:[annotation] ==> DO_NOT_MUTATE
 :[spaces~[ \t]*]/*:[comment~.+] ==> DO_NOT_MUTATE
