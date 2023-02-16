@@ -87,8 +87,8 @@ while ==> if
 :[a~\D]:[number~\d+]:[b~\D] ==> :[a](:[number]+1):[b]
 :[a~\D]:[number~\d+]:[b~\D] ==> :[a](:[number]-1):[b]
 
-:[spaces~[ \t]*]:[a]:[newline~[\n]]  ==> :[spaces]:[a]:[newline]:[spaces]break;:[newline]
-:[spaces~[ \t]*]:[a]:[newline~[\n]] ==> :[spaces]:[a]:[newline]:[spaces]continue;:[newline]
+:[s~[ \t]*]:[[a]]:[b]:[lf~[\n]]  ==> :[s]:[a]:[b]:[lf]:[s]break;:[lf]
+:[s~[ \t]*]:[[a]]:[b]:[lf~[\n]] ==> :[s]:[a]:[b]:[lf]:[s]continue;:[lf]
 
 min ==> max
 max ==> min

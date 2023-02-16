@@ -16,27 +16,27 @@ not :[[a]] ==> :[[a]]
 //:[[a]] ==> /:[[a]]
 /:[[a]] ==> //:[[a]]
 
-return :[expr]:[newline~[\n]] ==> return None:[newline]
-:[ spaces]:[expr]:[newline~[\n]] ==> :[spaces]pass:[newline]
+return :[expr]:[lf~[\n]] ==> return None:[lf]
+:[ s]:[expr]:[lf~[\n]] ==> :[s]pass:[lf]
 
 [:[expr]] ==> []
 {:[expr]} ==> {}
 
 True ==> False
 
-@:[spaces~[ \t]*]:[annotation] :[body] ==> :[body]
+@:[s~[ \t]*]:[annotation] :[body] ==> :[body]
 
 [:[first],:[rest]] ==>  [:[first]]
 [:[first],:[rest]] ==>  [:[rest]]
 
 {:[first],:[rest]} ==>  {:[first]}
 {:[first],:[rest]} ==>  {:[rest]}
-,:[spaces~[ \t]*]:[[x]]:[bra~[\]]] ==> ]
-,:[spaces~[ \t]*]:[[x]]:[bra~[\}]] ==> }
+,:[s~[ \t]*]:[[x]]:[bra~[\]]] ==> ]
+,:[s~[ \t]*]:[[x]]:[bra~[\}]] ==> }
 
 ':[str]' ==> ''
 ,:[item], ==> ,
 
-,:[spaces~[ \t]*]:[[item1]],:[spaces~[ \t]*]:[[item2]] ==> ,:[[item2]],:[[item1]]
+,:[s~[ \t]*]:[[item1]],:[s~[ \t]*]:[[item2]] ==> ,:[[item2]],:[[item1]]
 :[par~[(]]:[~[ \t]*]:[[item1]],:[~[ \t]*]:[[item2]] ==> :[par]:[[item2]],:[[item1]]
 :[bra~[\[]]:[~[ \t]*]:[[item1]],:[~[ \t]*]:[[item2]] ==> :[bra]:[[item2]],:[[item1]]

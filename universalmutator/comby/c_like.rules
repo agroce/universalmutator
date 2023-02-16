@@ -3,10 +3,10 @@
 :[[expr]]:[rest]:[lf~[\n]] ==> /*:[expr]:[rest]*/:[lf]
 if (:[cond]) ==> if (!:[cond])
 if(:[cond]) ==> if (!:[cond])
-if (:[cond]) ==> if (0)
-if(:[cond]) ==> if(0)
-if (:[cond]) ==> if (1)
-if(:[cond]) ==> if(1)
+if (:[cond]) ==> if (0==1)
+if(:[cond]) ==> if(0==1)
+if (:[cond]) ==> if (1==1)
+if(:[cond]) ==> if(1==1)
 while (:[cond]) ==> while (!:[cond])
 while(:[cond]) ==> while(!:[cond])
 else ==> 
