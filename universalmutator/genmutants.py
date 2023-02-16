@@ -1,4 +1,5 @@
 from __future__ import print_function
+from tabulate import tabulate
 
 import os
 import random
@@ -179,12 +180,6 @@ def main():
         doSwaps = True
         args.remove("--swap")
 
-    cmd = None
-    try:
-        cmdpos = args.index("--cmd")
-    except ValueError:
-        cmdpos = -1
-
     tstl = False
     if "--tstl" in args:
         tstl = True
@@ -199,6 +194,12 @@ def main():
     if "--printStat" in args:
         printStat = True
         args.remove("--printStat")
+
+    cmd = None
+    try:
+        cmdpos = args.index("--cmd")
+    except ValueError:
+        cmdpos = -1
 
     if cmdpos != -1:
         cmd = args[cmdpos + 1]
@@ -500,14 +501,17 @@ def main():
     print(len(validMutants), "VALID MUTANTS")
     print(len(invalidMutants), "INVALID MUTANTS")
     print(len(redundantMutants), "REDUNDANT MUTANTS")
-    print(f"Valid Percentage: {len(validMutants) * 100.0/(len(validMutants)+len(invalidMutants)+len(redundantMutants))}%")
     
-    (rules, ignoreRules, skipRules) = mutator.parseRules(["universal.rules","python.rules"], comby= comby)
+    totalMutants = len(validMutants) + len(invalidMutants) + len(redundantMutants)
+    valid_rate = 0 if totalMutants == 0 else (len(validMutants) * 100.0)/totalMutants
+    print(f"Valid Percentage: {valid_rate}%")
+    
+    (rules, ignoreRules, skipRules) = mutator.parseRules(rules, comby= comby)
 
     if printStat:
         source = sourceJoined if comby else None
         printMutantsStat((validMutants, invalidMutants, redundantMutants), source)
-        printRulesStat(rules, validMutants)
+        printRulesStat(rules, validMutants, invalidMutants)
 
     if dumbHandler:
         print()
@@ -542,24 +546,38 @@ def printMutantsStat(mutants, source = None):
     dumpToFile('invalid_mutants.txt', invalidMutants)
     dumpToFile('redundant_mutants.txt', redundantMutants)
 
-def printRulesStat(rules, validMutants):
-    cnt = {}
+def printRulesStat(rules, validMutants, invalidMutants):
+    valid_cnt = {}
+    invalid_cnt = {}
 
     for mutant in validMutants:
         lhs, rhs = mutant[-1]
-        if (lhs,rhs) not in cnt:
-            cnt[(lhs,rhs)] = 0
-        cnt[(lhs,rhs)] += 1    
+        if (lhs,rhs) not in valid_cnt:
+            valid_cnt[(lhs,rhs)] = 0
+        valid_cnt[(lhs,rhs)] += 1    
+
+    for mutant in invalidMutants:
+        lhs, rhs = mutant[-1]
+        if (lhs,rhs) not in invalid_cnt:
+            invalid_cnt[(lhs,rhs)] = 0
+        invalid_cnt[(lhs,rhs)] += 1    
     
     fis = open("rules_count.txt", "w")
     i = 0
+    table = []
+    table.append(["#","Rule","No. of Valids", "No. of Invalids"])
 
     for ((lhs, rhs), ruleUsed) in rules:
-        if (lhs,rhs) not in cnt:
-            cnt[(lhs,rhs)] = 0
+        if (lhs,rhs) not in valid_cnt:
+            valid_cnt[(lhs,rhs)] = 0
+        if (lhs,rhs) not in invalid_cnt:
+            invalid_cnt[(lhs,rhs)] = 0
         i += 1
-        fis.write(f"{i}. {lhs} --> {rhs} == {cnt[(lhs,rhs)]}\n")
-        sys.stdout.flush()
+
+        table.append([f'{i}',f'{lhs} ==> {rhs}', f'{valid_cnt[(lhs,rhs)]}', f'{invalid_cnt[(lhs,rhs)]}'])
+    
+    fis.write(tabulate(table,tablefmt="grid"))
+    sys.stdout.flush()
     fis.close()
 
 if __name__ == '__main__':

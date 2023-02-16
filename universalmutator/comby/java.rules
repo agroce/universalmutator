@@ -1,7 +1,9 @@
+:[s~[ \t]*]import ==> DO_NOT_MUTATE
 :[s~[ \t]*]@:[annotation] ==> DO_NOT_MUTATE
-:[s~[ \t]*]/*:[comment~.+] ==> DO_NOT_MUTATE
-:[s~[ \t]*]//:[comment~.+] ==> DO_NOT_MUTATE
+:[s~[ \t]*]\/*:[comment~.+] ==> DO_NOT_MUTATE
+:[s~[ \t]*]\/\/:[comment~.+] ==> DO_NOT_MUTATE
 :[s~[ \t]*]*:[comment~.+] ==> DO_NOT_MUTATE
+
 
 synchronized ==>
 

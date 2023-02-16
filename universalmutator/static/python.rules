@@ -1,3 +1,5 @@
+(^\s*import) ==> DO_NOT_MUTATE
+
 if (.*):\n ==> if not (\1):\n
 while (.*):\n ==> while not (\1):\n
 

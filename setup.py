@@ -64,7 +64,8 @@ setup(
       ],
     install_requires=[
         "comby",
-        "python-levenshtein"
+        "python-levenshtein",
+        "tabulate"
     ],
     url='https://github.com/agroce/universalmutator',
 )

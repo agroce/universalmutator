@@ -1,3 +1,5 @@
+:[s~[ \t]*]import ==> DO_NOT_MUTATE
+
 print(:[1], :[2], :[3]) ==> print(:[3], :[2], :[1]) 
 :[[v]] = :[[fn]](:[x])  ==> :[[v]] = :[[fn]]((:[x] - 1))
 if :[cond] ==> if not :[cond]
