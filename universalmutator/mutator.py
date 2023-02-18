@@ -1,5 +1,4 @@
 from __future__ import print_function
-
 import re
 import pkg_resources
 import random
@@ -80,15 +79,25 @@ def parseRules(ruleFiles, comby=False):
     return (rules, ignoreRules, skipRules)
 
 
+
 def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, language=".generic"):
     comby = Comby()
     print("MUTATING WITH RULES (COMBY):", ", ".join(ruleFiles))
     (rules, ignoreRules, skipRules) = parseRules(ruleFiles, True)
-    for p in ignorePatterns:
+    for lhs in ignorePatterns:
         ignoreRules.append(lhs)
     source = ''.join(source)
     mutants = []
+
+    # Lines that match with DO_NOT_MUTATE and other ignore rules will be skipped
+    ignoreLines = set()
+    for lhs in ignoreRules:
+        for match in comby.matches(source, lhs, language=language):
+            lineRange = (match.location.start.line, match.location.stop.line)
+            for line in range(lineRange[0],lineRange[1]+1):
+                ignoreLines.add(line)
+
     # Instead of line-by-line x rule-by-rule iterate rule-by-rule x match-by-match.
     for ((lhs, rhs), ruleUsed) in rules:
         try: 
@@ -99,7 +108,16 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
                 mutant = comby.substitute(rhs, environment)
                 substitutionRange = (match.location.start.offset, match.location.stop.offset)
                 lineRange = (match.location.start.line, match.location.stop.line)
-                mutants.append((substitutionRange, mutant, ruleUsed, lineRange))
+
+                # Check if the match contains an ignoreLine
+                skipMutant = False
+                for line in range(lineRange[0],lineRange[1]+1):
+                    if line in ignoreLines:
+                        skipMutant = True
+                        break
+                
+                if not skipMutant:
+                    mutants.append((substitutionRange, mutant, ruleUsed, lineRange, (lhs,rhs)))
         except JSONDecodeError as e:
             continue
         except Exception as e:
@@ -109,7 +127,6 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
 
 def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
-
     print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
     (rules, ignoreRules, skipRules) = parseRules(ruleFiles)
@@ -214,7 +231,7 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
                         skipDueToString = True
                         stringSkipped += 1
                 if (mutant != l) and ((lineno, mutant) not in produced) and (not skipDueToString):
-                    mutants.append((lineno, mutant, ruleUsed))
+                    mutants.append((lineno, mutant, ruleUsed, (lhs,rhs)))
                     produced[(lineno, mutant)] = True
                 p = lhs.search(l, pos)
             if abandon:
