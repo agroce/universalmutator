@@ -100,8 +100,8 @@ def main():
                  ".swift": "swift",
                  ".rs": "rust",
                  ".go": "go",
-                 ".lisp", "lisp",
-                 ".lsp", "lisp"
+                 ".lisp": "lisp",
+                 ".lsp": "lisp"
                  ".sol": "solidity",
                  ".vy": "vyper",
                  ".fe": "fe"}
