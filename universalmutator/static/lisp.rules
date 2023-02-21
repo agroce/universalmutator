@@ -1,0 +1,7 @@
+and  ==>  or
+or  ==> and
+not ==> 
+or ==> or T
+and ==> and nil
+T ==> nil
+nil ==> T

@@ -338,9 +338,6 @@ def main():
 
     if language in cLikeLanguages:
         otherRules.append("c_like.rules")
-    
-    if language == "lisp":
-        otherRules.append("python.rules")
 
     if language == "vyper":
         otherRules.append("python.rules")

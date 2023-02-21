@@ -11,7 +11,7 @@ if \( ==> if not (
 while \( ==> while not (
 
 and  ==>  or 
- or  ==>  and
+or  ==>  and
 and .* ==> and True
 or .* ==> or False
 .* and ==> True and
