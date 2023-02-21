@@ -88,7 +88,7 @@ def main():
     args = sys.argv
 
     languages = {".c": "c",
-                 ".h", "c",
+                 ".h": "c",
                  ".cpp": "cpp",
                  ".c++": "cpp",
                  ".cc": "cpp",
