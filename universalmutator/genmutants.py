@@ -10,17 +10,18 @@ import subprocess
 
 import universalmutator.mutator as mutator
 
-import universalmutator.python_handler as python_handler
 import universalmutator.c_handler as c_handler
 import universalmutator.cpp_handler as cpp_handler
+import universalmutator.python_handler as python_handler
 import universalmutator.java_handler as java_handler
+import universalmutator.javascript_handler as javascript_handler
 import universalmutator.swift_handler as swift_handler
 import universalmutator.rust_handler as rust_handler
 import universalmutator.go_handler as go_handler
+import universalmutator.lisp_handler as lisp_handler
 import universalmutator.solidity_handler as solidity_handler
 import universalmutator.vyper_handler as vyper_handler
 import universalmutator.fe_handler as fe_handler
-import universalmutator.javascript_handler as javascript_handler
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     return "VALID"
