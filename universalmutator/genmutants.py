@@ -101,7 +101,7 @@ def main():
                  ".rs": "rust",
                  ".go": "go",
                  ".lisp": "lisp",
-                 ".lsp": "lisp"
+                 ".lsp": "lisp",
                  ".sol": "solidity",
                  ".vy": "vyper",
                  ".fe": "fe"}
