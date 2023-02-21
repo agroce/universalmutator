@@ -92,7 +92,7 @@ def main():
                  ".cpp": "cpp",
                  ".c++": "cpp",
                  ".cc": "cpp",
-                 ".hpp", "cpp",
+                 ".hpp": "cpp",
                  ".py": "python",
                  ".java": "java",
                  ".js": "javascript",
