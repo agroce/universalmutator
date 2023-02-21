@@ -87,15 +87,20 @@ def main():
     args = sys.argv
 
     languages = {".c": "c",
+                 ".h", "c",
                  ".cpp": "cpp",
                  ".c++": "cpp",
                  ".cc": "cpp",
+                 ".hpp", "cpp",
                  ".py": "python",
                  ".java": "java",
                  ".js": "javascript",
+                 ".ts": "javascript",
                  ".swift": "swift",
                  ".rs": "rust",
                  ".go": "go",
+                 ".lisp", "lisp",
+                 ".lsp", "lisp"
                  ".sol": "solidity",
                  ".vy": "vyper",
                  ".fe": "fe"}
@@ -286,6 +291,7 @@ def main():
                 "swift": swift_handler,
                 "rust": rust_handler,
                 "go": go_handler,
+                "lisp": lisp_handler,
                 "solidity": solidity_handler,
                 "vyper": vyper_handler,
                 "fe": fe_handler}
@@ -331,6 +337,9 @@ def main():
 
     if language in cLikeLanguages:
         otherRules.append("c_like.rules")
+    
+    if language == "lisp":
+        otherRules.append("python.rules")
 
     if language == "vyper":
         otherRules.append("python.rules")
