@@ -70,7 +70,9 @@ def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
 def toGarbage(code):
     newCode = ""
     for c in code:
-        if c.isspace() or c in ["*", "/", "#", "-"]:
+        if c == "(":
+            newCode += " "
+        elif c.isspace() or c in ["*", "/", "#", "-"]:
             newCode += c
         else:
             newCode += "Q"
