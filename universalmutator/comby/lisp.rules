@@ -1,6 +1,7 @@
 and ==> or
 or ==> and
-not ==> 
+not :cond ==> :cond
+:cond ==> not :cond
 or ==> or T
 and ==> and nil
 T ==> nil
