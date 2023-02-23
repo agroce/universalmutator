@@ -1,7 +1,7 @@
 :[s~[ \t]*]import ==> DO_NOT_MUTATE
 
-if :[cond] ==> if not :[cond]
-while :[cond] ==> while not :[cond]
+if :[cond] ==> if not (:[cond])
+while :[cond] ==> while not (:[cond])
 
 :[body]continue ==> :[body] break
 :[body]break ==> :[body] continue
