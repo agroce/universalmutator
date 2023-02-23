@@ -29,13 +29,11 @@ def main():
     print("="*80)
     for (mf, c) in d1contents:
         if c not in just2c:
-            print(c)
             m = utils.readMutant(mf, f)
             utils.show(m)
     print("="*80)
     for (mf, c) in d2contents:
         if c not in just1c:
-            print(c)
             m = utils.readMutant(mf, f)
             utils.show(m)               
     
