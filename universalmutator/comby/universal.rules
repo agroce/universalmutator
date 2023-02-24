@@ -65,7 +65,7 @@ DO_NOT_MUTATE ==> DO_NOT_MUTATE
 :[a]-- ==> :[a]++
 :[a]++ ==> :[a]--
 
--:[a] ==> :[a]
+:[neg~-]:[a] ==> :[a]
 
 :[a~\D]:[number~\d+]:[b~\D] ==> :[a]0:[b]
 :[a~\D]:[number~\d+]:[b~\D] ==> :[a]1:[b]
