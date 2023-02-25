@@ -17,12 +17,24 @@ def main():
     d2files = glob.glob(d2 + pattern)
     d1contents = []
     d2contents = []
+    d1all = []
+    d2all = []
     for d1f in d1files:
         with open(d1f, "r") as d1c:
-            d1contents.append((d1f, d1c.read()))
+            r = d1c.read()
+            if r not in d1all:
+                d1all.append(r)
+            else:
+                print(d1f, "IS REDUNDANT!")
+            d1contents.append((d1f, r))
     for d2f in d2files:
         with open(d2f, "r") as d2c:
-            d2contents.append((d2f, d2c.read()))
+            r = d2c.read()
+            if r not in d2all:
+                d2all.append(r)
+            else:
+                print(d2f, "IS REDUNDANT!")
+            d2contents.append((d2f, r))
 
     just1c = list(map(lambda x: x[1], d1contents))
     just2c = list(map(lambda x: x[1], d2contents))

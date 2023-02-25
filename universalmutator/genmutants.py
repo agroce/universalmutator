@@ -447,8 +447,13 @@ def main():
             print("(FROM:", mutant[2][1], end=")...")
         
         if comby:
-            mutator.makeMutantComby(sourceJoined, mutant, tmpMutantName)  
-        else: mutator.makeMutant(source, mutant, tmpMutantName)
+            mCreated = mutator.makeMutantComby(sourceJoined, mutant, tmpMutantName)
+        else:
+            mCreated = mutator.makeMutant(source, mutant, tmpMutantName)
+        if not mCreated:
+            print("REDUNDANT (SOURCE COPY!)")
+            redundantMutants.append(mutant)
+            continue
         
         if compileFile is None:
             mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)

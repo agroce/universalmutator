@@ -245,6 +245,10 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
 def makeMutant(source, mutant, path):
     lineModified = mutant[0]
     newCode = mutant[1]
+    if source[lineModified - 1] == newCode:
+        print("** WARNING: SKIPPING GENERATING IDENTICAL MUTANT **")
+        print(mutant)
+        return False
     with open(path, 'w') as file:
         lineno = 0
         for l in source:
@@ -253,10 +257,16 @@ def makeMutant(source, mutant, path):
                 file.write(l)
             else:
                 file.write(newCode)
+    return True
 
 def makeMutantComby(source, mutant, path):
     sourceBeforeFragment = source[:mutant[0][0]]
     sourceAfterFragment = source[mutant[0][1]:]
     mutantSource = sourceBeforeFragment + mutant[1] + sourceAfterFragment
+    if mutantSource == source:
+        print("** WARNING: SKIPPING GENERATING IDENTICAL MUTANT **")
+        print(mutant)
+        return False
     with open(path, 'w') as file:
         file.write(mutantSource)
+    return True
