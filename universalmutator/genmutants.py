@@ -424,14 +424,18 @@ def main():
                         checkLines.append(i)
                 for lineNo in checkLines:
                     fastCheckMutant = (lineNo, toGarbage(source[lineNo - 1]))
-                    mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
+                    mutantMade = mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
+                    if (not mutantMade):
+                        continue
                     fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, lineNo)
                 if checkCombyDeadCode(deadCodeLines, mutant):
                     continue
             else:
                 if (mutant[0] not in interestingLines) and (mutant[0] not in deadCodeLines):
                     fastCheckMutant = (mutant[0], toGarbage(source[mutant[0] - 1]))
-                    mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
+                    mutantMade = mutator.makeMutant(source, fastCheckMutant, tmpMutantName)
+                    if (not mutantMade):
+                        continue
                     fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, mutant[0])
                 if mutant[0] in deadCodeLines:
                     continue
