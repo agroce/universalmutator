@@ -362,8 +362,10 @@ def main():
     source = []
 
     with open(sourceFile, 'r') as file:
-        for l in file:
-            source.append(l)
+        for line in file:
+            # remove non-ascii characters (comby issue)
+            line_processed = line.encode('ascii', 'ignore').decode()
+            source.append(line_processed)
 
     mutants = []
 
