@@ -87,7 +87,11 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
     (rules, ignoreRules, skipRules) = parseRules(ruleFiles, True)
     for lhs in ignorePatterns:
         ignoreRules.append(lhs)
+    
     source = ''.join(source)
+    # Remove non-ascii characters from comments (comby issue)
+    source = ''.join(c for c in source if ord(c) < 128)
+    
     mutants = []
 
     # Lines that match with DO_NOT_MUTATE and other ignore rules will be skipped
