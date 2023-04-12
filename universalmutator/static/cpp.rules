@@ -8,3 +8,7 @@ at(\(.*\)) ==> at(0)
 at (\(.*\)) ==> at (0)
 front_inserter ==> back_inserter
 back_inserter ==> front_inserter
+min_element ==> max_element
+max_element ==> min_element
+accumulate ==> inner_product
+inner_product ==> accumulate
