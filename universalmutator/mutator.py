@@ -86,8 +86,8 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
     print("MUTATING WITH RULES (COMBY):", ", ".join(ruleFiles))
     (rules, ignoreRules, skipRules) = parseRules(ruleFiles, True)
     for lhs in ignorePatterns:
-        ignoreRules.append(lhs)
-    source = ''.join(source)
+        ignoreRules.append(lhs) 
+    source = ''.join(source)    
     mutants = []
 
     # Lines that match with DO_NOT_MUTATE and other ignore rules will be skipped
