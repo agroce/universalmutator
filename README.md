@@ -64,9 +64,11 @@ Java
 JavaScript
 Python
 Swift
+R
 Rust
 Go
 Lisp
+Fortran
 Solidity
 Vyper
 Fe

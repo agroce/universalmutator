@@ -22,6 +22,8 @@ import universalmutator.lisp_handler as lisp_handler
 import universalmutator.solidity_handler as solidity_handler
 import universalmutator.vyper_handler as vyper_handler
 import universalmutator.fe_handler as fe_handler
+import universalmutator.r_handler as r_handler
+import universalmutator.fortran_handler as fortran_handler
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     return "VALID"
@@ -104,6 +106,10 @@ def main():
                  ".go": "go",
                  ".lisp": "lisp",
                  ".lsp": "lisp",
+                 ".f": "fortran",
+                 ".f90": "fortran",
+                 ".for": "fortran",
+                 ".R": "r",
                  ".sol": "solidity",
                  ".vy": "vyper",
                  ".fe": "fe"}
@@ -293,6 +299,8 @@ def main():
                 "javascript": javascript_handler,
                 "swift": swift_handler,
                 "rust": rust_handler,
+                "r": r_handler,
+                "fortran": fortran_handler,
                 "go": go_handler,
                 "lisp": lisp_handler,
                 "solidity": solidity_handler,

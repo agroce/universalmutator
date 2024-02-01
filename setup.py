@@ -5,7 +5,7 @@ import sys, os
 
 setup(
     name='universalmutator',
-    version='1.1.7',
+    version='1.1.8',
     description='Universal regexp-based mutation tool',
     long_description_content_type="text/markdown",
     long_description=open('README.md').read(),
@@ -22,6 +22,8 @@ setup(
             'static/javascript.rules',
             'static/python.rules',
             'static/lisp.rules',
+            'static/fortran.rules',
+            'static/r.rules',
             'static/rust.rules',
             'static/go.rules',                        
             'static/rust.rules',
@@ -37,6 +39,8 @@ setup(
             'comby/java.rules',
             'comby/python.rules',
             'comby/lisp.rules',
+            'comby/fortran.rules',
+            'comby/r.rules',
             'comby/rust.rules',
             'comby/go.rules',                        
             'comby/rust.rules',
