@@ -5,7 +5,7 @@ for more sophisticated mutation that produces fewer invalid mutants.  Regular-ex
 comby-aided mutation works even better.  The key advantage of either approach is that the tool can probably mutate approximately *any* interesting source code you have, and language changes don't force
 rewriting of the mutation tool.  To use the comby mode, just make sure comby is installed and add `--comby` when you run `mutate`.
 
-More information on this project can be found in our 2018 ICSE tool paper: https://agroce.github.io/icse18t.pdf 
+More information on this project can be found in a [2024 FSE paper](https://agroce.github.io/fse24.pdf), and in the original [2018 ICSE Tool Paper](https://agroce.github.io/icse18t.pdf).
 
 A [guest blog post](https://blog.trailofbits.com/2019/01/23/fuzzing-an-api-with-deepstate-part-2/) for Trail of Bits shows how to use the universalmutator to help improve a C/C++ API fuzzing effort using [DeepState](https://github.com/trailofbits/deepstate) and libFuzzer.
 
@@ -118,9 +118,9 @@ for smart contracts.
 MORE INFORMATON
 ===============
 
-For much more information, again see https://agroce.github.io/icse18t.pdf -- demo/tool paper at ICSE 18.
+For much more information, again see https://agroce.github.io/icse18t.pdf -- demo/tool paper at ICSE 18 and especially our full FSE 2024 paper -- https://agroce.github.io/fse24.pdf -- the latter discusses the latest version of the tool/approach, and includes a comparison with many other mutation testing tools.
 
 The aim of this project is partly to see how quickly mutation can be applied to new languages, partly how much the work of a tool can be
 offloaded to the compiler / test analysis tools.
 
-Authors:  Alex Groce, Josie Holmes, Darko Marinov, August Shi, Lingming Zhang
+Authors:  Alex Groce, Josie Holmes, Darko Marinov, August Shi, Lingming Zhang, Kush Jain, Rijnard van Tonder, Sourav Deb
