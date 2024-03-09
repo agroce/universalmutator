@@ -180,10 +180,12 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
                 skipp = skipRule.search(l, 0)
                 if skipp and (skipp.start() < skipPos):
                     skipPos = skipp.start()
-            pos = 0
-            p = lhs.search(l, pos)
-            while p and (pos < skipPos):
-                pos = p.start() + 1
+                    
+     
+            p = lhs.search(l, 0)
+
+            # skip mutating if match occurs at index >= skipPos
+            while p and (p.start() < skipPos):
                 try:
                     mutant = l[:p.start()] + lhs.sub(rhs, l[p.start():], count=1)
                 except KeyboardInterrupt:
@@ -233,7 +235,8 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
                 if (mutant != l) and ((lineno, mutant) not in produced) and (not skipDueToString):
                     mutants.append((lineno, mutant, ruleUsed, (lhs,rhs)))
                     produced[(lineno, mutant)] = True
-                p = lhs.search(l, pos)
+                
+                p = lhs.search(l, p.start()+1) #search from the next position of the current match
             if abandon:
                 break
 
