@@ -39,3 +39,5 @@ True ==> False
 '.+' ==> ''
 
 @.* ==> 
+
+# ==> SKIP_MUTATING_REST
