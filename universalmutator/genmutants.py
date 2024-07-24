@@ -324,46 +324,45 @@ def main():
         pass
 
     sourceFile = args[1]
+    base = (".".join((sourceFile.split(".")[:-1]))).split("/")[-1]
     ending = "." + sourceFile.split(".")[-1]
 
-    if len(args) < 3:
-        try:
-            language = languages[ending]
-        except KeyError:
-            language = "none"
-        otherRules = []
-    else:
-        if ".rules" in args[2]:
-            language = languages[ending]
-            otherRules = args[2:]
+    if "--only" not in args:    
+        if len(args) < 3:
+            try:
+                language = languages[ending]
+            except KeyError:
+                language = "none"
+            otherRules = []
         else:
-            language = args[2]
-            otherRules = args[3:]
+            if ".rules" in args[2]:
+                language = languages[ending]
+                otherRules = args[2:]
+            else:
+                language = args[2]
+                otherRules = args[3:]
 
-    if language not in handlers:
-        if language.lower() in handlers:
-            language = language.lower()
+        if language not in handlers:
+            if language.lower() in handlers:
+                language = language.lower()
 
-    base = (".".join((sourceFile.split(".")[:-1]))).split("/")[-1]
+        if language in cLikeLanguages:
+            otherRules.append("c_like.rules")
 
-    if language in cLikeLanguages:
-        otherRules.append("c_like.rules")
+        if language == "vyper":
+            otherRules.append("python.rules")
+            otherRules.append("solidity.rules")
 
-    if language == "vyper":
-        otherRules.append("python.rules")
-        otherRules.append("solidity.rules")
+        if language == "fe":
+            otherRules.append("python.rules")
+            otherRules.append("solidity.rules")
 
-    if language == "fe":
-        otherRules.append("python.rules")
-        otherRules.append("solidity.rules")
-
-    rules = ["universal.rules", language + ".rules"] + otherRules
-    if fuzz:
-        if language == "none":
-            fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
-            rules = list(set(fuzzRules + rules))
-
-    if "--only" in args:
+        rules = ["universal.rules", language + ".rules"] + otherRules
+        if fuzz:
+            if language == "none":
+                fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
+                rules = list(set(fuzzRules + rules))
+    else:
         onlyPos = args.index("--only")
         rules = [args[onlyPos + 1]]
 
