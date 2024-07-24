@@ -365,6 +365,16 @@ def main():
     else:
         onlyPos = args.index("--only")
         rules = [args[onlyPos + 1]]
+        if args[2] != "--only":
+            language = args[2]
+        else:
+            try:
+                language = languages[ending]
+            except KeyError:
+                language = "none"
+        if language not in handlers:
+            if language.lower() in handlers:
+                language = language.lower()
 
     source = []
 
