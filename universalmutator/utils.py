@@ -120,7 +120,6 @@ mdistanceCache = {}
 
 
 def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5, useCache=True):
-    global mdistanceCache
     if m1 == m2:
         return 0
     if useCache:

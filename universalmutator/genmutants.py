@@ -47,8 +47,6 @@ def checkCombyDeadCode(deadCodeLines, mutant):
     return True
 
 def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
-    global cmd
-
     if "MUTANT" not in cmd:
         # We asssume if the MUTANT isn't part of the command,
         # we need to move it into place, before, e.g., make
