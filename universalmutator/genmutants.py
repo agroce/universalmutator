@@ -59,8 +59,7 @@ def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
                                 shell=True, stderr=file, stdout=file)
         if r == 0:
             return "VALID"
-        else:
-            return "INVALID"
+        return "INVALID"
     finally:
         # If we moved the mutant in, restore original
         if "MUTANT" not in cmd:
@@ -498,12 +497,13 @@ def main():
         print("TRYING CODE SWAPS...")
         swapList = []
         for lineNo in range(len(source)):
-            if (lineNo + 1) in deadCodeLines:
+            if lineNo + 1 in deadCodeLines:
                 continue
             swapList.append(lineNo)
         for i in range(0, len(swapList)-1):
             a = swapList[i]
             b = swapList[i+1]
+            mutant = [a + 1] # Only the line is valid here
             print("TRYING TO SWAP LINES", a + 1, "AND", b + 1, end="...")
             newSource = source[:a]
             newSource.append(source[b])
@@ -534,11 +534,11 @@ def main():
     print(len(validMutants), "VALID MUTANTS")
     print(len(invalidMutants), "INVALID MUTANTS")
     print(len(redundantMutants), "REDUNDANT MUTANTS")
-    
+
     totalMutants = len(validMutants) + len(invalidMutants) + len(redundantMutants)
     valid_rate = 0 if totalMutants == 0 else (len(validMutants) * 100.0)/totalMutants
     print(f"Valid Percentage: {valid_rate}%")
-    
+
     (rules, ignoreRules, skipRules) = mutator.parseRules(rules, comby= comby)
 
     if printStat:
@@ -587,14 +587,14 @@ def printRulesStat(rules, validMutants, invalidMutants):
         lhs, rhs = mutant[-1]
         if (lhs,rhs) not in valid_cnt:
             valid_cnt[(lhs,rhs)] = 0
-        valid_cnt[(lhs,rhs)] += 1    
+        valid_cnt[(lhs,rhs)] += 1
 
     for mutant in invalidMutants:
         lhs, rhs = mutant[-1]
         if (lhs,rhs) not in invalid_cnt:
             invalid_cnt[(lhs,rhs)] = 0
-        invalid_cnt[(lhs,rhs)] += 1    
-    
+        invalid_cnt[(lhs,rhs)] += 1
+
     fis = open("rules_count.txt", "w")
     i = 0
     table = []
@@ -608,7 +608,7 @@ def printRulesStat(rules, validMutants, invalidMutants):
         i += 1
 
         table.append([f'{i}',f'{lhs} ==> {rhs}', f'{valid_cnt[(lhs,rhs)]}', f'{invalid_cnt[(lhs,rhs)]}'])
-    
+
     fis.write(tabulate(table,tablefmt="grid"))
     sys.stdout.flush()
     fis.close()
