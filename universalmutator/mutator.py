@@ -127,7 +127,7 @@ def mutants_comby(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False
             continue
     return mutants
 
-def mutants(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
+def mutants_regexp(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
     if ruleFiles is None:
         ruleFiles = ["universal.rules"]
@@ -150,6 +150,7 @@ def mutants(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
     lineno = 0
     stringSkipped = 0
     inTestCode = False
+    targetLine = None
     if fuzzing:
         # Pick a random target line, ignore others
         if len(source) == 0:

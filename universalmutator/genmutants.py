@@ -388,7 +388,7 @@ def main():
         mutants = mutator.mutants_comby(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
                                 ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz, language=ending)
     else:
-        mutants = mutator.mutants(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
+        mutants = mutator.mutants_regexp(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
                               ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz)
     if fuzz:
         if len(mutants) == 0:
