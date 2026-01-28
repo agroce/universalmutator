@@ -6,7 +6,7 @@ import Levenshtein
 
 
 def solidityContract(m):
-    (mfile, sourcefile, pos, orig, mutant) = m
+    (_, sourcefile, pos, _, _) = m
     cname = "UNKNOWN"
     try:
         with open(sourcefile, 'r') as readm:
@@ -32,7 +32,7 @@ def solidityContract(m):
 
 
 def solidityFunction(m):
-    (mfile, sourcefile, pos, orig, mutant) = m
+    (_, sourcefile, pos, _, _) = m
     fname = "UNKNOWN"
     try:
         with open(sourcefile, 'r') as readm:
@@ -79,7 +79,7 @@ def show(m, concise=False, mutantDir=None, sourceDir=None):
 
 
 def change(m):
-    (mfile, sourcefile, pos, orig, mutant) = m
+    (_, _, pos, orig, mutant) = m
     eops = Levenshtein.editops(orig, mutant)
     blocks = Levenshtein.matching_blocks(eops, orig, mutant)
     if len(blocks) > 4:
@@ -127,22 +127,22 @@ def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5
             return mdistanceCache[(m1, m2)]
         if (m2, m1) in mdistanceCache:
             return mdistanceCache[(m2, m1)]
-    (mfile1, sourcefile1, pos1, orig1, mutant1) = m1
-    (mfile2, sourcefile2, pos2, orig2, mutant2) = m2
-    d = changeWeight * (1.0 - (Levenshtein.ratio(change(m1), change(m2))))
-    d += origWeight * (1.0 - Levenshtein.ratio(orig1, orig2))
-    d += mutantWeight * (1.0 - Levenshtein.ratio(mutant1, mutant2))
-    if (sourcefile1 != sourcefile2):
-        d += codeWeight
+    (_, sourcefile1, pos1, orig1, mutant1) = m1
+    (_, sourcefile2, pos2, orig2, mutant2) = m2
+    md = changeWeight * (1.0 - (Levenshtein.ratio(change(m1), change(m2))))
+    md += origWeight * (1.0 - Levenshtein.ratio(orig1, orig2))
+    md += mutantWeight * (1.0 - Levenshtein.ratio(mutant1, mutant2))
+    if sourcefile1 != sourcefile2:
+        md += codeWeight
     else:
         pd = abs(pos1 - pos2)
         if pd > 10:
-            d += codeWeight * 0.5
+            md += codeWeight * 0.5
         else:
-            d += codeWeight * (0.5 * (pd / 11.0))
+            md += codeWeight * (0.5 * (pd / 11.0))
     if useCache:
-        mdistanceCache[(m1, m2)] = d
-    return d
+        mdistanceCache[(m1, m2)] = md
+    return md
 
 
 def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=None, mutantDir=None, sourceDir=None):
