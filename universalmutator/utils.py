@@ -145,7 +145,7 @@ def d(m1, m2, changeWeight=5.0, origWeight=0.1, mutantWeight=0.1, codeWeight=0.5
     return md
 
 
-def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=None, mutantDir=None, sourceDir=None):
+def FPF(mlist, N, f=None, df=d, cutoff=0.0, verbose=True, avoid=None, mutantDir=None, sourceDir=None):
     if avoid is None:
         avoid = []
     if len(mlist) == 0:
@@ -171,11 +171,11 @@ def FPF(mlist, N, f=None, d=d, cutoff=0.0, verbose=True, avoid=None, mutantDir=N
         for m1 in mlist:
             dmin = -1
             for (m2, _) in ranking:
-                dm1m2 = d(m1, m2)
+                dm1m2 = df(m1, m2)
                 if (dm1m2 < dmin) or (dmin == -1):
                     dmin = dm1m2
             for m2 in avoid:
-                dm1m2 = d(m1, m2)
+                dm1m2 = df(m1, m2)
                 if (dm1m2 < dmin) or (dmin == -1):
                     dmin = dm1m2
             if dmin > maxMin:
