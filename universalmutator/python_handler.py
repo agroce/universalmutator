@@ -50,7 +50,7 @@ def getPythonCode(fname):
             code = marshal.load(f)          # rest is a marshalled code object
         except BaseException:
             print("WARNING: UNABLE TO MARSHAL CODE FROM PYC FILE!")
-            return(uuid.uuid4())
+            return uuid.uuid4()
     if "code" not in str(type(code)):
         print("WARNING: INVALID CODE OBJECT READ FROM PYC FILE!")
         return uuid.uuid4()
