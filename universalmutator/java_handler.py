@@ -23,5 +23,4 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
             os.remove(classBackupName)
     if r == 0:
         return "VALID"
-    else:
-        return "INVALID"
+    return "INVALID"

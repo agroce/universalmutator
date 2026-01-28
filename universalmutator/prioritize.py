@@ -2,7 +2,7 @@ from __future__ import print_function
 import glob
 import sys
 
-import universalmutator.utils as utils
+from universalmutator import utils
 
 
 def main():
@@ -106,7 +106,7 @@ def main():
             ranking = utils.FPF(sdmutants, N, cutoff=cutoff, verbose=verbose, mutantDir=mdir,
                                 sourceDir=sdir)
             with open(outfile, 'w') as outf:
-                for (m, r) in ranking:
+                for (m, _) in ranking:
                     mname = m[0]
                     outf.write(mname + "\n")
         else:

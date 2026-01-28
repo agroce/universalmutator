@@ -2,7 +2,7 @@ from __future__ import print_function
 import re
 import sys
 
-import universalmutator.utils as utils
+from universalmutator import utils
 
 
 def main():
@@ -74,8 +74,7 @@ def main():
 
     with open(config, 'r') as cfile:
         for line in cfile:
-            if line[-1] == "\n":
-                r = line[:-1]
+            r = line.rstrip('\n')
             (ctype, crule) = r.split(": ", 1)
             if ctype not in constraints:
                 print("INVALID CONSTRAINT TYPE IN PRUNING RULE:", line)
