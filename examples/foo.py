@@ -1,10 +1,10 @@
 from __future__ import print_function
 
 def myfunction(x):
-    if (x < 6):
+    if x < 6:
         print(x)
         x = 20
-    while (x > 10):
+    while x > 10:
         x -= 1
     return x
 
