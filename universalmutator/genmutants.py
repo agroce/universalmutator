@@ -8,22 +8,22 @@ import sys
 import shutil
 import subprocess
 
-import universalmutator.mutator as mutator
+from universalmutator import mutator
 
-import universalmutator.c_handler as c_handler
-import universalmutator.cpp_handler as cpp_handler
-import universalmutator.python_handler as python_handler
-import universalmutator.java_handler as java_handler
-import universalmutator.javascript_handler as javascript_handler
-import universalmutator.swift_handler as swift_handler
-import universalmutator.rust_handler as rust_handler
-import universalmutator.go_handler as go_handler
-import universalmutator.lisp_handler as lisp_handler
-import universalmutator.solidity_handler as solidity_handler
-import universalmutator.vyper_handler as vyper_handler
-import universalmutator.fe_handler as fe_handler
-import universalmutator.r_handler as r_handler
-import universalmutator.fortran_handler as fortran_handler
+from universalmutator import c_handler
+from universalmutator import cpp_handler
+from universalmutator import python_handler
+from universalmutator import java_handler
+from universalmutator import javascript_handler
+from universalmutator import swift_handler
+from universalmutator import rust_handler
+from universalmutator import go_handler
+from universalmutator import lisp_handler
+from universalmutator import solidity_handler
+from universalmutator import vyper_handler
+from universalmutator import fe_handler
+from universalmutator import r_handler
+from universalmutator import fortran_handler
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     return "VALID"
@@ -325,7 +325,7 @@ def main():
     base = (".".join((sourceFile.split(".")[:-1]))).split("/")[-1]
     ending = "." + sourceFile.split(".")[-1]
 
-    if "--only" not in args:    
+    if "--only" not in args:
         if len(args) < 3:
             try:
                 language = languages[ending]
@@ -433,7 +433,7 @@ def main():
         if (lineFile is not None) and mutant[0] not in lines:
             # skip if not a line to mutate
             continue
-        if (not noFastCheck):
+        if not noFastCheck:
             if comby:
                 checkLines = []
                 for i in range(mutant[3][0], mutant[3][1] + 1):
@@ -454,7 +454,7 @@ def main():
                         fastCheckLine(mutant, source, sourceFile, uniqueMutants, compileFile, handler, deadCodeLines, interestingLines, tmpMutantName, mutant[0])
                 if mutant[0] in deadCodeLines:
                     continue
-        
+
         if comby:
             sourceJoined = ''.join(source)
             print("PROCESSING MUTANT:",
@@ -464,7 +464,7 @@ def main():
               str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
         if (not comby) and showRules:
             print("(FROM:", mutant[2][1], end=")...")
-        
+
         if comby:
             mCreated = mutator.makeMutantComby(sourceJoined, mutant, tmpMutantName)
         else:
@@ -473,7 +473,7 @@ def main():
             print("REDUNDANT (SOURCE COPY!)")
             redundantMutants.append(mutant)
             continue
-        
+
         if compileFile is None:
             mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants)
         else:

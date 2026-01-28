@@ -2,7 +2,7 @@ from __future__ import print_function
 import glob
 import sys
 
-import universalmutator.utils as utils
+from universalmutator import utils
 
 
 def main():
@@ -47,8 +47,8 @@ def main():
     for (mf, c) in d2contents:
         if c not in just1c:
             m = utils.readMutant(mf, f)
-            utils.show(m)               
-    
+            utils.show(m)
+
 
 if __name__ == '__main__':
     main()

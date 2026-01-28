@@ -40,8 +40,7 @@ def handler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         if code in uniqueMutants:
             uniqueMutants[code] += 1
             return "REDUNDANT"
-        else:
-            uniqueMutants[code] = 1
-            return "VALID"
+        uniqueMutants[code] = 1
+        return "VALID"
     else:
         return "INVALID"
