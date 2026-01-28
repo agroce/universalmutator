@@ -122,7 +122,7 @@ def main():
     ranking = utils.FPF(mutants, N - len(sdmutants), cutoff=cutoff, verbose=verbose, avoid=sdmutants,
                         mutantDir=mdir, sourceDir=sdir)
     with open(outfile, 'a') as outf:
-        for (m, r) in ranking:
+        for (m, _) in ranking:
             mname = m[0]
             outf.write(mname + "\n")
 

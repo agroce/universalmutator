@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 
-import universalmutator.utils as utils
+from universalmutator import utils
 
 
 def main():
