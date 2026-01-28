@@ -61,3 +61,10 @@ class TestFooExample(TestCase):
             self.assertTrue(notKilledCount > 0)
             self.assertTrue(mutationScore > 0.0)
             self.assertTrue(mutationScore < 1.0)
+
+        with open("prioritize.out", 'w') as f:
+            r = subprocess.call(["prioritize_mutants", "notkilled.txt", "notkilled_prioritized.txt"], stdout=f, stderr=f)
+        self.assertEqual(r, 0)
+
+
+
