@@ -247,7 +247,7 @@ def main():
 
                         if isWindows:
                             ctstCmd = ['set "CURRENT_MUTANT_SOURCE=' + f + '" && ' + tstCmd[0]]
-                        else
+                        else:
                             ctstCmd = ['export CURRENT_MUTANT_SOURCE="' + f + '"; ' + tstCmd[0]]
                         start = time.time()
 
