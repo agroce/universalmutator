@@ -53,7 +53,7 @@ def parseRules(ruleFiles, comby=False):
                 continue  # Allow blank lines and comments, just ignore lines without a transformation
         else:
             s = r.split(" ==> ")
-        
+
         if comby:
             lhs = s[0]
             lhs = lhs.rstrip() # Trailing whitespace in rule file will be treated significantly unless stripped, so strip it. If matching trailing whitespace is desired, then regex holes should be used.
@@ -80,14 +80,16 @@ def parseRules(ruleFiles, comby=False):
 
 
 
-def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
+def mutants_comby(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, language=".generic"):
+    if ruleFiles is None:
+        ruleFiles = ["universal.rules"]
     comby = Comby()
     print("MUTATING WITH RULES (COMBY):", ", ".join(ruleFiles))
-    (rules, ignoreRules, skipRules) = parseRules(ruleFiles, True)
+    (rules, ignoreRules, _) = parseRules(ruleFiles, True)
     for lhs in ignorePatterns:
-        ignoreRules.append(lhs) 
-    source = ''.join(source)    
+        ignoreRules.append(lhs)
+    source = ''.join(source)
     mutants = []
 
     # Lines that match with DO_NOT_MUTATE and other ignore rules will be skipped
@@ -100,9 +102,9 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
 
     # Instead of line-by-line x rule-by-rule iterate rule-by-rule x match-by-match.
     for ((lhs, rhs), ruleUsed) in rules:
-        try: 
+        try:
             for match in comby.matches(source, lhs, language=language):
-                environment = dict()
+                environment = {}
                 for entry in match.environment:
                     environment[entry] = match.environment.get(entry).fragment
                 mutant = comby.substitute(rhs, environment)
@@ -115,18 +117,20 @@ def mutants_comby(source, ruleFiles=["universal.rules"], mutateTestCode=False, m
                     if line in ignoreLines:
                         skipMutant = True
                         break
-                
+
                 if not skipMutant:
                     mutants.append((substitutionRange, mutant, ruleUsed, lineRange, (lhs,rhs)))
-        except JSONDecodeError as e:
+        except JSONDecodeError:
             continue
         except Exception as e:
             print(f"WARNING: Got exception {e} running rule {ruleUsed}")
             continue
     return mutants
 
-def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateBoth=False,
+def mutants(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
+    if ruleFiles is None:
+        ruleFiles = ["universal.rules"]
     print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
     (rules, ignoreRules, skipRules) = parseRules(ruleFiles)
@@ -180,8 +184,8 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
                 skipp = skipRule.search(l, 0)
                 if skipp and (skipp.start() < skipPos):
                     skipPos = skipp.start()
-                    
-     
+
+
             p = lhs.search(l, 0)
 
             # skip mutating if match occurs at index >= skipPos
@@ -235,7 +239,7 @@ def mutants(source, ruleFiles=["universal.rules"], mutateTestCode=False, mutateB
                 if (mutant != l) and ((lineno, mutant) not in produced) and (not skipDueToString):
                     mutants.append((lineno, mutant, ruleUsed, (lhs,rhs)))
                     produced[(lineno, mutant)] = True
-                
+
                 p = lhs.search(l, p.start()+1) #search from the next position of the current match
             if abandon:
                 break

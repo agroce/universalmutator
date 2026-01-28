@@ -77,6 +77,7 @@ def toGarbage(code):
             newCode += "Q"
     return newCode
 
+cmd = None
 
 def main():
     global cmd
@@ -416,7 +417,7 @@ def main():
                 if handlers[language].dumb:
                     noFastCheck = True
                     dumbHandler = True
-            except:
+            except BaseException:
                 pass
             handler = handlers[language].handler
     else:
@@ -539,7 +540,7 @@ def main():
     valid_rate = 0 if totalMutants == 0 else (len(validMutants) * 100.0)/totalMutants
     print(f"Valid Percentage: {valid_rate}%")
 
-    (rules, ignoreRules, skipRules) = mutator.parseRules(rules, comby= comby)
+    (rules, _, _) = mutator.parseRules(rules, comby= comby)
 
     if printStat:
         source = sourceJoined if comby else None
@@ -568,10 +569,15 @@ def printMutantsStat(mutants, source = None):
             sys.stdout.flush()
 
             fis.write(f"{i}.\n")
-            fis.write(mutant[2][0]); fis.write('\n')
+            fis.write(mutant[2][0])
+            fis.write('\n')
             if source is not None:
-                fis.write("source:\n"); fis.write(source[mutant[0][0]:mutant[0][1]]); fis.write('\n')
-            fis.write("mutant:\n"); fis.write(mutant[1]); fis.write('\n\n')
+                fis.write("source:\n")
+                fis.write(source[mutant[0][0]:mutant[0][1]])
+                fis.write('\n')
+            fis.write("mutant:\n")
+            fis.write(mutant[1])
+            fis.write('\n\n')
         fis.close()
 
     validMutants, invalidMutants, redundantMutants = mutants
@@ -600,7 +606,7 @@ def printRulesStat(rules, validMutants, invalidMutants):
     table = []
     table.append(["#","Rule","No. of Valids", "No. of Invalids"])
 
-    for ((lhs, rhs), ruleUsed) in rules:
+    for ((lhs, rhs), _) in rules:
         if (lhs,rhs) not in valid_cnt:
             valid_cnt[(lhs,rhs)] = 0
         if (lhs,rhs) not in invalid_cnt:
