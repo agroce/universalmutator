@@ -14,7 +14,7 @@ import py_compile
 
 def main():
 
-    isWindows = True if platform.system() == "Windows" else False #get system os
+    isWindows = platform.system()
     args = sys.argv
 
     if ("--help" in args) or (len(sys.argv) < 3):
@@ -219,7 +219,7 @@ def main():
                             continue
                     if f in ignore:
                         print(f, "SKIPPED")
-                    if numMutants != -1 and compileCommand != None:
+                    if numMutants != -1 and compileCommand is not None:
                         if runCmd(compileCommand, src, f) != "VALID":
                             continue
 
@@ -245,8 +245,10 @@ def main():
                         if srcEnd == ".py":
                             py_compile.compile(src)
 
-                        #TODO: replace 'export' with 'set' command for windows
-                        ctstCmd = tstCmd[0] if isWindows else ['export CURRENT_MUTANT_SOURCE="' + f + '"; ' + tstCmd[0]]
+                        if isWindows:
+                            ctstCmd = ['set "CURRENT_MUTANT_SOURCE=' + f + '" && ' + tstCmd[0]]
+                        else
+                            ctstCmd = ['export CURRENT_MUTANT_SOURCE="' + f + '"; ' + tstCmd[0]]
                         start = time.time()
 
                         if not verbose:
@@ -269,7 +271,7 @@ def main():
                             if P.poll() is None:
                                 print()
                                 print("HAD TO TERMINATE ANALYSIS (TIMEOUT OR EXCEPTION)")
-                                
+
                                 if isWindows:
                                     os.kill(P.pid, signal.SIGTERM)
                                 else:
@@ -322,8 +324,7 @@ def runCmd(cmd, sourceFile, mutantFile):
                                 shell=True, stderr=file, stdout=file)
         if r == 0:
             return "VALID"
-        else:
-            return "INVALID"
+        return "INVALID"
     finally:
         # If we moved the mutant in, restore original
         if "MUTANT" not in cmd:
