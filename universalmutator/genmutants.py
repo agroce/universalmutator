@@ -257,16 +257,24 @@ def main():
         mdir = args[mdirpos + 1]
         args.remove("--mutantDir")
         args.remove(mdir)
-        
+
         mdirExists = os.path.isdir(mdir)
         if not mdirExists:
             print(f"THE DIRECTORY '{mdir}' PASSED INTO --mutantDir DID NOT EXIST, ATTEMPTING TO CREATE '{mdir}'")
             try:
-                os.mkdir(mdir);
+                os.mkdir(mdir)
                 print(f"DIRECTORY '{mdir}' WAS SUCCSESSFULLY CREATED")
-            except:
-                print(f"AN ERROR WAS THROWN WHILE ATTEMPTING TO CREATE '{mdir}'")
-                print(f"PLEASE CREATE THE DIRECTORY AND TRY AGAIN.")
+            except FileNotFoundError:
+                print(f"THE PARENT DIRECTORY FOR '{mdir}' WAS NOT FOUND. PLEASE CREATE IT AND TRY AGAIN.")
+                sys.exit(1)
+            except PermissionError:
+                print(f"ERROR CREATING '{mdir}', PERMISSION DENIED.")
+                sys.exit(1)
+            except OSError as error:
+                print(f"AN OS ERROR WAS THROWN WHILE ATTEMPTING TO CREATE '{mdir}': '{error}'")
+                sys.exit(1)
+            except Exception as error:
+                print(f"AN ERROR WAS THROWN WHILE ATTEMPTING TO CREATE '{mdir}': '{error}'")
                 sys.exit(1)
 
     if mdir[-1] != "/":
@@ -496,7 +504,7 @@ def main():
         if fuzz:
             mutantName = mdir + "fuzz.out"
         if (mutantResult == "VALID") or (mutantResult == "REDUNDANT" and redundantOK):
-            print("[written to", mutantName + "]", end=" ") 
+            print("[written to", mutantName + "]", end=" ")
 
             shutil.copy(tmpMutantName, mutantName)
             validMutants.append(mutant)
