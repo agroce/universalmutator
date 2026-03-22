@@ -127,6 +127,7 @@ def main():
         print("       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code")
         print("             to determine mutant validity")
         print("       --mutantDir: directory to put generated mutants in, creates directory if it does not exist; defaults to current directory.")
+        print("       --legacyMutantDir: simulates old mutantDir behavior; if the directory passed into --mutantDir does not exist, it will not be created and the progeam crashes.")
         print("       --lines: only generate mutants for lines contained in <coverfile>")
         print("       --tstl: <coverfile> is TSTL output")
         print("       --mutateInStrings: mutate inside strings (not just turn to empty string)")
