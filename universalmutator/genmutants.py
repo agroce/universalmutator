@@ -203,6 +203,11 @@ def main():
         fuzz = True
         args.remove("--fuzz")
 
+    legacyMutantDir = False
+    if "--legacyMutantDir" in args:
+        legacyMutantDir = True
+        args.remove("--legacyMutantDir")
+
     printStat = False
     if "--printStat" in args:
         printStat = True
@@ -260,7 +265,7 @@ def main():
         args.remove(mdir)
 
         mdirExists = os.path.isdir(mdir)
-        if not mdirExists:
+        if not mdirExists and not legacyMutantDir:
             print(f"THE DIRECTORY '{mdir}' PASSED INTO --mutantDir DID NOT EXIST, ATTEMPTING TO CREATE '{mdir}'")
             try:
                 os.mkdir(mdir)
