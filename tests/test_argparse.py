@@ -37,7 +37,7 @@ def capture_parsed_args(module_main, argv):
     def intercepting(self, args=None, namespace=None):
         result = original_parse_args(self, args, namespace)
         captured["parsed"] = result
-        return result
+        raise SystemExit(0)  # stop before any file I/O runs
 
     with patch.object(argparse.ArgumentParser, "parse_args", intercepting):
         with patch("sys.argv", argv):
