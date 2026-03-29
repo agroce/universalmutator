@@ -1,20 +1,19 @@
 from __future__ import print_function
-import sys
+import argparse
 
 
 def main():
 
-    args = sys.argv
+    parser = argparse.ArgumentParser(prog="intersect_mutants",
+                                     description="Write the intersection of two mutant list files to an output file.")
+    parser.add_argument("infile1", help="first input mutant list file")
+    parser.add_argument("infile2", help="second input mutant list file")
+    parser.add_argument("outfile", help="output file for the intersection")
+    parsed = parser.parse_args()
 
-    if ("--help" in args) or (len(sys.argv) < 2):
-        if len(sys.argv) < 2:
-            print("ERROR: intersect_mutants requires at least three arguments\n")
-        print("USAGE: intersect_mutants <infile1> <infile2> <outfile>")
-        sys.exit(0)
-
-    infile1 = sys.argv[1]
-    infile2 = sys.argv[2]
-    outfile = sys.argv[3]
+    infile1 = parsed.infile1
+    infile2 = parsed.infile2
+    outfile = parsed.outfile
 
     infile1_mutants = []
     with open(infile1, 'r') as if1:
