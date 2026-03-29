@@ -17,6 +17,7 @@ def main():
 
     isWindows = platform.system()
 
+    
     parser = argparse.ArgumentParser(prog="analyze_mutants",
                                      description="Analyze mutants by running a test command against each one.")
     parser.add_argument("sourcefile", help="source file being mutated")
