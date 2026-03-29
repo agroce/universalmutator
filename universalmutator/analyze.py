@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import argparse
 import difflib
 import subprocess
 import sys
@@ -15,134 +16,63 @@ import py_compile
 def main():
 
     isWindows = platform.system()
-    args = sys.argv
 
-    if ("--help" in args) or (len(sys.argv) < 3):
-        if len(sys.argv) < 3:
-            print("ERROR: analyze_mutants requires at least two arguments\n")
-        print("USAGE: analyze_mutants <sourcefile> <cmd> [--mutantDir <dir>] [--fromFile <mutantfile>]")
-        print("       <cmd> is command to execute to run tests; non-zero return indicates mutant killed")
-        print("       --mutantDir: directory with all mutants; defaults to current directory")
-        print("       --fromFile: file containing list of mutants to process; others ignored")
-        print("       --timeout <val>: change the timeout setting")
-        print("       --show: show mutants")
-        print("       --verbose: show mutants and output of analysis")
-        print("       --seed: random seed for shuffling of mutants")
-        print("       --noShuffle: do not randomize order of mutants")
-        print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
-        print("       --prefix: add a prefix to killed.txt and notkilled.txt")
-        print("       --numMutants: run with specific number of mutants")
-        print("       --compileCommand: compile command to run in selecting mutants")
-        sys.exit(0)
+    parser = argparse.ArgumentParser(prog="analyze_mutants",
+                                     description="Analyze mutants by running a test command against each one.")
+    parser.add_argument("sourcefile", help="source file being mutated")
+    parser.add_argument("testscript",
+                        help="command to execute to run tests; non-zero return indicates mutant killed")
+    parser.add_argument("ignorefile", nargs="?", default=None,
+                        help="optional file whose first-column entries list mutants to skip")
+    parser.add_argument("--verbose", action="store_true", default=False,
+                        help="show mutants and output of analysis")
+    parser.add_argument("--show", action="store_true", default=False,
+                        help="show mutants")
+    parser.add_argument("--resume", action="store_true", default=False,
+                        help="use existing killed.txt and notkilled.txt, resume mutation analysis")
+    parser.add_argument("--noShuffle", action="store_true", default=False,
+                        help="do not randomize order of mutants")
+    parser.add_argument("--prefix", default=None,
+                        help="add a prefix to killed.txt and notkilled.txt")
+    parser.add_argument("--fromFile", default=None,
+                        help="file containing list of mutants to process; others ignored")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="random seed for shuffling of mutants")
+    parser.add_argument("--timeout", type=float, default=30,
+                        help="change the timeout setting")
+    parser.add_argument("--numMutants", type=int, default=-1,
+                        help="run with a specific number of mutants")
+    parser.add_argument("--compileCommand", default=None,
+                        help="compile command to run in selecting mutants")
+    parser.add_argument("--mutantDir", default=".",
+                        help="directory with all mutants; defaults to current directory")
+    parsed = parser.parse_args()
 
-    verbose = "--verbose" in sys.argv
-    if verbose:
-        args.remove("--verbose")
-
-    showM = "--show" in sys.argv
-    if showM:
-        args.remove("--show")
-
-    resume = "--resume" in sys.argv
-    if resume:
-        args.remove("--resume")
-
-    noShuffle = "--noShuffle" in sys.argv
-    if noShuffle:
-        args.remove("--noShuffle")
-
-    prefix = None
-    try:
-        prefixpos = args.index("--prefix")
-    except ValueError:
-        prefixpos = -1
-
-    if prefixpos != -1:
-        prefix = args[prefixpos + 1]
-        args.remove("--prefix")
-        args.remove(prefix)
-
-    fromFile = None
-    try:
-        filepos = args.index("--fromFile")
-    except ValueError:
-        filepos = -1
-
-    if filepos != -1:
-        fromFile = args[filepos + 1]
-        args.remove("--fromFile")
-        args.remove(fromFile)
-
-    seed = None
-    try:
-        seedpos = args.index("--seed")
-    except ValueError:
-        seedpos = -1
-
-    if seedpos != -1:
-        seed = args[seedpos + 1]
-        args.remove("--seed")
-        args.remove(seed)
-        seed = int(seed)
-
-    timeout = 30
-    try:
-        topos = args.index("--timeout")
-    except ValueError:
-        topos = -1
-
-    if topos != -1:
-        timeout = args[topos + 1]
-        args.remove("--timeout")
-        args.remove(timeout)
-        timeout = float(timeout)
-
-    numMutants = -1
-    try:
-        nmpos = args.index("--numMutants")
-    except ValueError:
-        nmpos = -1
-
-    if nmpos != -1:
-        numMutants = args[nmpos + 1]
-        args.remove("--numMutants")
-        args.remove(numMutants)
-        numMutants = int(numMutants)
-
-    compileCommand = None
-    try:
-        ccmdpos = args.index("--compileCommand")
-    except ValueError:
-        ccmdpos = -1
-
-    if ccmdpos != -1:
-        compileCommand = args[ccmdpos + 1]
-        args.remove("--compileCommand")
-        args.remove(compileCommand)
+    verbose = parsed.verbose
+    showM = parsed.show
+    resume = parsed.resume
+    noShuffle = parsed.noShuffle
+    prefix = parsed.prefix
+    fromFile = parsed.fromFile
+    seed = parsed.seed
+    timeout = parsed.timeout
+    numMutants = parsed.numMutants
+    compileCommand = parsed.compileCommand
 
     onlyMutants = None
     if fromFile is not None:
         with open(fromFile, 'r') as file:
             onlyMutants = file.read().split()
 
-    mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
-
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    mdir = parsed.mutantDir
     if mdir[-1] != "/":
         mdir += "/"
 
-    src = args[1]
-    tstCmd = [args[2]]
+    src = parsed.sourcefile
+    tstCmd = [parsed.testscript]
     ignore = []
-    if len(args) > 3:
-        with open(sys.argv[3]) as file:
+    if parsed.ignorefile is not None:
+        with open(parsed.ignorefile) as file:
             for l in file:
                 ignore.append(l.split()[0])
 
