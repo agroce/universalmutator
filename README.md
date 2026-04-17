@@ -52,6 +52,30 @@ Sometimes the mutated code needs to be built with a more complicated command tha
 
 Working with something like maven is very similar, except you can probably edit the complicated build/clean stuff to just a 'mvn test' or similar.
 
+RULE FILES
+==========
+
+Rules live in `.rules` files (see `universalmutator/static/` for the built-in
+set).  Each rule has the form `<pattern> ==> <replacement>`, where `<pattern>`
+is a Python regular expression (or a [Comby](https://github.com/comby-tools/comby)
+template in `--comby` mode).  Two special right-hand sides are recognised:
+`DO_NOT_MUTATE` marks matching lines as not-to-be-mutated, and
+`SKIP_MUTATING_REST` tells the mutator to skip everything on a line past the
+match (useful for in-source comments).
+
+Lines beginning with `#` (optionally indented) are treated as comments, and
+blank lines are ignored.  You can use this to document groups of related rules
+or temporarily disable a rule without deleting it:
+
+```
+# Arithmetic operator swaps
+\+ ==> -
+\+ ==> *
+
+# Temporarily disabled while investigating false positives:
+# && ==> ||
+```
+
 CURRENTLY SUPPORTED LANGUAGES
 =============================
 

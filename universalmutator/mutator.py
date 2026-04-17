@@ -37,22 +37,28 @@ def parseRules(ruleFiles, comby=False):
 
     for (r, ruleSource) in rulesText:
         ruleLineNo += 1
-        if r == "\n":
-            continue
-        if " ==> " not in r:
-            if " ==>" in r:
-                s = r.split(" ==>")
-            else:
-                if r[0] == "#":  # Don't warn about comments
-                    continue
-                print("*" * 60)
-                print("WARNING:")
-                print("RULE:", r, "FROM", ruleSource)
-                print("DOES NOT MATCH EXPECTED FORMAT, AND SO WAS IGNORED")
-                print("*" * 60)
-                continue  # Allow blank lines and comments, just ignore lines without a transformation
-        else:
+
+        # Rule lines (containing " ==> ") are parsed as rules. This check comes
+        # first so that existing rules whose LHS legitimately starts with '#'
+        # (e.g. "#include ==> DO_NOT_MUTATE" in c_like.rules, or the bare
+        # "# ==> SKIP_MUTATING_REST" in python.rules) continue to work.
+        if " ==> " in r:
             s = r.split(" ==> ")
+        elif " ==>" in r:
+            s = r.split(" ==>")
+        else:
+            # Not a rule line. Allow full-line comments (starting with '#',
+            # optionally preceded by whitespace) and blank/whitespace-only
+            # lines; warn on anything else.
+            stripped = r.strip()
+            if stripped == "" or stripped.startswith("#"):
+                continue
+            print("*" * 60)
+            print("WARNING:")
+            print("RULE:", r, "FROM", ruleSource)
+            print("DOES NOT MATCH EXPECTED FORMAT, AND SO WAS IGNORED")
+            print("*" * 60)
+            continue
 
         if comby:
             lhs = s[0]
