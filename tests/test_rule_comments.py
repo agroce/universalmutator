@@ -14,9 +14,13 @@ import os
 import sys
 import tempfile
 import unittest
+import shutil
+import subprocess
 
 from universalmutator.mutator import parseRules
 
+#confirm comby installation
+HAS_COMBY = shutil.which("comby") is not None
 
 class TestRuleComments(unittest.TestCase):
 
@@ -138,6 +142,37 @@ class TestRuleComments(unittest.TestCase):
         """A line with no '==>' and not a comment should still warn."""
         _, _, _, out = self._parse("this line is not a rule\n")
         self.assertIn("DOES NOT MATCH EXPECTED FORMAT", out)
+
+"""COMBY MODE TESTS"""
+class TestCombyIntegration(unittest.TestCase):
+    """Integration tests that only run if 'comby' is installed."""
+
+    @unittest.skipUnless(HAS_COMBY, "Comby binary not found in PATH")
+    def test_comby_execution_with_comments(self):
+        """Ensure the tool doesn't crash when passing commented rules to Comby."""
+        # Setup dummy source and rules
+        fd_src, src_path = tempfile.mkstemp(suffix=".py")
+        fd_rule, rule_path = tempfile.mkstemp(suffix=".rules")
+        os.close(fd_src)
+        os.close(fd_rule)
+
+        try:
+            with open(src_path, "w") as f:
+                f.write("x = a + b")
+            with open(rule_path, "w") as f:
+                f.write("# A comment to ignore\n:[1] + :[2] ==> :[1] - :[2]\n")
+
+            # Execute via subprocess to test the full CLI path
+            cmd = ["universalmutator", src_path, "--rules", rule_path, "--comby", "--dump"]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            # 0 means the comments didn't cause a Comby syntax error
+            self.assertEqual(result.returncode, 0)
+            # Ensure the valid rule was still applied
+            self.assertIn("-", result.stdout) 
+        finally:
+            if os.path.exists(src_path): os.unlink(src_path)
+            if os.path.exists(rule_path): os.unlink(rule_path)
 
 
 if __name__ == "__main__":
