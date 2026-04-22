@@ -1,5 +1,15 @@
+# ============================================================================
+# Universal rule set: language-agnostic mutations applied to every source file.
+# Rules have the form:   <regex>  ==>  <replacement>
+# Two special right-hand sides:
+#   DO_NOT_MUTATE       - do not mutate any line matching <regex>
+#   SKIP_MUTATING_REST  - skip mutating the rest of the line past <regex>
+# Lines beginning with '#' (optionally indented) and blank lines are ignored.
+# ============================================================================
+
 DO_NOT_MUTATE ==> DO_NOT_MUTATE
 
+# Addition: swap with other arithmetic operators
 \+ ==> -
 \+ ==> *
 \+ ==> /
