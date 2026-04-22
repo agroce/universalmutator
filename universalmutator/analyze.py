@@ -11,138 +11,84 @@ import time
 import random
 import os
 import py_compile
+import argparse
 
 def main():
 
     isWindows = platform.system()
-    args = sys.argv
 
-    if ("--help" in args) or (len(sys.argv) < 3):
-        if len(sys.argv) < 3:
-            print("ERROR: analyze_mutants requires at least two arguments\n")
-        print("USAGE: analyze_mutants <sourcefile> <cmd> [--mutantDir <dir>] [--fromFile <mutantfile>]")
-        print("       <cmd> is command to execute to run tests; non-zero return indicates mutant killed")
-        print("       --mutantDir: directory with all mutants; defaults to current directory")
-        print("       --fromFile: file containing list of mutants to process; others ignored")
-        print("       --timeout <val>: change the timeout setting")
-        print("       --show: show mutants")
-        print("       --verbose: show mutants and output of analysis")
-        print("       --seed: random seed for shuffling of mutants")
-        print("       --noShuffle: do not randomize order of mutants")
-        print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
-        print("       --prefix: add a prefix to killed.txt and notkilled.txt")
-        print("       --numMutants: run with specific number of mutants")
-        print("       --compileCommand: compile command to run in selecting mutants")
-        sys.exit(0)
+    parser = argparse.ArgumentParser()
 
-    verbose = "--verbose" in sys.argv
-    if verbose:
-        args.remove("--verbose")
+    parser.add_argument("sourcefile", help="a file to mutate", metavar="<sourcefile>")
 
-    showM = "--show" in sys.argv
-    if showM:
-        args.remove("--show")
+    parser.add_argument("cmd", help="<cmd> is command to execute to run tests; non-zero return indicates mutant killed", metavar="<cmd>")
 
-    resume = "--resume" in sys.argv
-    if resume:
-        args.remove("--resume")
+    parser.add_argument("--mutantDir", help ="directory with all mutants; defaults to current directory", nargs = 1, metavar="<dir>")
 
-    noShuffle = "--noShuffle" in sys.argv
-    if noShuffle:
-        args.remove("--noShuffle")
+    parser.add_argument("--fromFile", help="file containing list of mutants to process; others ignored", nargs=1, metavar="<mutantfile>")
 
-    prefix = None
-    try:
-        prefixpos = args.index("--prefix")
-    except ValueError:
-        prefixpos = -1
+    parser.add_argument("--timeout",nargs=1, help = "change the timeout setting", metavar="val",type=int)
 
-    if prefixpos != -1:
-        prefix = args[prefixpos + 1]
-        args.remove("--prefix")
-        args.remove(prefix)
+    parser.add_argument("--show", action="store_true", help="show mutants")
 
-    fromFile = None
-    try:
-        filepos = args.index("--fromFile")
-    except ValueError:
-        filepos = -1
+    parser.add_argument("--verbose", help="show mutants and output of analysis", action="store_true")
 
-    if filepos != -1:
-        fromFile = args[filepos + 1]
-        args.remove("--fromFile")
-        args.remove(fromFile)
+    parser.add_argument("--seed", help="random seed for shuffling of mutants", nargs=1, type=int, metavar="<integer seed>")
 
-    seed = None
-    try:
-        seedpos = args.index("--seed")
-    except ValueError:
-        seedpos = -1
+    parser.add_argument("--noShuffle", help="do not randomize order of mutants", action="store_true")
 
-    if seedpos != -1:
-        seed = args[seedpos + 1]
-        args.remove("--seed")
-        args.remove(seed)
-        seed = int(seed)
+    parser.add_argument("--resume", help="use existing killed.txt and notkilled.txt, resume mutation analysis", action="store_true")
 
-    timeout = 30
-    try:
-        topos = args.index("--timeout")
-    except ValueError:
-        topos = -1
+    parser.add_argument("--prefix", help="add a prefix to killed.txt and notkilled.txt", nargs=1, metavar="<prefix>")
 
-    if topos != -1:
-        timeout = args[topos + 1]
-        args.remove("--timeout")
-        args.remove(timeout)
-        timeout = float(timeout)
+    parser.add_argument("--numMutants", help="run with specific number of mutants", nargs=1, metavar="<int>", type=int)
 
-    numMutants = -1
-    try:
-        nmpos = args.index("--numMutants")
-    except ValueError:
-        nmpos = -1
+    parser.add_argument("--compileCommand", help="compile command to run in selecting mutants", action="store_true")
 
-    if nmpos != -1:
-        numMutants = args[nmpos + 1]
-        args.remove("--numMutants")
-        args.remove(numMutants)
-        numMutants = int(numMutants)
+    args = parser.parse_args()
 
-    compileCommand = None
-    try:
-        ccmdpos = args.index("--compileCommand")
-    except ValueError:
-        ccmdpos = -1
+    verbose = args.verbose
 
-    if ccmdpos != -1:
-        compileCommand = args[ccmdpos + 1]
-        args.remove("--compileCommand")
-        args.remove(compileCommand)
+    showM = args.show
+
+    resume = args.resume
+
+    noShuffle = args.noShuffle
+
+    prefix = args.prefix
+
+
+    fromFile = args.fromFile
+    
+    seed = args.seed
+
+    timeout = args.timeout
+    if timeout == None:
+        timeout=30
+
+    numMutants = args.numMutants
+    if(numMutants == None):
+        numMutants = -1
+
+    compileCommand = args.compileCommand
 
     onlyMutants = None
+    
     if fromFile is not None:
         with open(fromFile, 'r') as file:
             onlyMutants = file.read().split()
 
-    mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
-
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    mdir= args.mutantDir
+    if mdir == None:
+        mdir = "."
     if mdir[-1] != "/":
         mdir += "/"
 
-    src = args[1]
-    tstCmd = [args[2]]
+    src = args.sourcefile
+    tstCmd = args.cmd
     ignore = []
-    if len(args) > 3:
-        with open(sys.argv[3]) as file:
+    if args.fromfile != None:
+        with open(args.fromfile) as file:
             for l in file:
                 ignore.append(l.split()[0])
 

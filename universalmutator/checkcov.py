@@ -2,38 +2,37 @@ from __future__ import print_function
 
 import sys
 import glob
-
+import argparse
 
 def main():
 
-    args = sys.argv
+    parser = argparse.ArgumentParser()
 
-    if ("--help" in args) or (len(sys.argv) < 4):
-        if len(sys.argv) < 4:
-            print("ERROR: check_covered requires at least three arguments\n")
-        print("USAGE: check_covered <sourcefile> <coverfile> <outfile> [--tstl] [--mutantDir directory]")
-        print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
-        print("       --tstl: process <coverfile> that is output from TSTL internal report")
-        sys.exit(0)
+    parser.add_argument("sourcefile",nargs = 1, metavar="<sourcefile>")
 
-    mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
+    parser.add_argument("coverfile",nargs = 1, metavar="<coverfile>")
 
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    parser.add_argument("outfile",nargs = 1, metavar="<outfile>")
+
+    parser.add_argument("--tstl", action="store_true", help = "process <coverfile> that is output from TSTL internal report")
+
+    parser.add_argument("--mutantDir", nargs=1, metavar="directory", help = "directory to put generated mutants in; defaults to current directory")
+
+    args = parser.parse_args()
+
+    mdir= args.mutantDir
+    if mdir == None:
+        mdir = "."
     if mdir[-1] != "/":
         mdir += "/"
 
-    src = args[1]
-    coverFile = args[2]
-    outFile = args[3]
+    src = args.sourcefile
+    coverFile = args.coverfile
+    outFile = args.outfile
 
-    tstl = "--tstl" in sys.argv
+    tstl = args.tstl
+    if tstl == None:
+        tstl = False
 
     srcBase = src.split("/")[-1]
     srcEnd = src.split(".")[-1]
