@@ -3,10 +3,10 @@ from tabulate import tabulate
 
 import os
 import random
-from re import T
 import sys
 import shutil
 import subprocess
+import argparse
 
 from universalmutator import mutator
 
@@ -65,7 +65,6 @@ def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         if "MUTANT" not in cmd:
             shutil.copy(backupName, sourceFile)
 
-
 def toGarbage(code):
     newCode = ""
     for c in code:
@@ -87,7 +86,60 @@ def main():
     except BaseException:
         pass
 
-    args = sys.argv
+
+
+    print("*** UNIVERSALMUTATOR ***")
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("sourcefile", help="a file to mutate", metavar="<sourcefile>")
+
+    parser.add_argument("rules", nargs="*", metavar="<rule1> <rule2>", help="any amount of rules")
+
+    parser.add_argument("--language", nargs=1, metavar="<language>")
+
+    parser.add_argument("--noCheck", action="store_true", help="skips compilation/comparison and just generates mutant files")
+
+    parser.add_argument("--cmd",nargs=1, help="executes command string, replacing MUTANT with the mutant name, "
+        "and uses return code to determine mutant validity", metavar="<command string>")
+
+    parser.add_argument("--mutantDir", nargs=1, help="directory to put generated mutants in; defaults to current directory", metavar="<dir>")
+    
+    parser.add_argument("--lines", nargs=1, help="only generate mutants for lines contained in <coverfile>", metavar="<coverfile>")
+
+    parser.add_argument("--tstl", action="store_true", help="<coverfile> is TSTL output")
+
+    parser.add_argument("--mutateInStrings",action="store_true", help="mutate inside strings (not just turn to empty string)")
+
+    parser.add_argument("--mutateTestCode",action="store_true", help="mutate only test code")
+
+    parser.add_argument("--mutateBoth", action="store_true", help="mutate both test and normal code")
+
+    parser.add_argument("--ignore", nargs=1, help="ignore lines matching patterns in <file>", metavar="<file>")
+
+    parser.add_argument("--compile",nargs=1, help="compile <file> instead of source (solidity handler only)", metavar="<file>")
+
+    parser.add_argument("--comby", action="store_true",help="use comby as the method of mutating code")
+
+    parser.add_argument("--noFastCheck", action="store_true", help="do not use fast dead code/comment detection heuristic")
+
+    parser.add_argument("--swap", action="store_true", help="also try adjacent-code swaps")
+
+    parser.add_argument("--redundantOK", action="store_true", help="keep redundant mutants (for compiler output issues)")
+
+    parser.add_argument("--showRules", action="store_true", help="show rule source used to generate each mutant")
+
+    parser.add_argument("--only", nargs=1, help="only use rule file <rule", metavar="<rule>")
+
+    parser.add_argument("--printStat",action="store_true", help="print stats for the rules and generated mutants into files")
+
+    parser.add_argument("--fuzz",action="store_true")
+
+    args = parser.parse_args()
+
+    if args.tstl and not args.lines:
+        print("ERROR: Cannot call --tstl without calling --lines!")
+        sys.exit(1)
 
     languages = {".c": "c",
                  ".h": "c",
@@ -112,126 +164,37 @@ def main():
                  ".vy": "vyper",
                  ".fe": "fe"}
 
-    print("*** UNIVERSALMUTATOR ***")
+    noCheck = args.noCheck
 
-    if ("--help" in args) or (len(sys.argv) < 2):
-        if len(sys.argv) < 2:
-            print("ERROR: mutate requires at least one argument (a file to mutate)\n")
-        print("USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...]",
-              "[--noCheck] [--cmd <command string>] [--mutantDir <dir>]",
-              "[--lines <coverfile> [--tstl]] [--mutateTestCode] [--mutateBoth]",
-              "[--ignore <file>] [--compile <file>] [--noFastCheck] [--swap]",
-              "[--redundantOK] [--showRules] [--only <rule>]")
-        print()
-        print("       --noCheck: skips compilation/comparison and just generates mutant files")
-        print("       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code")
-        print("             to determine mutant validity")
-        print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
-        print("       --lines: only generate mutants for lines contained in <coverfile>")
-        print("       --tstl: <coverfile> is TSTL output")
-        print("       --mutateInStrings: mutate inside strings (not just turn to empty string)")
-        print("       --mutateTestCode: mutate only test code")
-        print("       --mutateBoth: mutate both test and normal code")
-        print("       --ignore <file>: ignore lines matching patterns in <file>")
-        print("       --compile <file>: compile <file> instead of source (solidity handler only)")
-        print("       --comby: use comby as the method of mutating code")
-        print("       --noFastCheck: do not use fast dead code/comment detection heuristic")
-        print("       --swap: also try adjacent-code swaps")
-        print("       --redundantOK: keep redundant mutants (for compiler output issues)")
-        print("       --showRules: show rule source used to generate each mutant")
-        print("       --only <rule>: only use rule file <rule>")
-        print("       --printStat: print stats for the rules and generated mutants into files")
-        print()
-        print("Currently supported languages: ", ", ".join(list(set(languages.values()))))
-        print("If not supplying a command to compile/build, you should use --noCheck for C, C++,")
-        print("javascript, and other languages with only a default handler.")
-        sys.exit(0)
+    comby = args.comby
 
-    noCheck = False
-    if "--noCheck" in args:
-        noCheck = True
-        args.remove("--noCheck")
+    redundantOK = args.redundantOK
 
-    comby = False
-    if "--comby" in args:
-        comby = True
-        args.remove("--comby")
+    showRules = args.showRules
 
-    redundantOK = False
-    if "--redundantOK" in args:
-        redundantOK = True
-        args.remove("--redundantOK")
+    mutateInStrings = args.mutateInStrings
 
-    showRules = False
-    if "--showRules" in args:
-        showRules = True
-        args.remove("--showRules")
+    mutateTestCode = args.mutateTestCode
 
-    mutateInStrings = False
-    if "--mutateInStrings" in args:
-        mutateInStrings = True
-        args.remove("--mutateInStrings")
+    mutateBoth = args.mutateBoth
 
-    mutateTestCode = False
-    if "--mutateTestCode" in args:
-        mutateTestCode = True
-        args.remove("--mutateTestCode")
+    noFastCheck = args.noFastCheck
 
-    mutateBoth = False
-    if "--mutateBoth" in args:
-        mutateBoth = True
-        args.remove("--mutateBoth")
+    doSwaps = args.swap
 
-    noFastCheck = False
-    if "--noFastCheck" in args:
-        noFastCheck = True
-        args.remove("--noFastCheck")
+    tstl = args.tstl
 
-    doSwaps = False
-    if "--swap" in args:
-        doSwaps = True
-        args.remove("--swap")
+    # What is this?
+    fuzz = args.fuzz
 
-    tstl = False
-    if "--tstl" in args:
-        tstl = True
-        args.remove("--tstl")
+    printStat = args.printStat
 
-    fuzz = False
-    if "--fuzz" in args:
-        fuzz = True
-        args.remove("--fuzz")
-
-    printStat = False
-    if "--printStat" in args:
-        printStat = True
-        args.remove("--printStat")
-
-    cmd = None
-    try:
-        cmdpos = args.index("--cmd")
-    except ValueError:
-        cmdpos = -1
-
-    if cmdpos != -1:
-        cmd = args[cmdpos + 1]
-        args.remove("--cmd")
-        args.remove(cmd)
-
-    sourceFile = args[1]
+    cmd = args.cmd
+   
+    sourceFile = args.sourcefile
     ending = "." + sourceFile.split(".")[-1]
 
-    lineFile = None
-    try:
-        linepos = args.index("--lines")
-    except ValueError:
-        linepos = -1
-
-    if linepos != -1:
-        lineFile = args[linepos + 1]
-        args.remove("--lines")
-        args.remove(lineFile)
-
+    lineFile = args.lines
     if lineFile is not None:
         with open(lineFile) as file:
             if not tstl:
@@ -248,39 +211,15 @@ def main():
                             lines.append(int(line))
 
     mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
-
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    if args.mutantDir != None:
+        mdir = args.mutantDir
     if mdir[-1] != "/":
         mdir += "/"
 
-    ignoreFile = None
-    try:
-        ignorepos = args.index("--ignore")
-    except ValueError:
-        ignorepos = -1
+    ignoreFile = args.ignore
 
-    if ignorepos != -1:
-        ignoreFile = args[ignorepos + 1]
-        args.remove("--ignore")
-        args.remove(ignoreFile)
+    compileFile = args.compile
 
-    compileFile = None
-    try:
-        compilepos = args.index("--compile")
-    except ValueError:
-        compilepos = -1
-
-    if compilepos != -1:
-        compileFile = args[compilepos + 1]
-        args.remove("--compile")
-        args.remove(compileFile)
 
     ignorePatterns = []
     if ignoreFile is not None:
@@ -321,24 +260,20 @@ def main():
     except BaseException:
         pass
 
-    sourceFile = args[1]
+    sourceFile = args.sourcefile
     base = (".".join((sourceFile.split(".")[:-1]))).split("/")[-1]
     ending = "." + sourceFile.split(".")[-1]
 
-    if "--only" not in args:
-        if len(args) < 3:
+    if args.only == None:
+        if  args.language == None or args.rules == None:
             try:
                 language = languages[ending]
             except KeyError:
                 language = "none"
             otherRules = []
         else:
-            if ".rules" in args[2]:
-                language = languages[ending]
-                otherRules = args[2:]
-            else:
-                language = args[2]
-                otherRules = args[3:]
+            language = args.language
+            otherRules = args.rules
 
         if language not in handlers:
             if language.lower() in handlers:
@@ -361,15 +296,12 @@ def main():
                 fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
                 rules = list(set(fuzzRules + rules))
     else:
-        onlyPos = args.index("--only")
-        rules = [args[onlyPos + 1]]
-        if args[2] != "--only":
-            language = args[2]
-        else:
-            try:
-                language = languages[ending]
-            except KeyError:
-                language = "none"
+        rules = args.only
+        try:
+            language = languages[ending]
+        except KeyError:
+            language = "none"
+        
         if language not in handlers:
             if language.lower() in handlers:
                 language = language.lower()

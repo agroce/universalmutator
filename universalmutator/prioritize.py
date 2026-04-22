@@ -1,82 +1,69 @@
 from __future__ import print_function
 import glob
 import sys
+import argparse
 
 from universalmutator import utils
 
 
 def main():
 
-    args = sys.argv
+    parser = argparse.ArgumentParser()
 
-    if ("--help" in args) or (len(sys.argv) < 3):
-        if len(sys.argv) < 3:
-            print("ERROR: prioritize_mutants requires at least two arguments\n")
-        print("USAGE: prioritize_mutants <infile[s]> <outfile> [N] [--cutoff <dist>]", end="")
-        print("[--mutantDir <dir>] [--sourceDir <dir>]")
-        print("       --verbose:       produce verbose output")
-        print("       --noSDPriority:  do not prioritize statement deletions over other mutants")
-        print("       --mutantDir:     directory with all mutants; defaults to current directory")
-        print("       --sourceDir:     directory of source files; defaults to current directory")
-        print("       --cutoff:        if minimum distance is less than <dist>, stop")
-        sys.exit(0)
+    parser.add_argument("infile",nargs = 1, metavar="<infile>")
 
-    infile = sys.argv[1]
-    outfile = sys.argv[2]
+    parser.add_argument("outfile",nargs = 1, metavar="<outfile>")
+
+    parser.add_argument("N", nargs = "?", type=int, metavar="[N]")
+
+    parser.add_argument("--addinfile", nargs="+", metavar="<infile2>, <infile3>")
+
+    parser.add_argument("--cutoff", nargs=1, metavar="<dist>",type=float, help="if minimum distance is less than <dist>, stop")
+
+    parser.add_argument("--verbose", help="produce verbose output", action="store_true")
+
+    parser.add_argument("--noSDPriority", action="store_true", help= "do not prioritize statement deletions over other mutants")
+
+    parser.add_argument("--mutantDir", nargs=1, metavar="<dir>", help = "directory with all mutants; defaults to current directory")
+
+    parser.add_argument("--sourceDir", nargs=1, metavar="<dir>", help = "directory of source files; defaults to current directory")
+
+    args = parser.parse_args()
+
+    infile = args.infile
+
+    outfile = args.outfile
 
     infiles = glob.glob(infile)
 
-    verbose = False
-    if "--verbose" in args:
-        args.remove("--verbose")
-        verbose = True
+    verbose = args.verbose
+    if verbose == None:
+        verbose = False
 
-    noSDPriority = False
-    if "--noSDPriority" in args:
-        args.remove("--noSDPriority")
-        noSDPriority = True
+    noSDPriority = args.noSDPriority
+    if noSDPriority == None:
+        noSDPriority = False
 
-    mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
-
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    mdir= args.mutantDir
+    if mdir == None:
+        mdir = "."
     if mdir[-1] != "/":
         mdir += "/"
 
-    sdir = "."
-    try:
-        sdirpos = args.index("--sourceDir")
-    except ValueError:
-        sdirpos = -1
-
-    if sdirpos != -1:
-        sdir = args[sdirpos + 1]
-        args.remove("--sourceDir")
-        args.remove(sdir)
+    sdir= args.sourceDir
+    if sdir == None:
+        sdir = "."
     if sdir[-1] != "/":
         sdir += "/"
 
-    cutoff = 0.0
-    try:
-        cutoffpos = args.index("--cutoff")
-    except ValueError:
-        cutoffpos = -1
+    
+    cutoff = args.cutoff
+    if cutoff == None:
+        cutoff = 0.0
 
-    if cutoffpos != -1:
-        cutoff = args[cutoffpos + 1]
-        args.remove("--cutoff")
-        args.remove(cutoff)
-        cutoff = float(cutoff)
-
-    N = -1
-    if len(args) >= 4:
-        N = int(args[3])
+    N = args.N
+    if N == None:
+        N = -1
 
     mutants = []
     for f in infiles:

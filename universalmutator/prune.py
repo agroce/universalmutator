@@ -1,51 +1,45 @@
 from __future__ import print_function
 import re
 import sys
+import argparse
+
 
 from universalmutator import utils
 
 
 def main():
 
-    args = sys.argv
+    parser = argparse.ArgumentParser()
 
-    if ("--help" in args) or (len(sys.argv) < 2):
-        if len(sys.argv) < 2:
-            print("ERROR: show_mutants requires at least one argument\n")
-        print("USAGE: prune_mutants <infile> <outfile> <pruning config file> [--mutantDir <dir>] [--sourceDir <dir>]")
-        print("       --mutantDir: directory with all mutants; defaults to current directory")
-        print("       --sourceDir: directory of source files; defaults to current directory")
-        sys.exit(0)
+    parser.add_argument("infile",nargs = 1, metavar="<infile>")
 
-    infile = sys.argv[1]
-    outfile = sys.argv[2]
-    config = sys.argv[3]
+    parser.add_argument("outfile",nargs = 1, metavar="<outfile>")
 
-    mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
+    parser.add_argument("pruningconf", nargs =1, metavar="<pruning config file>")
 
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    parser.add_argument("--mutantDir", nargs=1, metavar="<dir>", help = "directory with all mutants; defaults to current directory")
+
+    parser.add_argument("--sourceDir", nargs=1, metavar="<dir>", help = "directory of source files; defaults to current directory")
+
+    args = parser.parse_args()
+
+
+    infile = args.infile
+    outfile = args.outfile
+    config = args.pruningconf
+
+    mdir= args.mutantDir
+    if mdir == None:
+        mdir = "."
     if mdir[-1] != "/":
         mdir += "/"
 
-    sdir = "."
-    try:
-        sdirpos = args.index("--sourceDir")
-    except ValueError:
-        sdirpos = -1
-
-    if sdirpos != -1:
-        sdir = args[sdirpos + 1]
-        args.remove("--sourceDir")
-        args.remove(sdir)
+    sdir= args.sourceDir
+    if sdir == None:
+        sdir = "."
     if sdir[-1] != "/":
         sdir += "/"
+    
 
     mutants = []
     with open(infile, 'r') as mfile:

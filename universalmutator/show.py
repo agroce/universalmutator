@@ -1,51 +1,37 @@
 from __future__ import print_function
 import sys
+import argparse
 
 from universalmutator import utils
 
 
 def main():
 
-    args = sys.argv
+    parser = argparse.ArgumentParser()
 
-    if ("--help" in args) or (len(sys.argv) < 2):
-        if len(sys.argv) < 2:
-            print("ERROR: show_mutants requires at least one argument\n")
-        print("USAGE: show_mutants <infile> [--mutantDir <dir>] [--sourceDir <dir>]")
-        print("       --mutantDir: directory with all mutants; defaults to current directory")
-        print("       --sourceDir: directory of source files; defaults to current directory")
-        print("       --concise:   display in concise mutant format")
-        sys.exit(0)
+    parser.add_argument("infile",nargs = 1, metavar="<infile>")
 
-    infile = sys.argv[1]
+    parser.add_argument("--mutantDir", nargs=1, metavar="<dir>", help = "directory with all mutants; defaults to current directory")
 
-    concise = "--concise" in sys.argv
-    if concise:
-        args.remove("--concise")
+    parser.add_argument("--sourceDir", nargs=1, metavar="<dir>", help = "directory of source files; defaults to current directory")
 
-    mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
+    parser.add_argument("--concise", action="store_true", help="display in concise mutant format")
 
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    args = parser.parse_args()
+
+    infile = args.infile
+
+    concise = args.concise
+ 
+    mdir= args.mutantDir
+    if mdir == None:
+        mdir = "."
     if mdir[-1] != "/":
         mdir += "/"
 
-    sdir = "."
-    try:
-        sdirpos = args.index("--sourceDir")
-    except ValueError:
-        sdirpos = -1
-
-    if sdirpos != -1:
-        sdir = args[sdirpos + 1]
-        args.remove("--sourceDir")
-        args.remove(sdir)
+    sdir= args.sourceDir
+    if sdir == None:
+        sdir = "."
     if sdir[-1] != "/":
         sdir += "/"
 
