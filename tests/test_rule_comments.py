@@ -163,7 +163,7 @@ class TestCombyIntegration(unittest.TestCase):
                 f.write("# A comment to ignore\n:[1] + :[2] ==> :[1] - :[2]\n")
 
             # Execute via subprocess to test the full CLI path
-            cmd = ["universalmutator", src_path, "--rules", rule_path, "--comby", "--dump"]
+            cmd = [sys.executable, "-m", "universalmutator.genmutants", src_path, f"--rules={rule_path}", "--comby", "--dump"]
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             # 0 means the comments didn't cause a Comby syntax error
