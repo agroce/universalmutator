@@ -60,6 +60,7 @@ class TestParseRulesComments(unittest.TestCase):
             "\n"
             "   \n"
             "\\* ==> /\n"
+            "\t\n"
         )
 
         self.assertEqual(len(rules), 2)
@@ -76,6 +77,49 @@ class TestParseRulesComments(unittest.TestCase):
         self.assertEqual(len(ignoreRules), 1)
         self.assertEqual(len(skipRules), 1)
 
+    # ---------------------------------------------------
+    # TEST 4: only comments should result in no rules and no warnings
+    # ---------------------------------------------------
+
+    def test_only_comments(self):
+        rules, ignoreRules, skipRules, out = self._parse(
+            "# comment\n"
+            "   # indented comment\n"
+            " # spaced comment\n"
+        )
+
+        self.assertEqual(len(rules), 0)
+        self.assertEqual(len(ignoreRules), 0)
+        self.assertEqual(len(skipRules), 0)
+
+    # ---------------------------------------------------
+    # TEST 5: Invalid lines should still warn, but not be treated as rules
+    # ---------------------------------------------------
+
+
+    # ---------------------------------------------------
+    # TEST 6: Mixed file test with comments, blank lines, valid rules, and invalid lines
+    # ---------------------------------------------------
+
+
+    # ---------------------------------------------------
+    # TEST 7: Disabled rules should be ignored, but still treated as comments
+    # ---------------------------------------------------
+
+
+    # ---------------------------------------------------
+    # TEST 8: Disabled rules with different spacing should still be ignored (MAYBE?)
+    # ---------------------------------------------------
+
+
+    # ---------------------------------------------------
+    # TEST 9: Larger file test with multiple comments, blank lines, valid rules, invalid lines, and disabled rules
+    # ---------------------------------------------------
+
+
+    # ---------------------------------------------------
+    # TEST 10: Header Testing with comments, blank lines before and after header, and example rules comments
+    # ---------------------------------------------------
 
 if __name__ == "__main__":
     unittest.main()
