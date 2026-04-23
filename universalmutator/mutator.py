@@ -45,10 +45,15 @@ def parseRules(ruleFiles, comby=False):
         if line == "":
             # ignore blank lines
             continue
-        
+
         # handle comments
-        if (line.startswith("#") or line.startswith("--")) and "==>" not in line:
-            # ignore comments & DO NOT IGNORE # ==> SKIP_MUTATING_REST
+        if line.startswith("#") and "==>" not in line:
+            # ignore comments '#'
+            continue
+
+        # check for disabled rules
+        if line.startswith("# DISABLED:"):
+            # ignore disabled rules
             continue
 
         # check and parse valid rules
