@@ -37,22 +37,35 @@ def parseRules(ruleFiles, comby=False):
 
     for (r, ruleSource) in rulesText:
         ruleLineNo += 1
-        if r == "\n":
+
+        # remove all leading and trailing white space
+        line = r.strip()
+
+        # check for blank lines
+        if line == "":
+            # ignore blank lines
             continue
-        if " ==> " not in r:
-            if " ==>" in r:
-                s = r.split(" ==>")
-            else:
-                if r[0] == "#":  # Don't warn about comments
-                    continue
-                print("*" * 60)
-                print("WARNING:")
-                print("RULE:", r, "FROM", ruleSource)
-                print("DOES NOT MATCH EXPECTED FORMAT, AND SO WAS IGNORED")
-                print("*" * 60)
-                continue  # Allow blank lines and comments, just ignore lines without a transformation
+        
+        # handle comments
+        if (line.startswith("#") or line.startswith("--")) and "==>" not in line:
+            # ignore comments & DO NOT IGNORE # ==> SKIP_MUTATING_REST
+            continue
+
+        # check and parse valid rules
+        if " ==> " in line:
+            s = line.split(" ==> ")
+        elif " ==>" in line:
+            s = line.split(" ==>")
         else:
-            s = r.split(" ==> ")
+            # otherwise it's a invalid line and warn user
+            print("*" * 60)
+            print("WARNING:")
+            print("RULE:", line, "FROM", ruleSource)
+            print("DOES NOT MATCH EXPECTED FORMAT, AND SO WAS IGNORED")
+            print("*" * 60)
+            continue
+        
+                                                            # End of possible fix
 
         if comby:
             lhs = s[0]
