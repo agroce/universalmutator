@@ -79,7 +79,7 @@ def parseRules(ruleFiles, comby=False):
             continue
 
         # check for disabled rules
-        if line.startswith("# DISABLED:"):
+        if line.startswith("#DISABLED:"):
             # ignore disabled rules
             continue
 
