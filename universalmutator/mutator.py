@@ -20,6 +20,7 @@ else:
         _use_importlib = False
 
 
+
 def _open_package_resource(package, resource_path):
     """Open a package data file, using importlib.resources on Python 3.9+
     and falling back to pkg_resources on older versions."""
@@ -79,7 +80,7 @@ def parseRules(ruleFiles, comby=False):
             continue
 
         # check for disabled rules
-        if line.startswith("# DISABLED:"):
+        if line.startswith("#DISABLED:"):
             # ignore disabled rules
             continue
 
