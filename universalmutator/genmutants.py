@@ -120,8 +120,8 @@ def main():
         print("USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...]",
               "[--noCheck] [--cmd <command string>] [--mutantDir <dir>]",
               "[--lines <coverfile> [--tstl]] [--mutateTestCode] [--mutateBoth]",
-              "[--ignore <file>] [--compile <file>] [--noFastCheck] [--swap]",
-              "[--redundantOK] [--showRules] [--only <rule>]")
+              "[mutateChange <file>][--ignore <file>] [--compile <file>] [--noFastCheck]",
+              "[--swap][--redundantOK] [--showRules] [--only <rule>]")
         print()
         print("       --noCheck: skips compilation/comparison and just generates mutant files")
         print("       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code")
@@ -132,6 +132,7 @@ def main():
         print("       --mutateInStrings: mutate inside strings (not just turn to empty string)")
         print("       --mutateTestCode: mutate only test code")
         print("       --mutateBoth: mutate both test and normal code")
+        print("       --mutateChange: only mutates the lines that have changed from the source file, to other file.")
         print("       --ignore <file>: ignore lines matching patterns in <file>")
         print("       --compile <file>: compile <file> instead of source (solidity handler only)")
         print("       --comby: use comby as the method of mutating code")
@@ -259,6 +260,17 @@ def main():
         args.remove(mdir)
     if mdir[-1] != "/":
         mdir += "/"
+  
+    changeFile = None
+    try:
+        changepos = args.index("--mutateChange")
+    except ValueError:
+        changepos = -1
+    
+    if changepos != -1:
+        changeFile = args[changepos + 1]
+        args.remove("--mutateChange")
+        args.remove(changeFile)
 
     ignoreFile = None
     try:
@@ -381,15 +393,32 @@ def main():
             # remove non-ascii characters (comby issue)
             line_processed = line.encode('ascii', 'ignore').decode()
             source.append(line_processed)
+    skippedLines = []
+    if changeFile is not None:
+        print("ONLY MUTATING LINES CHANGED IN", changeFile)
+        change = []
+        
+        with open(changeFile, 'r') as file:
+            for line in file:
+                # remove non-ascii characters (comby issue)
+                line_processed = line.encode('ascii', 'ignore').decode()
+                change.append(line_processed)
+        
+        with open(changeFile, 'r') as changef, open(sourceFile, 'r') as sourcef:
+            for i in range (min(len(change),len(source))):
+                
+                if change[i] == source[i]:
+                    
+                    skippedLines.append(change[i])
 
     mutants = []
 
     if comby:
         mutants = mutator.mutants_comby(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
-                                ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz, language=ending)
+                                ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz, language=ending,skipLines=skippedLines)
     else:
         mutants = mutator.mutants_regexp(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
-                              ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz)
+                              ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz, skipLines=skippedLines)
     if fuzz:
         if len(mutants) == 0:
             sys.exit(255)

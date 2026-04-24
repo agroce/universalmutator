@@ -81,7 +81,8 @@ def parseRules(ruleFiles, comby=False):
 
 
 def mutants_comby(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
-            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, language=".generic"):
+            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, language=".generic", skipLines=None):
+    
     if ruleFiles is None:
         ruleFiles = ["universal.rules"]
     comby = Comby()
@@ -128,7 +129,7 @@ def mutants_comby(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False
     return mutants
 
 def mutants_regexp(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
-            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False):
+            ignorePatterns=None, ignoreStringOnly=False, fuzzing=False,skipLines = None):
     if ruleFiles is None:
         ruleFiles = ["universal.rules"]
     print("MUTATING WITH RULES:", ", ".join(ruleFiles))
@@ -172,6 +173,10 @@ def mutants_regexp(source, ruleFiles=None, mutateTestCode=False, mutateBoth=Fals
             if mutateTestCode and (not mutateBoth):
                 continue
         skipLine = False
+
+        if skipLines and l in skipLines:
+            skipLine = True
+            
         for lhs in ignoreRules:
             if lhs.search(l):
                 skipLine = True
