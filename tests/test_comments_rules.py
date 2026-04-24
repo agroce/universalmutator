@@ -173,7 +173,7 @@ class TestParseRulesComments(unittest.TestCase):
             "#DISABLED: #include ==> DO_NOT_MUTATE\n"
         )
 
-        self.assertEqual(len(rules), 1)
+        self.assertEqual(len(rules), 0)
         self.assertEqual(len(ignoreRules), 0)
         self.assertEqual(len(skipRules), 0)
 
