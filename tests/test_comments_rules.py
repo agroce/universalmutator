@@ -86,6 +86,7 @@ class TestParseRulesComments(unittest.TestCase):
             "# comment\n"
             "   # indented comment\n"
             " # spaced comment\n"
+            "#\t tab comment\n"
         )
 
         self.assertEqual(len(rules), 0)
@@ -95,31 +96,146 @@ class TestParseRulesComments(unittest.TestCase):
     # ---------------------------------------------------
     # TEST 5: Invalid lines should still warn, but not be treated as rules
     # ---------------------------------------------------
+    def test_invalid_lines(self):
+        rules, ignoreRules, skipRules, out = self._parse(
+            "   # comment line\n"
+            "\t# tab comment\n"
+            "\\+ ==> -\n"
+            "# ==> SKIP_MUTATING_REST\n"
+            "invalid line\n"
+        )
 
+        self.assertEqual(len(rules), 1)
+        self.assertEqual(len(ignoreRules), 0)
+        self.assertEqual(len(skipRules), 1)
 
     # ---------------------------------------------------
     # TEST 6: Mixed file test with comments, blank lines, valid rules, and invalid lines
     # ---------------------------------------------------
+    def test_mixed_file(self):
+        rules, ignoreRules, skipRules, out = self._parse(
+            "# comment\n"
+            "\n"
+            "   # indented comment\n"
+            " # spaced comment\n"
+            "\\+ ==> -\n"
+            "invalid line\n"
+            "# ==> SKIP_MUTATING_REST\n"
+        )
 
+        self.assertEqual(len(rules), 1)
+        self.assertEqual(len(ignoreRules), 0)
+        self.assertEqual(len(skipRules), 1)
 
     # ---------------------------------------------------
     # TEST 7: Disabled rules should be ignored, but still treated as comments
     # ---------------------------------------------------
+    def test_disabled_rules_ignored(self):
+        rules, ignoreRules, skipRules, out = self._parse(
+            "#DISABLED: \\+ ==> -\n"
+            "#DISABLED: #include ==> DO_NOT_MUTATE\n"
+            "#DISABLED: # ==> SKIP_MUTATING_REST\n"
+            "\\* ==> /\n"
+        )
 
+        self.assertEqual(len(rules), 1)
+        self.assertEqual(len(ignoreRules), 0)
+        self.assertEqual(len(skipRules), 0)
 
     # ---------------------------------------------------
-    # TEST 8: Disabled rules with different spacing should still be ignored (MAYBE?)
+    # TEST 8: Disabled rules with different spacing should still be ignored (MAYBE?) Might be  problems
     # ---------------------------------------------------
+    def test_disabled_rules_varied_spacing(self):
+        rules, ignoreRules, skipRules, out = self._parse(
+            "\t\t\t#DISABLED: \\+ ==> -\n"
+            "  #DISABLED: #include ==> DO_NOT_MUTATE\n"
+            "\t#DISABLED: # ==> SKIP_MUTATING_REST\n"
+            "\\* ==> /\n"
+        )
 
+        self.assertEqual(len(rules), 1)
+        self.assertEqual(len(ignoreRules), 0)
+        self.assertEqual(len(skipRules), 0)
 
     # ---------------------------------------------------
-    # TEST 9: Larger file test with multiple comments, blank lines, valid rules, invalid lines, and disabled rules
+    # TEST 9: Header Testing with comments, blank lines before and after header, and example rules comments
     # ---------------------------------------------------
+    def test_header_with_comments_and_blank_lines(self):
+        rules, ignoreRules, skipRules, out = self._parse(
+            "# This is a header comment\n"
+            "# It should be ignored\n"
+            "\n"
+            "# Another header comment\n"
+            "\n"
+            "# Example rule comment\n"
+            "#DISABLED: <code expression> ==> <replacement>\n"
+            "# This is an example rule that should be ignored\n"
+            "#DISABLED: #include ==> DO_NOT_MUTATE\n"
+        )
 
+        self.assertEqual(len(rules), 1)
+        self.assertEqual(len(ignoreRules), 0)
+        self.assertEqual(len(skipRules), 0)
 
     # ---------------------------------------------------
-    # TEST 10: Header Testing with comments, blank lines before and after header, and example rules comments
+    # TEST 10: Larger file test with multiple comments, blank lines, valid rules, invalid lines, and disabled rules
     # ---------------------------------------------------
+    def test_larger_mixed_file(self):
+        rules, ignoreRules, skipRules, out = self._parse(
+            "# =====================================================\n"
+            "# HEADER COMMENT BLOCK\n"
+            "# This file tests real-world mixed .rules behavior\n"
+            "# =====================================================\n"
+            "\n"
+            "# Simple arithmetic rules\n"
+            "\\+ ==> -\n"
+            "\\- ==> +\n"
+            "\n"
+            "# multiplication and division\n"
+            "\\* ==> /\n"
+            "\\/ ==> *\n"
+            "\n"
+            "   # indented comment inside file\n"
+            "\t# tab-indented comment\n"
+            "\n"
+            "# Disabled rule section\n"
+            "# DISABLED: \\+ ==> *\n"
+            "# DISABLED: \\* ==> +\n"
+            "\n"
+            "# Special ignore rule\n"
+            "#include ==> DO_NOT_MUTATE\n"
+            "\n"
+            "# Special skip rule\n"
+            "# ==> SKIP_MUTATING_REST\n"
+            "\n"
+            "# Invalid lines (should trigger warnings)\n"
+            "this is not a rule\n"
+            "==> broken rule\n"
+            "\\+ == bad format\n"
+            "\n"
+            "# More valid rules\n"
+            "== ==> !=\n"
+            "!= ==> ==\n"
+            "< ==> >\n"
+            "> ==> <\n"
+            "\n"
+            "# More noise\n"
+            "random text here\n"
+            "another bad line\n"
+            "\n"
+            "# Final valid rule\n"
+            "\\% ==> +\n"
+        )
+
+        # Expected valid rules:
+        # +, -, *, /, ==, !=, <, >, %
+        self.assertEqual(len(rules), 9)
+
+        # Only one ignore rule (#include ==> DO_NOT_MUTATE)
+        self.assertEqual(len(ignoreRules), 1)
+
+        # Only one skip rule (# ==> SKIP_MUTATING_REST)
+        self.assertEqual(len(skipRules), 1)
 
 if __name__ == "__main__":
     unittest.main()
