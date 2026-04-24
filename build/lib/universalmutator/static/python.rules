@@ -1,0 +1,43 @@
+(^\s*import) ==> DO_NOT_MUTATE
+
+if (.*):\n ==> if not (\1):\n
+while (.*):\n ==> while not (\1):\n
+
+continue ==> break
+break ==> continue
+
+if \( ==> if not (
+
+while \( ==> while not (
+
+and  ==>  or 
+or  ==>  and
+and .* ==> and True
+or .* ==> or False
+.* and ==> True and
+.* or ==> False or
+
+not ==> 
+
+return .*\n ==> return None\n
+
+(^\s*)(\S+.*\n) ==> \1pass
+
+// ==> /
+/ ==> //
+
+True ==> False
+
+\[.+\] ==> []
+\[.*, ==> [
+,.*] ==> ]
+{.+} ==> {}
+{.*, ==> {
+,.*} ==> }
+
+,.+, ==> ,
+'.+' ==> ''
+
+@.* ==> 
+
+# ==> SKIP_MUTATING_REST

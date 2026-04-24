@@ -1,0 +1,44 @@
+:[prefix~[^u]]fixed ==> :[prefix]ufixed
+ufixed ==> fixed
+int16 ==> int8
+int32 ==> int16
+int64 ==> int32
+memory ==> storage
+storage ==> memory
+view ==> pure
+pure ==> view
+constant ==> pure
+payable ==>
+private ==>
+msg.sender ==> tx.origin
+tx.origin ==> msg.sender
+ether ==> wei
+:[prefix~wei|finney|szabo] ==> ether
+:[prefix~ether|finney|szabo] ==> wei
+:[prefix~wei|ether|szao] ==> finney
+:[prefix~wei|finney|ether] ==> szabo
+:[prefix~minutes|days|hours|weeks|years] ==> seconds
+:[prefix~seconds|days|hours|weeks|years] ==> minutes
+:[prefix~seconds|minutes|hours|weeks|years] ==> days
+:[prefix~seconds|minutes|days|weeks|years] ==> hours
+:[prefix~seconds|minutes|days|hours|years] ==> weeks
+:[prefix~seconds|minutes|days|hours|weeks] ==> years
+now ==> 0
+block.timestamp ==> 0
+msg.value ==> 0
+msg.value ==> 1
+addmod ==> mulmod
+mulmod ==> addmod
+:[[expr]] ==> selfdestruct(msg.sender);
+:[[expr]] ==> revert();
+call ==> delegatecall
+delegatecall ==> call
+call ==> callcode
+callcode ==> call
+delegatecall ==> callcode
+callcode ==> delegatecall
+:[[v1]] :[[v2]] ==> :[[v1]]:[[v2]]
+if (:[expr]) ==> if (false)
+if(:[expr]) ==> if(false)
+if (:[expr]) ==> if (true)
+if(:[expr]) ==> if(true)

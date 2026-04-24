@@ -1,6 +1,6 @@
 from __future__ import print_function
 import re
-import importlib.resources
+import pkg_resources
 import random
 from comby import Comby
 import os
@@ -17,7 +17,7 @@ def parseRules(ruleFiles, comby=False):
                 rulePath = os.path.join('comby', ruleFile)
             else:
                 rulePath = os.path.join('static', ruleFile)
-            with importlib.resources.resource_stream('universalmutator', rulePath) as builtInRule:
+            with pkg_resources.resource_stream('universalmutator', rulePath) as builtInRule:
                 for line in builtInRule:
                     line = line.decode()
                     rulesText.append((line, "builtin:" + ruleFile))

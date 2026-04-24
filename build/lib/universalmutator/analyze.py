@@ -1,0 +1,335 @@
+from __future__ import print_function
+
+import difflib
+import subprocess
+import sys
+import platform
+import glob
+import shutil
+import signal
+import time
+import random
+import os
+import py_compile
+
+def main():
+
+    isWindows = platform.system()
+    args = sys.argv
+
+    if ("--help" in args) or (len(sys.argv) < 3):
+        if len(sys.argv) < 3:
+            print("ERROR: analyze_mutants requires at least two arguments\n")
+        print("USAGE: analyze_mutants <sourcefile> <cmd> [--mutantDir <dir>] [--fromFile <mutantfile>]")
+        print("       <cmd> is command to execute to run tests; non-zero return indicates mutant killed")
+        print("       --mutantDir: directory with all mutants; defaults to current directory")
+        print("       --fromFile: file containing list of mutants to process; others ignored")
+        print("       --timeout <val>: change the timeout setting")
+        print("       --show: show mutants")
+        print("       --verbose: show mutants and output of analysis")
+        print("       --seed: random seed for shuffling of mutants")
+        print("       --noShuffle: do not randomize order of mutants")
+        print("       --resume: use existing killed.txt and notkilled.txt, resume mutation analysis")
+        print("       --prefix: add a prefix to killed.txt and notkilled.txt")
+        print("       --numMutants: run with specific number of mutants")
+        print("       --compileCommand: compile command to run in selecting mutants")
+        sys.exit(0)
+
+    verbose = "--verbose" in sys.argv
+    if verbose:
+        args.remove("--verbose")
+
+    showM = "--show" in sys.argv
+    if showM:
+        args.remove("--show")
+
+    resume = "--resume" in sys.argv
+    if resume:
+        args.remove("--resume")
+
+    noShuffle = "--noShuffle" in sys.argv
+    if noShuffle:
+        args.remove("--noShuffle")
+
+    prefix = None
+    try:
+        prefixpos = args.index("--prefix")
+    except ValueError:
+        prefixpos = -1
+
+    if prefixpos != -1:
+        prefix = args[prefixpos + 1]
+        args.remove("--prefix")
+        args.remove(prefix)
+
+    fromFile = None
+    try:
+        filepos = args.index("--fromFile")
+    except ValueError:
+        filepos = -1
+
+    if filepos != -1:
+        fromFile = args[filepos + 1]
+        args.remove("--fromFile")
+        args.remove(fromFile)
+
+    seed = None
+    try:
+        seedpos = args.index("--seed")
+    except ValueError:
+        seedpos = -1
+
+    if seedpos != -1:
+        seed = args[seedpos + 1]
+        args.remove("--seed")
+        args.remove(seed)
+        seed = int(seed)
+
+    timeout = 30
+    try:
+        topos = args.index("--timeout")
+    except ValueError:
+        topos = -1
+
+    if topos != -1:
+        timeout = args[topos + 1]
+        args.remove("--timeout")
+        args.remove(timeout)
+        timeout = float(timeout)
+
+    numMutants = -1
+    try:
+        nmpos = args.index("--numMutants")
+    except ValueError:
+        nmpos = -1
+
+    if nmpos != -1:
+        numMutants = args[nmpos + 1]
+        args.remove("--numMutants")
+        args.remove(numMutants)
+        numMutants = int(numMutants)
+
+    compileCommand = None
+    try:
+        ccmdpos = args.index("--compileCommand")
+    except ValueError:
+        ccmdpos = -1
+
+    if ccmdpos != -1:
+        compileCommand = args[ccmdpos + 1]
+        args.remove("--compileCommand")
+        args.remove(compileCommand)
+
+    onlyMutants = None
+    if fromFile is not None:
+        with open(fromFile, 'r') as file:
+            onlyMutants = file.read().split()
+
+    mdir = "."
+    try:
+        mdirpos = args.index("--mutantDir")
+    except ValueError:
+        mdirpos = -1
+
+    if mdirpos != -1:
+        mdir = args[mdirpos + 1]
+        args.remove("--mutantDir")
+        args.remove(mdir)
+    if mdir[-1] != "/":
+        mdir += "/"
+
+    src = args[1]
+    tstCmd = [args[2]]
+    ignore = []
+    if len(args) > 3:
+        with open(sys.argv[3]) as file:
+            for l in file:
+                ignore.append(l.split()[0])
+
+    srcBase = src.split("/")[-1]
+    srcEnd = "." + ((src.split(".")[-1]).split("/")[-1])
+
+    count = 0.0
+    killCount = 0.0
+
+    killFileName = "killed.txt"
+    notkillFileName = "notkilled.txt"
+    if prefix is not None:
+        killFileName = prefix + "." + killFileName
+        notkillFileName = prefix + "." + notkillFileName
+
+    print("ANALYZING", src)
+    print("COMMAND: **", tstCmd, "**")
+
+    allTheMutants = glob.glob(mdir + srcBase.replace(srcEnd, ".mutant*" + srcEnd))
+
+    if onlyMutants is not None:
+        newMutants = []
+        for f1 in onlyMutants:
+            for f2 in allTheMutants:
+                if f2.split("/")[-1] == f1:
+                    newMutants.append(f2)
+        allTheMutants = newMutants
+
+    if seed is not None:
+        random.seed(seed)
+
+    if not noShuffle:
+        random.shuffle(allTheMutants)
+
+    allStart = time.time()
+
+    if resume:
+        alreadyKilled = []
+        alreadyNotKilled = []
+        if not (os.path.exists(killFileName) and os.path.exists(notkillFileName)):
+            print("ATTEMPTING TO RESUME, BUT NO PREVIOUS RESULTS FOUND")
+        else:
+            with open(killFileName, 'r') as killed:
+                with open(notkillFileName, 'r') as notkilled:
+                    for line in killed:
+                        if line == "\n":
+                            continue
+                        alreadyKilled.append(line[:-1])
+                        count += 1
+                        killCount += 1
+                    for line in notkilled:
+                        if line == "\n":
+                            continue
+                        alreadyNotKilled.append(line[:-1])
+                        count += 1
+            print("RESUMING FROM EXISTING RUN, WITH", int(killCount), "KILLED MUTANTS OUT OF", int(count))
+
+    # numMutants = -1 implies no --numMutants argument was provided
+    totalMutants = min(numMutants, len(allTheMutants)) if numMutants > 0 else len(allTheMutants)
+
+    with open(os.devnull, 'w') as dnull:
+        with open(killFileName, 'w') as killed:
+            with open(notkillFileName, 'w') as notkilled:
+                if resume:
+                    for line in alreadyKilled:
+                        killed.write(line + "\n")
+                        killed.flush()
+                    for line in alreadyNotKilled:
+                        notkilled.write(line + "\n")
+                        notkilled.flush()
+                for f in allTheMutants:
+                    if resume:
+                        if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
+                            continue
+                    if f in ignore:
+                        print(f, "SKIPPED")
+                    if numMutants != -1 and compileCommand is not None:
+                        if runCmd(compileCommand, src, f) != "VALID":
+                            continue
+
+                    print("=" * 80)
+                    print("#" + str(int(count) + 1) + ":", end=" ")
+                    print("[" + str(round(time.time() - allStart, 2)) + "s", end=" ")
+                    print(str(round(count / totalMutants * 100.0, 2)) + "% DONE]")
+                    if verbose or showM:
+                        print("MUTANT:", f)
+                        with open(src, 'r') as ff:
+                            fromLines = ff.readlines()
+                        with open(f, 'r') as tf:
+                            toLines = tf.readlines()
+                        diff = difflib.context_diff(fromLines, toLines, "Original", "Mutant")
+                        print(''.join(diff))
+                        print()
+                        sys.stdout.flush()
+                    print("RUNNING", f + "...")
+                    sys.stdout.flush()
+                    try:
+                        shutil.copy(src, src + ".um.backup")
+                        shutil.copy(f, src)
+                        if srcEnd == ".py":
+                            py_compile.compile(src)
+
+                        if isWindows:
+                            ctstCmd = ['set "CURRENT_MUTANT_SOURCE=' + f + '" && ' + tstCmd[0]]
+                        else:
+                            ctstCmd = ['export CURRENT_MUTANT_SOURCE="' + f + '"; ' + tstCmd[0]]
+                        start = time.time()
+
+                        if not verbose:
+                            if isWindows:
+                                P = subprocess.Popen(ctstCmd, shell=True, stderr=dnull, stdout=dnull,
+                                                 start_new_session=True)
+                            else:
+                                P = subprocess.Popen(ctstCmd, shell=True, stderr=dnull, stdout=dnull,
+                                                 preexec_fn=os.setsid)
+                        else:
+                            if isWindows:
+                                P = subprocess.Popen(ctstCmd, shell=True, start_new_session=True)
+                            else:
+                                P = subprocess.Popen(ctstCmd, shell=True, preexec_fn=os.setsid)
+
+                        try:
+                            while P.poll() is None and (time.time() - start) < timeout:
+                                time.sleep(0.05)
+                        finally:
+                            if P.poll() is None:
+                                print()
+                                print("HAD TO TERMINATE ANALYSIS (TIMEOUT OR EXCEPTION)")
+
+                                if isWindows:
+                                    os.kill(P.pid, signal.SIGTERM)
+                                else:
+                                    os.killpg(os.getpgid(P.pid), signal.SIGTERM)
+
+                                # Avoid any weird race conditions from grabbing the return code
+                                time.sleep(0.05)
+                            r = P.returncode
+
+                        runtime = time.time() - start
+
+                        count += 1
+                        if numMutants != -1 and count >= numMutants:
+                            break
+                        if r == 0:
+                            print(f, "NOT KILLED")
+                            notkilled.write(f.split("/")[-1] + "\n")
+                            notkilled.flush()
+                        else:
+                            killCount += 1
+                            print(f, "KILLED IN", runtime, "(RETURN CODE", str(r) + ")")
+                            killed.write(f.split("/")[-1] + "\n")
+                            killed.flush()
+                        print("  RUNNING SCORE:", killCount / count)
+                        sys.stdout.flush()
+                    finally:
+                        shutil.copy(src + ".um.backup", src)
+                        os.remove(src + ".um.backup")
+                if os.path.exists(".um.mutant_output." + str(os.getpid())):
+                    os.remove(".um.mutant_output." + str(os.getpid()))
+
+    print("=" * 80)
+
+    if count == 0:
+        print("!!! No valid mutants found! Make sure you specified the right mutant directory !!!")
+        return
+    print("MUTATION SCORE:", killCount / count)
+
+
+def runCmd(cmd, sourceFile, mutantFile):
+    if "MUTANT" not in cmd:
+        # We asssume if the MUTANT isn't part of the command,
+        # we need to move it into place, before, e.g., make
+        backupName = sourceFile + ".um.backup." + str(os.getpid())
+        shutil.copy(sourceFile, backupName)
+        shutil.copy(mutantFile, sourceFile)
+    try:
+        with open(".um.mutant_output." + str(os.getpid()), 'w') as file:
+            r = subprocess.call([cmd.replace("MUTANT", mutantFile)],
+                                shell=True, stderr=file, stdout=file)
+        if r == 0:
+            return "VALID"
+        return "INVALID"
+    finally:
+        # If we moved the mutant in, restore original
+        if "MUTANT" not in cmd:
+            shutil.copy(backupName, sourceFile)
+
+
+if __name__ == '__main__':
+    main()

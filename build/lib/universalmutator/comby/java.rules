@@ -1,0 +1,10 @@
+:[s~[ \t]*]import ==> DO_NOT_MUTATE
+:[s~[ \t]*]@:[annotation] ==> DO_NOT_MUTATE
+
+
+synchronized ==>
+
+:[a]&&:[b] ==> :[a] && true
+:[a]&&:[b] ==> true && :[b]
+:[a]||:[b] ==> :[a] || false
+:[a]||:[b] ==> false || :[b]

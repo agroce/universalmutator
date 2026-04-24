@@ -1,0 +1,47 @@
+:[s~[ \t]*]import ==> DO_NOT_MUTATE
+
+if :[cond] ==> if not (:[cond])
+while :[cond] ==> while not (:[cond])
+
+:[body]continue ==> :[body] break
+:[body]break ==> :[body] continue
+
+print(:[1], :[2], :[3]) ==> print(:[3], :[2], :[1]) 
+:[[v]] = :[[fn]](:[x])  ==> :[[v]] = :[[fn]]((:[x] - 1))
+
+:[[a]] and :[[b]] ==> :[[a]] or :[[b]]
+:[[a]] or :[[b]] ==> :[[a]] and :[[b]]
+:[[a]] and :[[b]] ==> :[[a]] or True
+:[[a]] or :[[b]] ==> :[[a]] or False
+:[[a]] and :[[b]] ==> True and :[[b]]
+:[[a]] or :[[b]] ==> False or :[[b]]
+
+not :[[a]] ==> :[[a]]
+
+return :[expr]:[lf~[\n]] ==> return None:[lf]
+:[ s]:[expr]:[lf~[\n]] ==> :[s]pass:[lf]
+
+//:[[a]] ==> /:[[a]]
+/:[[a]] ==> //:[[a]]
+
+True ==> False
+
+[:[expr]] ==> []
+[:[first],:[rest]] ==>  [:[first]]
+[:[first],:[rest]] ==>  [:[rest]]
+,:[s~[ \t]*]:[[x]]:[bra~[\]]] ==> ]
+
+{:[expr]} ==> {}
+{:[first],:[rest]} ==>  {:[first]}
+{:[first],:[rest]} ==>  {:[rest]}
+,:[s~[ \t]*]:[[x]]:[bra~[\}]] ==> }
+
+
+,:[s~[ \t]*]:[[item1]],:[s~[ \t]*]:[[item2]] ==> ,:[[item2]],:[[item1]]
+:[par~[(]]:[~[ \t]*]:[[item1]],:[~[ \t]*]:[[item2]] ==> :[par]:[[item2]],:[[item1]]
+:[bra~[\[]]:[~[ \t]*]:[[item1]],:[~[ \t]*]:[[item2]] ==> :[bra]:[[item2]],:[[item1]]
+
+,:[item], ==> ,
+':[str]' ==> ''
+
+@:[s~[ \t]*]:[annotation] :[body] ==> :[body]
