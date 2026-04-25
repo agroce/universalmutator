@@ -1,14 +1,25 @@
 from __future__ import print_function
 import re
-import pkg_resources
 import random
 from comby import Comby
 import os
 from json.decoder import JSONDecodeError
+try:
+    from importlib.resources import files
+except ImportError:
+    files = None
+if files is None:
+    try:
+        from importlib_resources import files
+    except ImportError:
+        files = None
+try:
+    import pkg_resources
+except ImportError:
+    pkg_resources = None
 
 def parseRules(ruleFiles, comby=False):
     rulesText = []
-
     for ruleFile in ruleFiles:
         if ".rules" not in ruleFile:
             ruleFile += ".rules"
@@ -17,10 +28,19 @@ def parseRules(ruleFiles, comby=False):
                 rulePath = os.path.join('comby', ruleFile)
             else:
                 rulePath = os.path.join('static', ruleFile)
-            with pkg_resources.resource_stream('universalmutator', rulePath) as builtInRule:
-                for line in builtInRule:
-                    line = line.decode()
-                    rulesText.append((line, "builtin:" + ruleFile))
+            if files is not None:
+                builtInRulePath = files("universalmutator").joinpath(rulePath)
+                with builtInRulePath.open("rb") as builtInRule:
+                    for line in builtInRule:
+                        line = line.decode()
+                        rulesText.append((line, "builtin:" + ruleFile))
+            elif pkg_resources is not None:
+                with pkg_resources.resource_stream("universalmutator", rulePath) as builtInRule:
+                    for line in builtInRule:
+                        line = line.decode()
+                        rulesText.append((line, "builtin:" + ruleFile))
+            else:
+                raise ImportError("No resource-loading API available")
         except BaseException:
             print("FAILED TO FIND RULE", ruleFile, "AS BUILT-IN...")
             try:
