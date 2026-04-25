@@ -1,10 +1,37 @@
 from __future__ import print_function
 import re
-import pkg_resources
+import sys
 import random
 from comby import Comby
 import os
 from json.decoder import JSONDecodeError
+
+# Python 3.9+ has importlib.resources with the modern files() API.
+# Older Pythons (< 3.9) fall back to pkg_resources from setuptools.
+if sys.version_info >= (3, 9):
+    import importlib.resources as _importlib_resources
+    _use_importlib = True
+else:
+    try:
+        import importlib.resources as _importlib_resources
+        _use_importlib = True
+    except ImportError:
+        import pkg_resources as _pkg_resources
+        _use_importlib = False
+
+
+def _open_package_resource(package, resource_path):
+    """Open a package data file, using importlib.resources on Python 3.9+
+    and falling back to pkg_resources on older versions."""
+    if _use_importlib:
+        parts = resource_path.replace("\\", "/").split("/")
+        subpackage = package + "." + ".".join(parts[:-1]) if len(parts) > 1 else package
+        filename = parts[-1]
+        ref = _importlib_resources.files(subpackage).joinpath(filename)
+        return ref.open("rb")
+    else:
+        return _pkg_resources.resource_stream(package, resource_path)
+
 
 def parseRules(ruleFiles, comby=False):
     rulesText = []
@@ -17,7 +44,7 @@ def parseRules(ruleFiles, comby=False):
                 rulePath = os.path.join('comby', ruleFile)
             else:
                 rulePath = os.path.join('static', ruleFile)
-            with pkg_resources.resource_stream('universalmutator', rulePath) as builtInRule:
+            with _open_package_resource('universalmutator', rulePath) as builtInRule:
                 for line in builtInRule:
                     line = line.decode()
                     rulesText.append((line, "builtin:" + ruleFile))
@@ -52,7 +79,7 @@ def parseRules(ruleFiles, comby=False):
             continue
 
         # check for disabled rules
-        if line.startswith("# DISABLED:"):
+        if line.startswith("#DISABLED:"):
             # ignore disabled rules
             continue
 
