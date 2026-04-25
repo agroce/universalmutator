@@ -3,7 +3,6 @@ from tabulate import tabulate
 
 import os
 import random
-from re import T
 import sys
 import shutil
 import subprocess
