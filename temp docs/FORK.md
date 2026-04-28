@@ -71,6 +71,23 @@ python -m pip install build
 python -m build --wheel --no-isolation
 ```
 
+#### Bash
+
+```sh
+pip3 install tabulate
+pip3 install comby
+
+python -m build --wheel --no-isolation
+
+python -m universalmutator.genmutants \
+  examples/foo2.fc func \
+  --mutantDir examples/func2_all \
+  --comby \
+  --noCheck \
+  > examples/func2_all/check.out 2>&1
+
+```
+
 ## Установка компиляторов TON
 
 ### Tact
@@ -115,11 +132,10 @@ func-js -h
 - При `--swap` строки для перестановки теперь исключают пустые строки и строки-комментарии (`//`, `;;`, `#`), а также строки внутри блок-комментариев `/* ... */` и `{- ... -}`. Это делает свапы более осмысленными и уменьшает число мусорных `INVALID`.
 - Также `--swap` не переставляет одинаковые строки (включая случаи, когда совпадает содержимое после `strip()`), чтобы не генерировать бессмысленные мутанты вроде перестановки `}` с `}`.
 
-Удобно заранее создать каталоги:
+### 2026-04-28 update: mutator/comby sync
 
-```sh
-New-Item -ItemType Directory -Force tmp, tmp\mutants_tact, tmp\mutants_tolk, tmp\mutants_func | Out-Null
-```
+- `universalmutator/mutator.py`: import of `Comby` is now lazy inside `mutants_comby()`. Regular regex mutation flows and local tests no longer fail just because the Python `comby` package is missing.
+- `universalmutator/mutator.py`: when `--comby` is used without the Python `comby` package, the tool now raises an explicit `ModuleNotFoundError` with a clear message instead of failing during top-level package import.
 
 ## Команды
 

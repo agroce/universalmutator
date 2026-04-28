@@ -2,7 +2,6 @@ from __future__ import print_function
 import re
 import pkgutil
 import random
-from comby import Comby
 import os
 from json.decoder import JSONDecodeError
 
@@ -82,6 +81,12 @@ def parseRules(ruleFiles, comby=False):
 
 def mutants_comby(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, language=".generic"):
+    try:
+        from comby import Comby
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "The Python 'comby' package is required to generate --comby mutants"
+        ) from exc
     if ruleFiles is None:
         ruleFiles = ["universal.rules"]
     comby = Comby()

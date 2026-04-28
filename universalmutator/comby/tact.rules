@@ -17,22 +17,14 @@ import :[rest] ==> DO_NOT_MUTATE
 # safe line-scope guard for declaration/control-flow exclusions.
 
 if (:[cond]) ==> if (!(:[cond]))
-if(:[cond]) ==> if(!(:[cond]))
 if (:[cond]) ==> if (false)
-if(:[cond]) ==> if(false)
 if (:[cond]) ==> if (true)
-if(:[cond]) ==> if(true)
-:[lhs]^:[rhs] ==> :[lhs]&:[rhs]
-:[lhs]^:[rhs] ==> :[lhs]|:[rhs]
-:[lhs]&:[rhs] ==> :[lhs]^:[rhs]
-:[lhs]|:[rhs] ==> :[lhs]^:[rhs]
+:[lhs~.*\s]^:[rhs~.*] ==> :[lhs]&:[rhs]
+:[lhs~.*\s]^:[rhs~.*] ==> :[lhs]|:[rhs]
 until (:[cond]) ==> until (0==1)
-until(:[cond]) ==> until(0==1)
 repeat (:[count]) ==> repeat (0)
-repeat(:[count]) ==> repeat(0)
 throwIf(:[x]) ==> throwUnless(:[x])
 throwUnless(:[x]) ==> throwIf(:[x])
-:[expr]!! ==> :[expr]
 require(:[cond], :[msg]); ==> throwUnless(0, :[cond]);
 require(:[cond], :[msg]); ==> throwIf(0, :[cond]);
 require(:[cond], :[msg]); ==> 
@@ -162,12 +154,8 @@ as int8 ==> as uint8
 as coins ==> as uint64
 as remaining ==> as bytes32
 
-:[name]: Address?; ==> :[name]: Address;
-:[name]: Cell?; ==> :[name]: Cell;
-:[name]: Slice?; ==> :[name]: Slice;
-:[name]: Int?; ==> :[name]: Int;
-:[name]: Bool?; ==> :[name]: Bool;
-:[name]: String?; ==> :[name]: String;
+# Nullable field marker removal stays regex-only for now; generic Comby matching
+# is too broad and regularly invalidates remaining null-aware code.
 
 sender() == owner ==> sender() != owner
 sender() != owner ==> sender() == owner
@@ -182,14 +170,12 @@ acceptMessage(); ==>
 
 inline fun :[rest] ==> fun :[rest]
 extends mutates fun :[rest] ==> mutates fun :[rest]
-extends fun :[rest] ==> fun :[rest]
 get fun :[rest] ==> fun :[rest]
 
 message(0x:[opcode~[0-9a-fA-F]{8}]) ==> message(0xFFFFFFFF)
 
 external(:[args]) ==> receive(:[args])
 receive(:[args]) ==> external(:[args])
-bounced(:[args]) ==> receive(:[args])
 
 :[recv].set(:[args]) ==> :[recv].replace(:[args])
 :[recv].replace(:[args]) ==> :[recv].set(:[args])

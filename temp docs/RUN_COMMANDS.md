@@ -3,11 +3,29 @@
 ## FunC
 
 ```sh
+
+func-js examples/foo.fc
+func-js examples/foo2.fc
+
 New-Item -ItemType Directory -Force examples/func | Out-Null; python -m universalmutator.genmutants examples/foo.fc func --only func.rules --mutantDir examples/func *> examples/func/check.out
 
 New-Item -ItemType Directory -Force examples/func_all | Out-Null; python -m universalmutator.genmutants examples/foo.fc func --mutantDir examples/func_all *> examples/func_all/check.out
 
 New-Item -ItemType Directory -Force examples/func2_all | Out-Null; python -m universalmutator.genmutants examples/foo2.fc func --mutantDir examples/func2_all *> examples/func2_all/check.out
+
+# comby
+mkdir examples/func2_all
+python -m universalmutator.genmutants examples/foo2.fc func --mutantDir examples/func2_all --comby > examples/func2_all/check.out 2>&1
+```
+
+### Comby + compile-check (bash)
+
+```sh
+mkdir -p examples/func_comby_all
+python -m universalmutator.genmutants examples/foo.fc func --mutantDir examples/func_comby_all --comby > examples/func_comby_all/check.out 2>&1
+
+mkdir -p examples/func2_comby_all
+python -m universalmutator.genmutants examples/foo2.fc func --mutantDir examples/func2_comby_all --comby > examples/func2_comby_all/check.out 2>&1
 ```
 
 ## Tact
@@ -16,6 +34,19 @@ New-Item -ItemType Directory -Force examples/func2_all | Out-Null; python -m uni
 New-Item -ItemType Directory -Force examples/tact | Out-Null; python -m universalmutator.genmutants examples/foo.tact tact --only tact.rules --mutantDir examples/tact *> examples/tact/check.out
 
 New-Item -ItemType Directory -Force examples/tact_all | Out-Null; python -m universalmutator.genmutants examples/foo.tact tact --mutantDir examples/tact_all *> examples/tact_all/check.out
+
+mkdir examples/tact_all
+python -m universalmutator.genmutants examples/foo.tact tact --mutantDir examples/tact_all --comby > examples/tact_all/check.out 2>&1
+```
+
+### Comby + compile-check (bash)
+
+```sh
+mkdir -p examples/tact_comby
+python -m universalmutator.genmutants examples/foo.tact tact --only tact.rules --mutantDir examples/tact_comby --comby > examples/tact_comby/check.out 2>&1
+
+mkdir -p examples/tact_comby_all
+python -m universalmutator.genmutants examples/foo.tact tact --mutantDir examples/tact_comby_all --comby > examples/tact_comby_all/check.out 2>&1
 ```
 
 ## Tolk
@@ -26,6 +57,16 @@ New-Item -ItemType Directory -Force examples/tolk | Out-Null; python -m universa
 New-Item -ItemType Directory -Force examples/tolk_all | Out-Null; python -m universalmutator.genmutants examples/foo.tolk tolk --mutantDir examples/tolk_all *> examples/tolk_all/check.out
 
 New-Item -ItemType Directory -Force examples/tolk2_all | Out-Null; python -m universalmutator.genmutants examples/foo2.tolk tolk --mutantDir examples/tolk2_all *> examples/tolk2_all/check.out
+```
+
+### Comby + compile-check (bash)
+
+```sh
+mkdir -p examples/tolk_comby_all
+python -m universalmutator.genmutants examples/foo.tolk tolk --mutantDir examples/tolk_comby_all --comby > examples/tolk_comby_all/check.out 2>&1
+
+mkdir -p examples/tolk2_comby_all
+python -m universalmutator.genmutants examples/foo2.tolk tolk --mutantDir examples/tolk2_comby_all --comby > examples/tolk2_comby_all/check.out 2>&1
 ```
 
 ## Jetton (Tolk)

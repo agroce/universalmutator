@@ -13,15 +13,10 @@ import :[rest] ==> DO_NOT_MUTATE
 # safe line-scope guard for declaration/control-flow exclusions.
 
 if (:[cond~(?!.*(?:\bis\b|!is\b)).*]) ==> if (!(:[cond]))
-if(:[cond~(?!.*(?:\bis\b|!is\b)).*]) ==> if(!(:[cond]))
 if (:[cond~(?!.*(?:\bis\b|!is\b)).*]) ==> if (false)
-if(:[cond~(?!.*(?:\bis\b|!is\b)).*]) ==> if(false)
 if (:[cond~(?!.*(?:\bis\b|!is\b)).*]) ==> if (true)
-if(:[cond~(?!.*(?:\bis\b|!is\b)).*]) ==> if(true)
-:[lhs]^:[rhs] ==> :[lhs]&:[rhs]
-:[lhs]^:[rhs] ==> :[lhs]|:[rhs]
-:[lhs]&:[rhs] ==> :[lhs]^:[rhs]
-:[lhs]|:[rhs] ==> :[lhs]^:[rhs]
+# Bitwise operator families stay regex-only for now; generic Comby matching
+# collides with logical operators and union types.
 :[lhs] is :[rhs] ==> :[lhs] !is :[rhs]
 :[lhs] !is :[rhs] ==> :[lhs] is :[rhs]
 
@@ -31,14 +26,11 @@ get fun :[rest] ==> fun :[rest]
 @noinline ==> @inline
 @inline_ref ==> @inline
 @pure ==> 
-mutate self ==> self
 mutate :[param]: :[type] ==> :[param]: :[type]
 fun :[name](:[before], :[arg]: :[type] = :[default], :[after]) ==> fun :[name](:[before], :[arg]: :[type], :[after])
 fun :[name](:[arg]: :[type] = :[default], :[after]) ==> fun :[name](:[arg]: :[type], :[after])
 fun :[name](:[before], :[arg]: :[type] = :[default]) ==> fun :[name](:[before], :[arg]: :[type])
 
-uint:[n~(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-6])] ==> int:[n]
-int:[n~(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-6])] ==> uint:[n]
 varuint16 ==> varint16
 varint16 ==> varuint16
 varuint32 ==> varint32
@@ -50,14 +42,8 @@ throwIfOpcodeDoesNotMatch: :[err] ==> throwIfOpcodeDoesNotMatch: 63
 blockchain.now ==> blockchain.logicalTime
 blockchain.logicalTime ==> blockchain.currentBlockLogicalTime
 blockchain.currentBlockLogicalTime ==> blockchain.logicalTime
-calculateSizeStrict ==> calculateSize
-calculateSize ==> calculateSizeStrict
-calculateForwardFeeWithoutLumpPrice(:[args]) ==> calculateForwardFee(:[args])
-calculateForwardFee(:[args]) ==> calculateForwardFeeWithoutLumpPrice(:[args])
-calculateGasFeeWithoutFlatPrice(:[args]) ==> calculateGasFee(:[args])
-calculateGasFee(:[args]) ==> calculateGasFeeWithoutFlatPrice(:[args])
-acceptExternalMessage() ==> commitContractDataAndActions()
-commitContractDataAndActions() ==> acceptExternalMessage()
+calculateSizeStrict(:[args]) ==> calculateSize(:[args])
+calculateSize(:[args]) ==> calculateSizeStrict(:[args])
 random.uint256 ==> random.getSeed
 random.getSeed ==> random.uint256
 :[recv].loadRef(:[args]) ==> :[recv].preloadRef(:[args])
@@ -174,10 +160,8 @@ random.getSeed ==> random.uint256
 :[recv~(?!\s*fun\b).*].uDictGetPrevOrEqual(:[args]) ==> :[recv].uDictGetNextOrEqual(:[args])
 :[recv~(?!\s*fun\b).*].sDictGetNextOrEqual(:[args]) ==> :[recv].sDictGetPrevOrEqual(:[args])
 :[recv~(?!\s*fun\b).*].sDictGetPrevOrEqual(:[args]) ==> :[recv].sDictGetNextOrEqual(:[args])
-stringCrc32(:[s]) ==> stringCrc16(:[s])
-stringCrc16(:[s]) ==> stringCrc32(:[s])
-stringSha256_32(:[s]) ==> stringSha256(:[s])
-stringSha256(:[s]) ==> stringSha256_32(:[s])
+# String-argument hash helper swaps stay regex-only for now; Comby's generic
+# matcher re-escapes quoted holes and produces invalid Tolk source.
 SEND_MODE_REGULAR ==> SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE
 SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE ==> SEND_MODE_REGULAR
 SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE ==> SEND_MODE_CARRY_ALL_BALANCE
@@ -246,8 +230,8 @@ reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0) ==> reserveExtraCurrenci
 reserveExtraCurrenciesOnBalance(:[amount], :[extra], 1) ==> reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0)
 value: 0 ==> value: 1
 value: 1 ==> value: 0
-value: ton(:[amount]) ==> value: 0
-value: :[fn](:[args]) ==> value: 0
+# Function-like value initializers stay regex-only for now; quoted arguments
+# such as ton("0.01") get re-escaped by generic Comby substitution.
 
 BounceMode.NoBounce ==> BounceMode.RichBounce
 BounceMode.Only256BitsOfBody ==> BounceMode.RichBounce
