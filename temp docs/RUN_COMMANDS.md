@@ -99,9 +99,9 @@ analyze_mutants examples/tolk-bench/contracts_Tolk/01_jetton/jetton-wallet-contr
 
 ## Jetton (FunC)
 
-Перед запуском переключи wrapper на FunC:
+Before running, switch the wrapper to FunC:
 `examples/tolk-bench/wrappers/01_jetton/JettonWallet.compile.ts`
-должен быть с `lang: 'func'` и списком `targets` для `.fc` файлов.
+should use `lang: 'func'` and the correct `targets` list for `.fc` files.
 
 ```sh
 npx jest --runInBand tests/01_jetton/JettonWallet.spec.ts
@@ -121,11 +121,4 @@ mutate examples/tolk-bench/contracts_FunC/01_jetton/jetton-wallet.fc func --muta
 
 # sh
 analyze_mutants examples/tolk-bench/contracts_Tolk/01_jetton/jetton-wallet-contract.tolk "cd examples/tolk-bench && npx jest --runInBand tests/01_jetton/JettonWallet.spec.ts" --mutantDir examples/func-jetton-wallet-mutants-comby --timeout 180
-```
-
-## Muton
-
-```sh
-muton run --test.cmd "npx jest --runInBand tests/01_jetton/JettonWallet.spec.ts" contracts_Tolk/01_jetton/jetton-wallet-contract.tolk
-muton run contracts_Tolk/01_jetton/jetton-wallet-contract.tolk
 ```

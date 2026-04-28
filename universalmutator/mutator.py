@@ -216,8 +216,8 @@ def mutants_regexp(source, ruleFiles=None, mutateTestCode=False, mutateBoth=Fals
             if re.search(r"\d\s*[+-]\s*\d", l):
                 numeric_literals = re.findall(r"(?<![A-Za-z_])\d+(?![A-Za-z_])", l)
                 if len(numeric_literals) >= 5:
-                    # FunC часто вычисляет битовую длину как длинную сумму.
-                    # Мутации отдельных чисел здесь дают много INVALID и замедляют прогон.
+                    # FunC often computes bit lengths as long sums.
+                    # Mutating individual numbers here creates many INVALID mutants and slows runs down.
                     skipDenseNumericRules = True
         abandon = False
         for ((lhs, rhs), ruleUsed) in rules:

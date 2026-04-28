@@ -181,9 +181,9 @@ class TestFuncRules(TestCase):
         self.assertIn("  throw_arg_if(1, 2, 3);", mutant_lines)
         self.assertIn("  throw_arg_unless(1, 2, 3);", mutant_lines)
 
-    def test_func_muton_regex_rules_generate_expected_mutants(self):
+    def test_func_common_regex_rules_generate_expected_mutants(self):
         source = [
-            "int muton_ops(int a, int b, builder bb) {\n",
+            "int coverage_ops(int a, int b, builder bb) {\n",
             "  a += 5;\n",
             "  b -= 6;\n",
             "  a *= 7;\n",
@@ -261,7 +261,7 @@ class TestFuncRules(TestCase):
         self.assertIn("  bb.store_uint(0, 8);", mutant_lines)
         self.assertIn("  store_uint(bb, 0, 16);", mutant_lines)
         self.assertIn("  ;; doSomething();", mutant_lines)
-        self.assertNotIn(";; int muton_ops(int a, int b, builder bb) {", mutant_lines)
+        self.assertNotIn(";; int coverage_ops(int a, int b, builder bb) {", mutant_lines)
         self.assertNotIn("  ;; if (cond) {", mutant_lines)
         self.assertNotIn("  ;; ifnot (cond) {", mutant_lines)
         self.assertNotIn("  ;; while (cond) {", mutant_lines)

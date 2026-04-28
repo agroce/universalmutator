@@ -1,8 +1,8 @@
-# Отчет по генерации мутантов (tolk-bench)
+# Mutant Generation Report (tolk-bench)
 
-## Сводная таблица по контрактам
+## Summary Table by Contract
 
-| Группа           | Контракт        | Static Gen | Static Valid | Static Invalid | Comby Gen | Comby Valid | Comby Invalid |
+| Group            | Contract        | Static Gen | Static Valid | Static Invalid | Comby Gen | Comby Valid | Comby Invalid |
 | ---------------- | --------------- | ---------: | -----------: | -------------: | --------: | ----------: | ------------: |
 | 01_jetton        | func-minter     |         92 |            0 |             92 |        90 |           0 |            84 |
 | 01_jetton        | func-wallet     |        156 |          143 |             13 |       137 |         124 |            10 |
@@ -26,29 +26,29 @@
 | 07_telemint      | func-item       |        204 |          193 |             11 |       175 |         157 |            17 |
 | 07_telemint      | tolk-collection |         67 |           51 |             16 |        62 |          40 |            20 |
 | 07_telemint      | tolk-item       |        306 |          232 |             74 |       256 |         180 |            70 |
-| **ИТОГО**        |                 |   **2706** |     **2309** |        **397** |  **2317** |    **1866** |       **402** |
+| **TOTAL**        |                 |   **2706** |     **2309** |        **397** |  **2317** |    **1866** |       **402** |
 
-## Разбивка по языкам
+## Breakdown by Language
 
-| Язык | Static Gen | Static Valid | Static Invalid | Comby Gen | Comby Valid | Comby Invalid |
-| ---- | ---------: | -----------: | -------------: | --------: | ----------: | ------------: |
-| func |       1518 |         1306 |            212 |      1336 |        1080 |           231 |
-| tolk |       1188 |         1003 |            185 |       981 |         786 |           171 |
+| Language | Static Gen | Static Valid | Static Invalid | Comby Gen | Comby Valid | Comby Invalid |
+| -------- | ---------: | -----------: | -------------: | --------: | ----------: | ------------: |
+| func     |       1518 |         1306 |            212 |      1336 |        1080 |           231 |
+| tolk     |       1188 |         1003 |            185 |       981 |         786 |           171 |
 
-## Ключевые наблюдения
+## Key observations
 
-1. **FunC minter (01_jetton) — 0 valid мутантов.**
-   Все сгенерированные мутанты (static и comby) не компилируются.
-   Вероятно, minter требует особой конфигурации wrapper/compile.
+1. **FunC minter (01_jetton) has 0 valid mutants.**  
+   All generated mutants, both static and Comby, fail to compile.  
+   Most likely, this minter needs a special wrapper or compile configuration.
 
-2. **Comby генерирует меньше мутантов, чем static+universal.**
-   В среднем comby дает ~14.4% меньше мутантов (2317 vs 2706).
-   Это ожидаемо: шаблонные правила comby более консервативны, чем regex.
+2. **Comby generates fewer mutants than static+universal.**  
+   On average, Comby produces about 14.4% fewer mutants (`2317` vs `2706`).  
+   This is expected: Comby templates are more conservative than regex rules.
 
-3. **Процент компилируемых мутантов примерно сопоставим:**
-   - Static: 85.3% (2309/2706)
-   - Comby: 80.5% (1866/2317)
+3. **The percentage of compiling mutants is roughly comparable:**  
+   - Static: 85.3% (`2309 / 2706`)  
+   - Comby: 80.5% (`1866 / 2317`)
 
-4. **Наибольший контракт по мутантам:**
-   - Static: 07_telemint/tolk-item — 306 мутантов
-   - Comby: 07_telemint/tolk-item — 256 мутантов
+4. **Largest contract by mutant count:**  
+   - Static: `07_telemint/tolk-item` — `306` mutants  
+   - Comby: `07_telemint/tolk-item` — `256` mutants

@@ -6,7 +6,7 @@
 This file intentionally exercises a broad slice of func.rules.
 The code is small enough to compile quickly, but rich enough to
 generate mutants for operator swaps, stdlib helper swaps, method
-specifiers, send/reserve modes, and muton-style statement rewrites.
+specifiers, send/reserve modes, and statement rewrites.
 
 THROW_IF
 THROW_UNLESS
@@ -54,7 +54,7 @@ cell make_sample_cell() inline_ref {
         .end_cell();
 }
 
-int muton_ops(int a, int b) impure {
+int coverage_ops(int a, int b) impure {
     int cond = a != b;
     int count = 2;
     int steps = 0;
@@ -223,7 +223,7 @@ int muton_ops(int a, int b) impure {
 () main() impure {
     cell sample = make_sample_cell();
     int score = inline_sum(2, 3) + ref_sum(9, 4) + noisy_method() + default_method();
-    int changed = muton_ops(score, 6);
+    int changed = coverage_ops(score, 6);
     stdlib_ops(sample);
     throw_unless(33, changed != 0);
     throw_if(34, changed == 0);

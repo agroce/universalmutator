@@ -1,10 +1,10 @@
 # Tolk Bench: Mutant Generation & Analysis Commands (Linux)
 
-Bash-команды для проверки генерации мутантов и mutation analysis на `tolk` и `func` для выбранных контрактов из `examples/tolk-bench`.
+Bash commands for checking mutant generation and running mutation analysis for `tolk` and `func` on selected contracts from `examples/tolk-bench`.
 
-## Соответствия Tolk <-> FunC
+## Tolk <-> FunC mappings
 
-| Tolk                                            | FunC                                                     | Тест                                          |
+| Tolk                                            | FunC                                                     | Test                                          |
 | ----------------------------------------------- | -------------------------------------------------------- | --------------------------------------------- |
 | `01_jetton/jetton-minter-contract.tolk`         | `contracts_FunC/01_jetton/jetton-minter-discoverable.fc` | `tests/01_jetton/JettonWallet.spec.ts`¹       |
 | `01_jetton/jetton-wallet-contract.tolk`         | `contracts_FunC/01_jetton/jetton-wallet.fc`              | `tests/01_jetton/JettonWallet.spec.ts`¹       |
@@ -18,25 +18,25 @@ Bash-команды для проверки генерации мутантов 
 | `07_telemint/telemint-collection-contract.tolk` | `contracts_FunC/07_telemint/nft-collection-no-dns.fc`    | `tests/07_telemint/Nft.spec.ts`               |
 | `07_telemint/telemint-item-contract.tolk`       | `contracts_FunC/07_telemint/nft-item-no-dns-cheap.fc`    | `tests/07_telemint/Nft.spec.ts`               |
 
-¹ JettonWallet.spec.ts тестирует и minter, и wallet.
+¹ `JettonWallet.spec.ts` covers both the minter and the wallet.
 
 ### Mutation analysis
 
 ```bash
-# Для static / all
+# For static / all
 analyze_mutants <source> \
   "cd examples/tolk-bench && npx jest --runInBand <test>" \
   --mutantDir tmp/tolk-bench/<group>/<name>-all \
   --timeout 300
 
-# Для comby (требует больше времени на генерацию)
+# For comby (generation usually takes longer)
 analyze_mutants <source> \
   "cd examples/tolk-bench && npx jest --runInBand <test>" \
   --mutantDir tmp/tolk-bench/<group>/<name>-comby \
   --timeout 300
 ```
 
-> **Примечание по FunC:** перед запуском `analyze_mutants` для FunC-версий переключите wrapper на `lang: 'func'` и корректный `targets` в соответствующем `.compile.ts` файле.
+> **FunC note:** before running `analyze_mutants` for FunC versions, switch the wrapper to `lang: 'func'` and the correct `targets` in the corresponding `.compile.ts` file.
 
 ---
 
@@ -235,7 +235,7 @@ analyze_mutants examples/tolk-bench/contracts_Tolk/07_telemint/telemint-item-con
 
 ## FunC
 
-> Перед запуском `analyze_mutants` для FunC переключите wrapper на `lang: 'func'` и список `targets` для `.fc` файлов в соответствующем `.compile.ts`.
+> Before running `analyze_mutants` for FunC, switch the wrapper to `lang: 'func'` and the `.fc` `targets` list in the corresponding `.compile.ts`.
 
 ### 01 Jetton
 

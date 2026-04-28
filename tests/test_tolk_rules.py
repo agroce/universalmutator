@@ -176,9 +176,9 @@ class TestTolkRules(TestCase):
         self.assertIn("        var root = BounceMode.RichBounce;", mutant_lines)
         self.assertIn("        var shortBody = BounceMode.RichBounce;", mutant_lines)
 
-    def test_tolk_muton_regex_rules_generate_expected_mutants(self):
+    def test_tolk_common_regex_rules_generate_expected_mutants(self):
         source = [
-            "fun mutonOps() {\n",
+            "fun coverageOps() {\n",
             "    a += 5;\n",
             "    b -= 6;\n",
             "    c *= 7;\n",
@@ -231,7 +231,7 @@ class TestTolkRules(TestCase):
         self.assertIn("        break;", mutant_lines)
         self.assertIn("    while (false) {", mutant_lines)
         self.assertIn("    // doSomething();", mutant_lines)
-        self.assertNotIn("// fun mutonOps() {", mutant_lines)
+        self.assertNotIn("// fun coverageOps() {", mutant_lines)
         self.assertNotIn("    // if (cond) {", mutant_lines)
         self.assertNotIn("    // while (cond) {", mutant_lines)
         self.assertNotIn("    // var tval = true;", mutant_lines)

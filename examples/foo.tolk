@@ -148,7 +148,7 @@ get fun currentCounter(): int {
     return 0;
 }
 
-fun mutonOps(flag: bool): int {
+fun coverageOps(flag: bool): int {
     var a = 10;
     var b = 6;
     var steps = 0;
