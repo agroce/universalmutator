@@ -95,6 +95,12 @@ def mutants_comby(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False
     for lhs in ignorePatterns:
         ignoreRules.append(lhs)
     source = ''.join(source)
+    if language == ".generic":
+        # Comby's .generic matcher fails on unbalanced single quotes inside
+        # // comments (common in English text). Replacing them with spaces
+        # keeps offsets intact and is safe for TON languages that have no
+        # char-literal syntax using '.
+        source = source.replace("'", " ")
     mutants = []
 
     # Lines that match with DO_NOT_MUTATE and other ignore rules will be skipped

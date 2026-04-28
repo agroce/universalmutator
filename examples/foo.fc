@@ -1,5 +1,5 @@
 ;; Compile-aware FunC fixture for TON mutation rules.
-#include "tolk-bench/contracts_FunC/01_jetton/stdlib.fc";
+#include "stdlib.fc";
 
 {-
 

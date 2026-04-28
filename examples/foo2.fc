@@ -1,5 +1,5 @@
 ;; Focused FunC probe for rules that produced INVALID mutants in foo.fc.
-#include "tolk-bench/contracts_FunC/01_jetton/stdlib.fc";
+#include "stdlib.fc";
 
 const marker_throw_if = 1;
 const marker_throw_unless = 2;
