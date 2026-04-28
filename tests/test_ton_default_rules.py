@@ -109,6 +109,7 @@ class TestTonDefaultRules(TestCase):
 
                 captured = {}
 
+                # pylint: disable=cell-var-from-loop
                 def fake_mutants(source, ruleFiles=None, **kwargs):
                     captured["ruleFiles"] = list(ruleFiles)
                     captured["language"] = kwargs["language"]

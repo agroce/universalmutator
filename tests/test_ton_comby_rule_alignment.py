@@ -55,7 +55,7 @@ class TestTonCombyRuleAlignment(TestCase):
         self.assertIn("Line-anchored comment replacement stays regex-only", text)
         self.assertNotIn(":[lhs]+=:[rhs] ==> :[lhs]-=:[rhs]", text)
         self.assertNotIn(":[lhs]&=:[rhs] ==> :[lhs]|=:[rhs]", text)
-        self.assertIn(":[a~\w+] ^ :[b~\w+] ==> :[a] & :[b]", text)
+        self.assertIn(r":[a~\w+] ^ :[b~\w+] ==> :[a] & :[b]", text)
         self.assertIn("if (:[cond]) ==> if (0)", text)
         self.assertIn("if (:[cond]) ==> if (1)", text)
         self.assertIn("ifnot (:[cond]) ==> ifnot (0)", text)
