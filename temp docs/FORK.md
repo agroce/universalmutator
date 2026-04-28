@@ -127,7 +127,7 @@ func-js -h
 - В regex-режиме мутатор пропускает пустые строки и блок-комментарии `/* ... */` и `{- ... -}` для всех языков, чтобы не мутировать комментарии и не раздувать шум.
 - Для FunC добавлен быстрый фильтр в regex-режиме: если строка содержит `store_uint` или `store_int` и выражение с длинной суммой чисел (5+ числовых литералов), то числовые мутации из `universal.rules` вида `(\D)(\d+)(\D)` пропускаются. Это ускоряет генерацию и уменьшает пачку `INVALID` на выражениях длины битов. Фильтр включается только при наличии `func.rules` и не влияет на другие языки или `--comby`.
 
-## Изменения генератора (genmutants.py)
+### Изменения генератора (genmutants.py)
 
 - При `--swap` строки для перестановки теперь исключают пустые строки и строки-комментарии (`//`, `;;`, `#`), а также строки внутри блок-комментариев `/* ... */` и `{- ... -}`. Это делает свапы более осмысленными и уменьшает число мусорных `INVALID`.
 - Также `--swap` не переставляет одинаковые строки (включая случаи, когда совпадает содержимое после `strip()`), чтобы не генерировать бессмысленные мутанты вроде перестановки `}` с `}`.
@@ -136,6 +136,11 @@ func-js -h
 
 - `universalmutator/mutator.py`: import of `Comby` is now lazy inside `mutants_comby()`. Regular regex mutation flows and local tests no longer fail just because the Python `comby` package is missing.
 - `universalmutator/mutator.py`: when `--comby` is used without the Python `comby` package, the tool now raises an explicit `ModuleNotFoundError` with a clear message instead of failing during top-level package import.
+
+## 2026-04-28 core changes
+
+- `universalmutator/mutator.py`: import of `Comby` is now lazy and happens only inside `mutants_comby()`. This removes the top-level hard dependency during module import, but does not replace the external `comby` binary requirement for actual `--comby` runs.
+- `universalmutator/genmutants.py`: TON extensions `.tact`, `.fc`, `.func`, `.tolk` are mapped to Comby matcher `.generic` in `--comby` mode. Comby does not support TON-specific matcher names directly, so this avoids failures like `The matcher ".fc" is not supported`. Other languages keep their previous matcher behavior.
 
 ## Команды
 

@@ -95,6 +95,12 @@ def toGarbage(code):
 
 cmd = None
 
+
+def comby_language_for_extension(ending):
+    if ending in [".tact", ".fc", ".func", ".tolk"]:
+        return ".generic"
+    return ending
+
 def main():
     global cmd
 
@@ -127,8 +133,6 @@ def main():
                  ".sol": "solidity",
                  ".vy": "vyper",
                  ".fe": "fe",
-
-                 # TON languages
                  ".tact": "tact",
                  ".fc": "func",
                  ".func": "func",
@@ -427,7 +431,7 @@ def main():
             ignorePatterns=ignorePatterns,
             ignoreStringOnly=not mutateInStrings,
             fuzzing=fuzz,
-            language=ending
+            language=comby_language_for_extension(ending)
         )
     else:
         mutants = mutator.mutants_regexp(

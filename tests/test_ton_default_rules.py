@@ -91,3 +91,42 @@ class TestTonDefaultRules(TestCase):
         self.assertIn("count -= 1;", mutant_lines)
         self.assertIn("mask >>= 1;", mutant_lines)
         self.assertIn("while (false) {", mutant_lines)
+
+    def test_ton_comby_uses_generic_matcher_for_unsupported_extensions(self):
+        cases = [
+            (".tact", "contract Sample {}\n", "tact.rules"),
+            (".fc", "() main() {\n}\n", "func.rules"),
+            (".tolk", "fun main() {\n}\n", "tolk.rules"),
+        ]
+
+        for suffix, source_text, lang_rule in cases:
+            tmpdir = Path("tests") / (".tmp_ton_comby_" + uuid.uuid4().hex)
+            tmpdir.mkdir(parents=True)
+            try:
+                source_path = tmpdir / ("sample" + suffix)
+                mutant_dir = tmpdir / "mutants"
+                source_path.write_text(source_text, encoding="utf-8")
+
+                captured = {}
+
+                def fake_mutants(source, ruleFiles=None, **kwargs):
+                    captured["ruleFiles"] = list(ruleFiles)
+                    captured["language"] = kwargs["language"]
+                    return []
+
+                argv = [
+                    "mutate",
+                    str(source_path),
+                    "--comby",
+                    "--noCheck",
+                    "--mutantDir",
+                    str(mutant_dir),
+                ]
+                with mock.patch.object(sys, "argv", argv):
+                    with mock.patch.object(genmutants.mutator, "mutants_comby", side_effect=fake_mutants):
+                        genmutants.main()
+
+                self.assertEqual(captured["ruleFiles"][:2], ["ton_common.rules", lang_rule])
+                self.assertEqual(captured["language"], ".generic")
+            finally:
+                shutil.rmtree(str(tmpdir), ignore_errors=True)
