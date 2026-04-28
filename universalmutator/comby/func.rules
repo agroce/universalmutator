@@ -1,16 +1,21 @@
 # FunC (TON) comby rules.
 
-;;:[comment] ==> DO_NOT_MUTATE
-
 #include :[rest] ==> DO_NOT_MUTATE
 
 # Line-anchored comment replacement stays regex-only; this Comby layer has no
 # safe line-scope guard for declaration/control-flow exclusions.
 
-:[lhs~.*\s]^:[rhs~(?![/%]).*] ==> :[lhs]&:[rhs]
-:[lhs~.*\s]^:[rhs~(?![/%]).*] ==> :[lhs]|:[rhs]
+# Bitwise/logical operator shuffle.  \w+ holes avoid swallowing whole type
+# declarations while still matching SEND_MODE_* | SEND_MODE_* etc.
+:[a~\w+] ^ :[b~\w+] ==> :[a] & :[b]
+:[a~\w+] ^ :[b~\w+] ==> :[a] | :[b]
+:[a~\w+] & :[b~\w+] ==> :[a] ^ :[b]
+:[a~\w+] | :[b~\w+] ==> :[a] ^ :[b]
+
 if (:[cond]) ==> if (0)
+if(:[cond]) ==> if(0)
 if (:[cond]) ==> if (1)
+if(:[cond]) ==> if(1)
 throw_if(:[x]) ==> throw_unless(:[x])
 throw_unless(:[x]) ==> throw_if(:[x])
 throw_arg_if(:[arg], :[err], :[cond]) ==> throw_arg_unless(:[arg], :[err], :[cond])
@@ -48,6 +53,46 @@ store_coins(:[b], :[x]) ==> store_coins(:[b], 0)
 store_grams(:[b], :[x]) ==> store_grams(:[b], 0)
 store_uint(:[b], :[x], :[len]) ==> store_uint(:[b], 0, :[len])
 store_int(:[b], :[x], :[len]) ==> store_int(:[b], 0, :[len])
+
+# Implicit-receiver (method-chain) swaps that static covers via regex.
+.store_uint(:[x], :[len]) ==> .store_int(:[x], :[len])
+.store_int(:[x], :[len]) ==> .store_uint(:[x], :[len])
+.store_uint(:[x~[a-zA-Z0-9_.!()]+], :[len]) ==> .store_uint(0, :[len])
+.store_int(:[x~[a-zA-Z0-9_.!()]+], :[len]) ==> .store_int(0, :[len])
+
+.preload_uint(:[len]) ==> .load_uint(:[len])
+.preload_int(:[len]) ==> .load_int(:[len])
+.preload_ref(:[args]) ==> .load_ref(:[args])
+.preload_dict(:[args]) ==> .load_dict(:[args])
+.preload_maybe_ref(:[args]) ==> .load_maybe_ref(:[args])
+.preload_bits(:[len]) ==> .load_bits(:[len])
+
+# Comment-replacement for common standalone FunC statements.
+throw_unless(:[x]); ==> ;; throw_unless(:[x]);
+throw_if(:[x]); ==> ;; throw_if(:[x]);
+save_data(:[args]); ==> ;; save_data(:[args]);
+set_data(:[args]); ==> ;; set_data(:[args]);
+send_raw_message(:[args]); ==> ;; send_raw_message(:[args]);
+
+# Comparison swaps inside throw_unless.
+throw_unless(:[err], :[lhs] == :[rhs]) ==> throw_unless(:[err], :[lhs] != :[rhs])
+throw_unless(:[err], :[lhs] != :[rhs]) ==> throw_unless(:[err], :[lhs] == :[rhs])
+throw_unless(:[err], :[lhs] >= :[rhs]) ==> throw_unless(:[err], :[lhs] > :[rhs])
+throw_unless(:[err], :[lhs] >= :[rhs]) ==> throw_unless(:[err], :[lhs] == :[rhs])
+throw_unless(:[err], :[lhs] <= :[rhs]) ==> throw_unless(:[err], :[lhs] < :[rhs])
+throw_unless(:[err], :[lhs] <= :[rhs]) ==> throw_unless(:[err], :[lhs] == :[rhs])
+
+# Comparison swaps inside if.
+if (:[lhs] == :[rhs]) ==> if (:[lhs] != :[rhs])
+if (:[lhs] != :[rhs]) ==> if (:[lhs] == :[rhs])
+if (:[lhs] >= :[rhs]) ==> if (:[lhs] > :[rhs])
+if (:[lhs] >= :[rhs]) ==> if (:[lhs] == :[rhs])
+if (:[lhs] <= :[rhs]) ==> if (:[lhs] < :[rhs])
+if (:[lhs] <= :[rhs]) ==> if (:[lhs] == :[rhs])
+
+# Inline swap (static also mutates inline -> inline_ref and inline -> empty).
+inline ==> inline_ref
+inline ==>
 
 ifnot (:[cond]) ==> ifnot (0)
 ifnot (:[cond]) ==> ifnot (1)
