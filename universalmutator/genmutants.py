@@ -118,7 +118,7 @@ def main():
         if len(sys.argv) < 2:
             print("ERROR: mutate requires at least one argument (a file to mutate)\n")
         print("USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...]",
-              "[--noCheck] [--cmd <command string>] [--mutantDir <dir>]",
+              "[--noCheck] [--cmd <command string>] [--mutantDir <dir>] [--legacyMutantDir]",
               "[--lines <coverfile> [--tstl]] [--mutateTestCode] [--mutateBoth]",
               "[--ignore <file>] [--compile <file>] [--noFastCheck] [--swap]",
               "[--redundantOK] [--showRules] [--only <rule>]")
