@@ -8,7 +8,7 @@ test_directory_name = "Test"
 
 # Utility functions to aid in testing
 def UtilRemoveTestingDir():
-    if(os.path.isdir("./"+test_directory_name)):
+    if os.path.isdir("./"+test_directory_name):
         shutil.rmtree("./"+test_directory_name)
 
 def UtilCreateTestingDir():
