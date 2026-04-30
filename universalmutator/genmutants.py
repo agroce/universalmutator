@@ -118,7 +118,7 @@ def main():
         if len(sys.argv) < 2:
             print("ERROR: mutate requires at least one argument (a file to mutate)\n")
         print("USAGE: mutate <sourcefile> [<language>] [<rule1> <rule2>...]",
-              "[--noCheck] [--cmd <command string>] [--mutantDir <dir>]",
+              "[--noCheck] [--cmd <command string>] [--mutantDir <dir>] [--legacyMutantDir]",
               "[--lines <coverfile> [--tstl]] [--mutateTestCode] [--mutateBoth]",
               "[--ignore <file>] [--compile <file>] [--noFastCheck] [--swap]",
               "[--redundantOK] [--showRules] [--only <rule>]")
@@ -126,7 +126,8 @@ def main():
         print("       --noCheck: skips compilation/comparison and just generates mutant files")
         print("       --cmd executes command string, replacing MUTANT with the mutant name, and uses return code")
         print("             to determine mutant validity")
-        print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
+        print("       --mutantDir: directory to put generated mutants in, creates directory if it does not exist; defaults to current directory.")
+        print("       --legacyMutantDir: simulates old mutantDir behavior; if the directory passed into --mutantDir does not exist, it will not be created and the progeam crashes.")
         print("       --lines: only generate mutants for lines contained in <coverfile>")
         print("       --tstl: <coverfile> is TSTL output")
         print("       --mutateInStrings: mutate inside strings (not just turn to empty string)")
@@ -202,6 +203,11 @@ def main():
         fuzz = True
         args.remove("--fuzz")
 
+    legacyMutantDir = False
+    if "--legacyMutantDir" in args:
+        legacyMutantDir = True
+        args.remove("--legacyMutantDir")
+
     printStat = False
     if "--printStat" in args:
         printStat = True
@@ -257,6 +263,26 @@ def main():
         mdir = args[mdirpos + 1]
         args.remove("--mutantDir")
         args.remove(mdir)
+
+        mdirExists = os.path.isdir(mdir)
+        if not mdirExists and not legacyMutantDir:
+            print(f"THE DIRECTORY '{mdir}' PASSED INTO --mutantDir DID NOT EXIST, ATTEMPTING TO CREATE '{mdir}'")
+            try:
+                os.mkdir(mdir)
+                print(f"DIRECTORY '{mdir}' WAS SUCCSESSFULLY CREATED")
+            except FileNotFoundError:
+                print(f"THE PARENT DIRECTORY FOR '{mdir}' WAS NOT FOUND. PLEASE CREATE IT AND TRY AGAIN.")
+                sys.exit(1)
+            except PermissionError:
+                print(f"ERROR CREATING '{mdir}', PERMISSION DENIED.")
+                sys.exit(1)
+            except OSError as error:
+                print(f"AN OS ERROR WAS THROWN WHILE ATTEMPTING TO CREATE '{mdir}': '{error}'")
+                sys.exit(1)
+            except Exception as error:
+                print(f"AN ERROR WAS THROWN WHILE ATTEMPTING TO CREATE '{mdir}': '{error}'")
+                sys.exit(1)
+
     if mdir[-1] != "/":
         mdir += "/"
 
@@ -480,10 +506,12 @@ def main():
             mutantResult = handler(tmpMutantName, mutant, sourceFile, uniqueMutants, compileFile=compileFile)
         print(mutantResult, end=" ")
         mutantName = mdir + base + ".mutant." + str(mutantNo) + ending
+
         if fuzz:
             mutantName = mdir + "fuzz.out"
         if (mutantResult == "VALID") or (mutantResult == "REDUNDANT" and redundantOK):
             print("[written to", mutantName + "]", end=" ")
+
             shutil.copy(tmpMutantName, mutantName)
             validMutants.append(mutant)
             mutantNo += 1
