@@ -12,6 +12,11 @@ import random
 import os
 import py_compile
 
+
+def _basename(path):
+    return os.path.basename(path.replace("\\", "/"))
+
+
 def main():
 
     isWindows = platform.system() == "Windows"
@@ -146,8 +151,8 @@ def main():
             for l in file:
                 ignore.append(l.split()[0])
 
-    srcBase = src.split("/")[-1]
-    srcEnd = "." + ((src.split(".")[-1]).split("/")[-1])
+    srcBase = _basename(src)
+    srcEnd = os.path.splitext(srcBase)[1]
 
     count = 0.0
     killCount = 0.0
@@ -167,7 +172,7 @@ def main():
         newMutants = []
         for f1 in onlyMutants:
             for f2 in allTheMutants:
-                if f2.split("/")[-1] == f1:
+                if _basename(f2) == f1:
                     newMutants.append(f2)
         allTheMutants = newMutants
 
@@ -215,7 +220,7 @@ def main():
                         notkilled.flush()
                 for f in allTheMutants:
                     if resume:
-                        if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
+                        if (_basename(f) in alreadyKilled) or (_basename(f) in alreadyNotKilled):
                             continue
                     if f in ignore:
                         print(f, "SKIPPED")
@@ -291,12 +296,12 @@ def main():
                             break
                         if r == 0:
                             print(f, "NOT KILLED")
-                            notkilled.write(f.split("/")[-1] + "\n")
+                            notkilled.write(_basename(f) + "\n")
                             notkilled.flush()
                         else:
                             killCount += 1
                             print(f, "KILLED IN", runtime, "(RETURN CODE", str(r) + ")")
-                            killed.write(f.split("/")[-1] + "\n")
+                            killed.write(_basename(f) + "\n")
                             killed.flush()
                         print("  RUNNING SCORE:", killCount / count)
                         sys.stdout.flush()
