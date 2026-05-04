@@ -6,14 +6,6 @@ from unittest import TestCase, mock
 from universalmutator import analyze
 
 
-class _CompletedProcess:
-    def __init__(self, returncode=0):
-        self.returncode = returncode
-
-    def poll(self):
-        return self.returncode
-
-
 class TestAnalyzePathHandling(TestCase):
     def test_analyze_writes_basename_for_windows_style_mutant_paths(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -42,7 +34,7 @@ class TestAnalyzePathHandling(TestCase):
                         with mock.patch.object(
                             analyze.subprocess,
                             "Popen",
-                            return_value=_CompletedProcess(0),
+                            return_value=mock.Mock(returncode=0, poll=mock.Mock(return_value=0)),
                         ):
                             analyze.main()
 
