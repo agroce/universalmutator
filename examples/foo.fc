@@ -42,6 +42,10 @@ const modifying_builtin_tokens = "~divmod ~moddiv";
     return 7;
 }
 
+() save_data(cell c) impure inline_ref {
+    set_data(c);
+}
+
 cell make_sample_cell() inline_ref {
     cell child = begin_cell().store_uint(7, 8).end_cell();
     return begin_cell()
@@ -125,6 +129,29 @@ int coverage_ops(int a, int b) impure {
         + round_div + ceil_div + round_mod + ceil_mod;
 }
 
+() comparison_ops(int a, int b) inline_ref {
+    if (a == b) {
+        noop();
+    }
+    if (a != b) {
+        noop();
+    }
+    if (a >= b) {
+        noop();
+    }
+    if (a <= b) {
+        noop();
+    }
+    if(a > b) {
+        noop();
+    }
+
+    throw_unless(40, a == b);
+    throw_unless(41, a != b);
+    throw_unless(42, a >= b);
+    throw_unless(43, a <= b);
+}
+
 () stdlib_ops(cell input_cell) impure inline_ref {
     slice s = input_cell.begin_parse();
     builder b = begin_cell().store_uint(1, 8);
@@ -147,6 +174,13 @@ int coverage_ops(int a, int b) impure {
     var pdu = preload_uint(s, 8);
     var ldb = load_bits(s, 8);
     var pdb = preload_bits(s, 8);
+    var mpr = s.preload_ref();
+    var mpd = s.preload_dict();
+    var mpi = s.preload_int(8);
+    var mpu = s.preload_uint(8);
+    var mpb = s.preload_bits(8);
+    var tlr = s~load_ref();
+    var tld = s~load_dict();
     var lu = s~load_uint(8);
     var li = s~load_int(8);
     var lb = s~load_bits(8);
@@ -155,8 +189,16 @@ int coverage_ops(int a, int b) impure {
     var mdi = s.load_int(8);
     var mdu = s.load_uint(8);
     var mdb = s.load_bits(8);
+    var sr = store_ref(b, extra);
+    var sd = store_dict(b, extra);
+    var msr = b.store_ref(extra);
+    var msd = b.store_dict(extra);
     var bti = b~store_int(1, 8);
     var btu = b~store_uint(1, 8);
+    var sb = skip_bits(s, 1);
+    var fb = first_bits(s, 1);
+    var sl = skip_last_bits(s, 1);
+    var fl = slice_last(s, 1);
     var refs = slice_refs(s);
     var bits = slice_bits(s);
     var empty = slice_empty?(s);
@@ -164,6 +206,8 @@ int coverage_ops(int a, int b) impure {
     var rempty = slice_refs_empty?(s);
     var brefs = builder_refs(b);
     var bbits = builder_bits(b);
+    var cn = cell_null?(extra);
+    var de = dict_empty?(extra);
     var n = now();
     var lt = cur_lt();
     var blt = block_lt();
@@ -213,6 +257,8 @@ int coverage_ops(int a, int b) impure {
     var grams_fn = store_grams(begin_cell(), 321);
     var coins_fn = store_coins(begin_cell(), 654);
     var store_u = store_uint(begin_cell(), 11, 16);
+    save_data(extra);
+    set_data(extra);
     accept_message();
     commit();
     set_code(extra);

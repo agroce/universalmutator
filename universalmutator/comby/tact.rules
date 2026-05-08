@@ -96,6 +96,8 @@ curLt() ==> blockLt()
 blockLt() ==> curLt()
 inMsg() ==> context().raw
 context().raw ==> inMsg()
+sender() ==> context().sender
+context().sender ==> sender()
 sender() ==> myAddress()
 myAddress() ==> sender()
 myBalance() ==> context().value
@@ -116,6 +118,8 @@ random(0, :[max]) ==> nativeRandomInterval(:[max])
 random(:[min], :[max]) ==> random(:[max], :[min])
 abs(:[x]) ==> sign(:[x])
 sign(:[x]) ==> abs(:[x])
+min(:[x], :[y]) ==> max(:[x], :[y])
+max(:[x], :[y]) ==> min(:[x], :[y])
 mulShiftRight(:[x], :[y], :[z]) ==> mulShiftRightRound(:[x], :[y], :[z])
 mulShiftRight(:[x], :[y], :[z]) ==> mulShiftRightCeil(:[x], :[y], :[z])
 mulShiftRightRound(:[x], :[y], :[z]) ==> mulShiftRight(:[x], :[y], :[z])
@@ -154,9 +158,6 @@ as int8 ==> as uint8
 as coins ==> as uint64
 as remaining ==> as bytes32
 
-# Nullable field marker removal stays regex-only for now; generic Comby matching
-# is too broad and regularly invalidates remaining null-aware code.
-
 sender() == owner ==> sender() != owner
 sender() != owner ==> sender() == owner
 sender() == self.:[field] ==> sender() != self.:[field]
@@ -169,13 +170,17 @@ myAddress() != :[target] ==> myAddress() == :[target]
 acceptMessage(); ==> 
 
 inline fun :[rest] ==> fun :[rest]
-extends mutates fun :[rest] ==> mutates fun :[rest]
 get fun :[rest] ==> fun :[rest]
 
 message(0x:[opcode~[0-9a-fA-F]{8}]) ==> message(0xFFFFFFFF)
 
 external(:[args]) ==> receive(:[args])
 receive(:[args]) ==> external(:[args])
+
+emptyCell() ==> beginCell().endCell()
+beginCell().endCell() ==> emptyCell()
+body: null ==> body: emptyCell()
+body: emptyCell() ==> body: null
 
 :[recv].set(:[args]) ==> :[recv].replace(:[args])
 :[recv].replace(:[args]) ==> :[recv].set(:[args])

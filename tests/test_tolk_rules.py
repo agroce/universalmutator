@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import re
+from pathlib import Path
 from unittest import TestCase
 
 from universalmutator import mutator
@@ -15,6 +17,7 @@ class TestTolkRules(TestCase):
             "struct (0x01) ShortPrefix {\n",
             "    value: uint8\n",
             "}\n",
+            "type AllowedMessage = CounterIncrement | ShortPrefix\n",
             "struct AuctionConfig {\n",
             "    ownerAddress: address? = null\n",
             "    minBid: coins = 0\n",
@@ -44,6 +47,7 @@ class TestTolkRules(TestCase):
             "    var parsed = target!;\n",
             "    var casted = parsed as address;\n",
             "    var msg = Allowed.fromSlice(body, { throwIfOpcodeDoesNotMatch: ERR_INVALID_OP });\n",
+            "    var strictMsg = Allowed.fromSlice(body, { assertEndAfterReading: true });\n",
             "    return (cs, amount, casted, msg);\n",
             "}\n",
             "get fun currentCounter(): int {\n",
@@ -69,6 +73,7 @@ class TestTolkRules(TestCase):
             "    var seed = random.getSeed();\n",
             "    acceptExternalMessage();\n",
             "    commitContractDataAndActions();\n",
+            "    var stored = beginCell().storeRef(c);\n",
             "}\n",
             "fun sendModes(msg: cell) {\n",
             "    notify.send(SEND_MODE_REGULAR);\n",
@@ -79,6 +84,7 @@ class TestTolkRules(TestCase):
             "    sendRawMessage(msg, SEND_MODE_CARRY_ALL_BALANCE);\n",
             "    reserveToncoinsOnBalance(ton(\"0.01\"), RESERVE_MODE_AT_MOST);\n",
             "    reserveToncoinsOnBalance(ton(\"0.01\"), RESERVE_MODE_EXACT_AMOUNT);\n",
+            "    reserveExtraCurrenciesOnBalance(ton(\"0.01\"), null, 1);\n",
             "}\n",
             "fun stringsOps(metadataUri: string) {\n",
             "    var offchain = metadataUri.prefixWith00();\n",
@@ -92,9 +98,9 @@ class TestTolkRules(TestCase):
             "    val oldHash = stringSha256(\"legacy\");\n",
             "    val oldMinihash = stringSha256_32(\"legacy\");\n",
             "}\n",
-            "fun classify(value: CounterIncrement | null, body: slice) {\n",
+            "fun classify(value: AllowedMessage | null, body: slice) {\n",
             "    val msg = lazy AllowedMessage.fromSlice(body);\n",
-            "    if (value is CounterIncrement) {\n",
+            "    if (value is CounterIncrement && true) {\n",
                 "        var noBounce = BounceMode.NoBounce;\n",
             "        var rich = BounceMode.RichBounce;\n",
             "        var root = BounceMode.RichBounceOnlyRootCell;\n",
@@ -121,18 +127,21 @@ class TestTolkRules(TestCase):
         self.assertIn("struct (0xFFFFFFFF) CounterIncrement {", mutant_lines)
         self.assertIn("struct (0x00000000) ShortPrefix {", mutant_lines)
         self.assertIn("struct (0xFFFFFFFF) ShortPrefix {", mutant_lines)
+        self.assertNotIn("type AllowedMessage = CounterIncrement ^ ShortPrefix", mutant_lines)
         self.assertIn("    ownerAddress: address?", mutant_lines)
         self.assertIn("    minBid: coins", mutant_lines)
         self.assertIn("    incBy: int32", mutant_lines)
         self.assertIn("    decBy: uint32", mutant_lines)
-        self.assertIn("fun CounterIncrement.bump(self): self {", mutant_lines)
+        self.assertNotIn("fun CounterIncrement.bump(self): self {", mutant_lines)
         self.assertIn("@noinline", mutant_lines)
         self.assertIn("@inline", mutant_lines)
         self.assertIn("fun inlineFn(a: int, delta: int): int {", mutant_lines)
         self.assertIn("fun helper(cs: slice, mutate amount: int, target: Cell<address>?, body: slice) {", mutant_lines)
         self.assertIn("fun helper(mutate cs: slice, amount: int, target: Cell<address>?, body: slice) {", mutant_lines)
+        self.assertIn("    assert (!(amount > 0)) throw ERR;", mutant_lines)
         self.assertIn("    var parsed = target;", mutant_lines)
         self.assertIn("    var msg = Allowed.fromSlice(body, { throwIfOpcodeDoesNotMatch: 63 });", mutant_lines)
+        self.assertIn("    var strictMsg = Allowed.fromSlice(body, { assertEndAfterReading: false });", mutant_lines)
         self.assertIn("fun currentCounter(): int {", mutant_lines)
         self.assertIn("    var x = a as int32;", mutant_lines)
         self.assertIn("    var y = b as uint32;", mutant_lines)
@@ -148,9 +157,12 @@ class TestTolkRules(TestCase):
         self.assertIn("    var gasNoFlat = calculateGasFee(0, 100);", mutant_lines)
         self.assertIn("    var rnd = random.getSeed();", mutant_lines)
         self.assertIn("    var seed = random.uint256();", mutant_lines)
+        self.assertNotIn("    var rnd = random.int256();", mutant_lines)
         self.assertIn("    commitContractDataAndActions();", mutant_lines)
         self.assertIn("    acceptExternalMessage();", mutant_lines)
+        self.assertIn("    var stored = beginCell().storeMaybeRef(c);", mutant_lines)
         self.assertIn("    notify.send(SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE);", mutant_lines)
+        self.assertIn("    notify.sendAndEstimateFee(SEND_MODE_REGULAR);", mutant_lines)
         self.assertIn("    deploy.send(64);", mutant_lines)
         self.assertIn("    sendRawMessage(msg, 64);", mutant_lines)
         self.assertIn("    sendRawMessage(msg, 0 | SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE);", mutant_lines)
@@ -165,16 +177,29 @@ class TestTolkRules(TestCase):
         self.assertIn("    sendRawMessage(msg, SEND_MODE_REGULAR);", mutant_lines)
         self.assertIn('    reserveToncoinsOnBalance(ton("0.01"), RESERVE_MODE_EXACT_AMOUNT);', mutant_lines)
         self.assertIn('    reserveToncoinsOnBalance(ton("0.01"), RESERVE_MODE_AT_MOST);', mutant_lines)
+        self.assertIn(
+            '    reserveExtraCurrenciesOnBalance(ton("0.01"), null, RESERVE_MODE_AT_MOST);',
+            mutant_lines,
+        )
+        self.assertIn(
+            '    reserveToncoinsOnBalance(ton("0.01"), 1);',
+            mutant_lines,
+        )
         self.assertIn('    val oldCrc = stringCrc16("legacy");', mutant_lines)
         self.assertIn('    val oldSmall = stringCrc32("legacy");', mutant_lines)
         self.assertIn('    val oldHash = stringSha256_32("legacy");', mutant_lines)
         self.assertIn('    val oldMinihash = stringSha256("legacy");', mutant_lines)
         self.assertIn("    val msg = AllowedMessage.fromSlice(body);", mutant_lines)
-        self.assertIn("    if (value !is CounterIncrement) {", mutant_lines)
-        self.assertIn("    if (value is CounterIncrement) {", mutant_lines)
+        self.assertNotIn("fun classify(value: AllowedMessage ^ null, body: slice) {", mutant_lines)
+        self.assertNotIn("    if (value !is CounterIncrement && true) {", mutant_lines)
+        self.assertNotIn("    if (value is CounterIncrement || true) {", mutant_lines)
+        self.assertNotIn("    if (value is CounterIncrement) {", mutant_lines)
         self.assertIn("        var noBounce = BounceMode.RichBounce;", mutant_lines)
+        self.assertIn("        var rich = BounceMode.NoBounce;", mutant_lines)
         self.assertIn("        var root = BounceMode.RichBounce;", mutant_lines)
         self.assertIn("        var shortBody = BounceMode.RichBounce;", mutant_lines)
+        self.assertNotIn("    if (value is CounterIncrement) {", mutant_lines)
+        self.assertNotIn("    if (msg is CounterIncrement) {", mutant_lines)
 
     def test_tolk_common_regex_rules_generate_expected_mutants(self):
         source = [
@@ -236,3 +261,55 @@ class TestTolkRules(TestCase):
         self.assertNotIn("    // while (cond) {", mutant_lines)
         self.assertNotIn("    // var tval = true;", mutant_lines)
         self.assertNotIn("        // SEND_MODE_REGULAR);", mutant_lines)
+
+    def test_tolk_remaining_gap_rules_generate_expected_mutants(self):
+        source = [
+            "fun parityOps(flag: bool, amount: int, code: cell) {\n",
+            "    assert (amount > 0) throw ERR;\n",
+            "    throw ERR;\n",
+            "    wallet.save();\n",
+            "    contract.setData(code);\n",
+            "    acceptExternalMessage();\n",
+            "    commitContractDataAndActions();\n",
+            "    contract.setCodePostponed(code);\n",
+            "    var denied = !flag;\n",
+            "    var inverted = ~amount;\n",
+            "    var neg = -amount;\n",
+            "    amount *= 2;\n",
+            "    amount %= 3;\n",
+            "}\n",
+        ]
+
+        mutants = mutator.mutants_regexp(
+            source,
+            ruleFiles=["ton_common.rules", "tolk.rules"],
+            ignorePatterns=[],
+        )
+
+        def has_mutant(original_line, expected_line):
+            lineno = source.index(original_line) + 1
+            return any(mutant[0] == lineno and mutant[1] == expected_line for mutant in mutants)
+
+        self.assertTrue(has_mutant("    assert (amount > 0) throw ERR;\n", "    \n"))
+        self.assertTrue(has_mutant("    throw ERR;\n", "    \n"))
+        self.assertTrue(has_mutant("    wallet.save();\n", "    \n"))
+        self.assertTrue(has_mutant("    contract.setData(code);\n", "    \n"))
+        self.assertTrue(has_mutant("    acceptExternalMessage();\n", "    \n"))
+        self.assertTrue(has_mutant("    commitContractDataAndActions();\n", "    \n"))
+        self.assertTrue(has_mutant("    contract.setCodePostponed(code);\n", "    \n"))
+        self.assertTrue(has_mutant("    var denied = !flag;\n", "    var denied = flag;\n"))
+        self.assertTrue(has_mutant("    var inverted = ~amount;\n", "    var inverted = amount;\n"))
+        self.assertTrue(has_mutant("    var neg = -amount;\n", "    var neg = amount;\n"))
+        self.assertTrue(has_mutant("    amount *= 2;\n", "    amount %= 2;\n"))
+        self.assertTrue(has_mutant("    amount %= 3;\n", "    amount *= 3;\n"))
+
+    def test_foo_example_matches_all_static_tolk_rule_patterns(self):
+        source = Path("examples/foo.tolk").read_text(encoding="utf-8")
+        rules, _, _ = mutator.parseRules(["tolk.rules"])
+        missing = []
+
+        for ((lhs, rhs), rule_meta) in rules:
+            if not re.search(lhs.pattern, source, re.MULTILINE):
+                missing.append((rule_meta[1], lhs.pattern, rhs))
+
+        self.assertEqual([], missing)

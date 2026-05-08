@@ -16,9 +16,10 @@
 (?<!>)>=(?!=) ==> >
 (?<!>)>=(?!=) ==> ==
 
-# Logical operator swap.
-&& ==> ||
-\|\| ==> &&
+# Logical operator swap. Skip lines with Tolk type guards; changing
+# `value is T && ...` to `||` breaks narrowing and often stops compiling.
+^(?!.*(?:\bis\b|!is\b))(.*)&&(.+)$ ==> \1||\2
+^(?!.*(?:\bis\b|!is\b))(.*)\|\|(.+)$ ==> \1&&\2
 
 # Loop forcing shared by Tact, FunC, and Tolk.
 \bwhile (\(.*\)) ==> while (false)

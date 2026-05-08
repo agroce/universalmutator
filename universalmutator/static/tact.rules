@@ -25,7 +25,6 @@
 # --------------------------------
 \bthrowIf\b ==> throwUnless
 \bthrowUnless\b ==> throwIf
-!! ==> 
 
 # --------------------------------
 # Tact conditional forcing
@@ -103,6 +102,8 @@ repeat(\(.*\)) ==> repeat(0)
 # --------------------------------
 \babs\s*\( ==> sign(
 \bsign\s*\( ==> abs(
+\bmin\s*\( ==> max(
+\bmax\s*\( ==> min(
 \bmulShiftRight\b ==> mulShiftRightRound
 \bmulShiftRight\b ==> mulShiftRightCeil
 \bmulShiftRightRound\b ==> mulShiftRight
@@ -191,6 +192,8 @@ repeat(\(.*\)) ==> repeat(0)
 (?<!fun\s)\bblockLt\s*\(\s*\) ==> curLt()
 (?<!fun\s)\binMsg\s*\(\s*\) ==> context().raw
 \bcontext\(\)\.raw\b ==> inMsg()
+(?<!fun\s)\bsender\s*\(\s*\) ==> context().sender
+\bcontext\(\)\.sender\b ==> sender()
 (?<!fun\s)\bsender\s*\(\s*\) ==> myAddress()
 (?<!fun\s)\bmyAddress\s*\(\s*\) ==> sender()
 (?<!fun\s)\bmyBalance\s*\(\s*\) ==> context().value
@@ -249,17 +252,6 @@ repeat(\(.*\)) ==> repeat(0)
 \bas\s+remaining\b ==> as bytes32
 
 # --------------------------------
-# Optional field declarations
-# STORAGE / MODERATE-NOISE
-# --------------------------------
-:\s*Address\?\s*; ==> : Address;
-:\s*Cell\?\s*; ==> : Cell;
-:\s*Slice\?\s*; ==> : Slice;
-:\s*Int\?\s*; ==> : Int;
-:\s*Bool\?\s*; ==> : Bool;
-:\s*String\?\s*; ==> : String;
-
-# --------------------------------
 # Access control: sender / owner patterns
 # SECURITY-RELEVANT / REGEX-SAFE
 # --------------------------------
@@ -285,8 +277,6 @@ repeat(\(.*\)) ==> repeat(0)
 # ABI/INTERFACE / MODERATE-NOISE
 # --------------------------------
 \binline\s+fun\b ==> fun
-\bextends\s+mutates\s+fun\b ==> mutates fun
-\bextends\s+fun\b ==> fun
 \bget\s+fun\b ==> fun
 
 # --------------------------------
@@ -301,7 +291,15 @@ message\(\s*0x([0-9a-fA-F]{8})\s*\) ==> message(0xFFFFFFFF)
 # --------------------------------
 \bexternal\s*\( ==> receive(
 \breceive\s*\( ==> external(
-\bbounced\s*\( ==> receive(
+
+# --------------------------------
+# Tact constructors / optional Cell parameters
+# LOW-NOISE / REGEX-SAFE
+# --------------------------------
+\bemptyCell\s*\(\s*\) ==> beginCell().endCell()
+\bbeginCell\s*\(\s*\)\s*\.\s*endCell\s*\(\s*\) ==> emptyCell()
+\bbody\s*:\s*null\b ==> body: emptyCell()
+\bbody\s*:\s*emptyCell\s*\(\s*\) ==> body: null
 
 # --------------------------------
 # Storage helpers / map operations

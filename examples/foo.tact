@@ -144,6 +144,11 @@ contract MutationHarness {
         let both = eq && true;
         let either = neq || false;
         let chosen = msg.amount > forced ? msg.amount : forced;
+        let minBound = min(msg.amount, forced);
+        let maxBound = max(msg.amount, forced);
+        let ctxSender = context().sender;
+        let ctxSenderOk = ctxSender == sender();
+        let builtCell = beginCell().endCell();
 
         let acc = msg.amount;
         acc += 5;
@@ -213,6 +218,7 @@ contract MutationHarness {
         let outgoingFlag32 = SendParameters { bounce: true, mode: 32, value: 0, to: sender(), body: null };
         let outgoingFlag128 = SendParameters { bounce: false, mode: 128, value: 1, to: sender(), body: null };
         let outgoingFeeOnly = SendParameters { bounce: false, mode: 1024, value: 1, to: sender(), body: null };
+        let preparedBody = SendParameters { bounce: false, mode: 0, value: 1, to: sender(), body: emptyCell() };
 
         self.store.set(msg.amount, msg.amount + 1);
         self.store.replace(msg.amount, msg.amount + 2);
@@ -255,12 +261,12 @@ contract MutationHarness {
         self.counter += sum + diff + prod + ratio + lowBit + highBit + mixedBit + leftShift + rightShift;
         self.counter += balance + debt + spent + incoming + fee + raw.bits() + rawFromContext.bits();
         self.counter += lt + blk + seed + rnd + nativeRnd + interval + range + flipped;
-        self.counter += mag + signum + baseRound + rounded + ceiled + lg + lg10 + pw + pw10;
+        self.counter += mag + signum + baseRound + rounded + ceiled + lg + lg10 + pw + pw10 + minBound + maxBound;
         self.counter += self.tinyUnsigned + self.smallUnsigned + self.midUnsigned + self.bigUnsigned;
         self.counter += self.smallSigned + self.signed16Value + self.signed32Value + self.signed64Value + self.midSigned + self.bigSigned;
         self.counter += self.coinsValue + chosen + ignoredContinue + ignoredBreak + tightLoop + quickRepeat;
         self.counter += namedDefault + namedRemain + namedBalance + namedFee + flags + moreFlags + reserveExact + reserveMode + reserveAtMost + reserveFlags;
-        self.counter += outgoingZero.mode + outgoingTwo.mode + outgoing.mode + outgoingFlag1.mode + outgoingFlag16.mode + outgoingFlag32.mode + outgoingFlag128.mode + outgoingFeeOnly.mode;
+        self.counter += outgoingZero.mode + outgoingTwo.mode + outgoing.mode + outgoingFlag1.mode + outgoingFlag16.mode + outgoingFlag32.mode + outgoingFlag128.mode + outgoingFeeOnly.mode + preparedBody.mode + builtCell.asSlice().bits();
         if (both) {
             self.counter += 1;
         }
@@ -270,7 +276,7 @@ contract MutationHarness {
         if (forcedFlag) {
             self.counter += 1;
         }
-        if (eq || neq || le || ge || ltCmp || gtCmp || missingCell || presentText || missingSlice || presentFlag || senderOk || senderBad || fieldOk || fieldBad || adminOk || adminBad || addrOk || addrBad) {
+        if (eq || neq || le || ge || ltCmp || gtCmp || missingCell || presentText || missingSlice || presentFlag || senderOk || senderBad || fieldOk || fieldBad || adminOk || adminBad || addrOk || addrBad || ctxSenderOk) {
             self.counter += 1;
         }
     }

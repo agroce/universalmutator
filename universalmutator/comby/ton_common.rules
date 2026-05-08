@@ -12,8 +12,8 @@ false ==> true
 :[lhs~[^,\n]+] >= :[rhs~[^,\n]+] ==> :[lhs] > :[rhs]
 :[lhs~[^,\n]+] >= :[rhs~[^,\n]+] ==> :[lhs] == :[rhs]
 
-:[lhs] && :[rhs] ==> :[lhs] || :[rhs]
-:[lhs] || :[rhs] ==> :[lhs] && :[rhs]
+:[lhs~(?!.*(?:\bis\b|!is\b)).*] && :[rhs~(?!.*(?:\bis\b|!is\b)).*] ==> :[lhs] || :[rhs]
+:[lhs~(?!.*(?:\bis\b|!is\b)).*] || :[rhs~(?!.*(?:\bis\b|!is\b)).*] ==> :[lhs] && :[rhs]
 
 while (:[cond]) ==> while (false)
 while(:[cond]) ==> while(false)

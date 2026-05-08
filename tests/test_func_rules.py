@@ -28,28 +28,34 @@ class TestFuncRules(TestCase):
             "  var pr = preload_ref(s);\n",
             "  var ld = load_dict(s);\n",
             "  var pd = preload_dict(s);\n",
-            "  var lm = load_maybe_ref(s);\n",
-            "  var pm = preload_maybe_ref(s);\n",
             "  var ldi = load_int(s, 8);\n",
             "  var pdi = preload_int(s, 8);\n",
             "  var ldu = load_uint(s, 8);\n",
             "  var pdu = preload_uint(s, 8);\n",
             "  var ldb = load_bits(s, 8);\n",
             "  var pdb = preload_bits(s, 8);\n",
+            "  var mpr = s.preload_ref();\n",
+            "  var mpd = s.preload_dict();\n",
+            "  var mpi = s.preload_int(8);\n",
+            "  var mpu = s.preload_uint(8);\n",
+            "  var mpb = s.preload_bits(8);\n",
+            "  var tlr = s~load_ref();\n",
+            "  var tld = s~load_dict();\n",
             "  var lu = s~load_uint(32);\n",
             "  var li = s~load_int(32);\n",
             "  var su = b.store_uint(1, 32);\n",
             "  var si = b.store_int(1, 32);\n",
-            "  var mdi = s.load_int(8);\n",
-            "  var mdu = s.load_uint(8);\n",
-            "  var mdb = s.load_bits(8);\n",
             "  var tli = s~load_int(8);\n",
             "  var tlu = s~load_uint(8);\n",
             "  var tlb = s~load_bits(8);\n",
-            "  var bdi = b.store_int(1, 8);\n",
-            "  var bdu = b.store_uint(1, 8);\n",
-            "  var bti = b~store_int(1, 8);\n",
-            "  var btu = b~store_uint(1, 8);\n",
+            "  var sr = store_ref(b, c);\n",
+            "  var sd = store_dict(b, c);\n",
+            "  var msr = b.store_ref(c);\n",
+            "  var msd = b.store_dict(c);\n",
+            "  var sb = skip_bits(s, 8);\n",
+            "  var fb = first_bits(s, 8);\n",
+            "  var sl = skip_last_bits(s, 8);\n",
+            "  var fl = slice_last(s, 8);\n",
             "  var refs = slice_refs(s);\n",
             "  var bits = slice_bits(s);\n",
             "  var empty = slice_empty?(s);\n",
@@ -57,6 +63,8 @@ class TestFuncRules(TestCase):
             "  var rempty = slice_refs_empty?(s);\n",
             "  var brefs = builder_refs(b);\n",
             "  var bbits = builder_bits(b);\n",
+            "  var cn = cell_null?(c);\n",
+            "  var de = dict_empty?(c);\n",
             "  var n = now();\n",
             "  var lt = cur_lt();\n",
             "  var blt = block_lt();\n",
@@ -80,11 +88,6 @@ class TestFuncRules(TestCase):
             "  var mu2 = muldivr(10, 2, 3);\n",
             "  var mu3 = muldivc(10, 2, 3);\n",
             "  var mu4 = muldivmod(10, 2, 3);\n",
-            "  var ia = int_at(t, 0);\n",
-            "  var ca = cell_at(t, 0);\n",
-            "  var sa = slice_at(t, 0);\n",
-            "  var ta = tuple_at(t, 0);\n",
-            "  var ga = at(t, 0);\n",
             "  accept_message();\n",
             "  commit();\n",
             "  set_code(c);\n",
@@ -108,32 +111,35 @@ class TestFuncRules(TestCase):
         self.assertNotIn("int get_counter() method_id(0) {", mutant_lines)
         self.assertNotIn("int get_counter2() method_id(0) {", mutant_lines)
 
-        self.assertIn("  var lr = preload_ref(s);", mutant_lines)
-        self.assertIn("  var pr = load_ref(s);", mutant_lines)
-        self.assertIn("  var ld = preload_dict(s);", mutant_lines)
-        self.assertIn("  var pd = load_dict(s);", mutant_lines)
-        self.assertIn("  var lm = preload_maybe_ref(s);", mutant_lines)
-        self.assertIn("  var pm = load_maybe_ref(s);", mutant_lines)
-        self.assertIn("  var ldi = preload_int(s, 8);", mutant_lines)
-        self.assertIn("  var pdi = load_int(s, 8);", mutant_lines)
-        self.assertIn("  var ldu = preload_uint(s, 8);", mutant_lines)
-        self.assertIn("  var pdu = load_uint(s, 8);", mutant_lines)
-        self.assertIn("  var ldb = preload_bits(s, 8);", mutant_lines)
-        self.assertIn("  var pdb = load_bits(s, 8);", mutant_lines)
+        self.assertIn("  var pr = s~load_ref();", mutant_lines)
+        self.assertIn("  var pd = s~load_dict();", mutant_lines)
+        self.assertIn("  var pdi = s~load_int(8);", mutant_lines)
+        self.assertIn("  var pdu = s~load_uint(8);", mutant_lines)
+        self.assertIn("  var pdb = s~load_bits(8);", mutant_lines)
+        self.assertIn("  var mpr = s~load_ref();", mutant_lines)
+        self.assertIn("  var mpd = s~load_dict();", mutant_lines)
+        self.assertIn("  var mpi = s~load_int(8);", mutant_lines)
+        self.assertIn("  var mpu = s~load_uint(8);", mutant_lines)
+        self.assertIn("  var mpb = s~load_bits(8);", mutant_lines)
+        self.assertIn("  var tlr = s.preload_ref();", mutant_lines)
+        self.assertIn("  var tld = s.preload_dict();", mutant_lines)
         self.assertIn("  var lu = s~load_int(32);", mutant_lines)
+        self.assertIn("  var lu = s.preload_uint(32);", mutant_lines)
         self.assertIn("  var li = s~load_uint(32);", mutant_lines)
+        self.assertIn("  var li = s.preload_int(32);", mutant_lines)
         self.assertIn("  var su = b.store_int(1, 32);", mutant_lines)
         self.assertIn("  var si = b.store_uint(1, 32);", mutant_lines)
-        self.assertIn("  var mdi = s~load_int(8);", mutant_lines)
-        self.assertIn("  var mdu = s~load_uint(8);", mutant_lines)
-        self.assertIn("  var mdb = s~load_bits(8);", mutant_lines)
-        self.assertIn("  var tli = s.load_int(8);", mutant_lines)
-        self.assertIn("  var tlu = s.load_uint(8);", mutant_lines)
-        self.assertIn("  var tlb = s.load_bits(8);", mutant_lines)
-        self.assertIn("  var bdi = b~store_int(1, 8);", mutant_lines)
-        self.assertIn("  var bdu = b~store_uint(1, 8);", mutant_lines)
-        self.assertIn("  var bti = b.store_int(1, 8);", mutant_lines)
-        self.assertIn("  var btu = b.store_uint(1, 8);", mutant_lines)
+        self.assertIn("  var tli = s.preload_int(8);", mutant_lines)
+        self.assertIn("  var tlu = s.preload_uint(8);", mutant_lines)
+        self.assertIn("  var tlb = s.preload_bits(8);", mutant_lines)
+        self.assertIn("  var sr = store_dict(b, c);", mutant_lines)
+        self.assertIn("  var sd = store_ref(b, c);", mutant_lines)
+        self.assertIn("  var msr = b.store_dict(c);", mutant_lines)
+        self.assertIn("  var msd = b.store_ref(c);", mutant_lines)
+        self.assertIn("  var sb = first_bits(s, 8);", mutant_lines)
+        self.assertIn("  var fb = skip_bits(s, 8);", mutant_lines)
+        self.assertIn("  var sl = slice_last(s, 8);", mutant_lines)
+        self.assertIn("  var fl = skip_last_bits(s, 8);", mutant_lines)
 
         self.assertIn("  var refs = slice_bits(s);", mutant_lines)
         self.assertIn("  var bits = slice_refs(s);", mutant_lines)
@@ -145,6 +151,8 @@ class TestFuncRules(TestCase):
         self.assertIn("  var rempty = slice_data_empty?(s);", mutant_lines)
         self.assertIn("  var brefs = builder_bits(b);", mutant_lines)
         self.assertIn("  var bbits = builder_refs(b);", mutant_lines)
+        self.assertIn("  var cn = dict_empty?(c);", mutant_lines)
+        self.assertIn("  var de = cell_null?(c);", mutant_lines)
 
         self.assertIn("  var n = cur_lt();", mutant_lines)
         self.assertIn("  var lt = block_lt();", mutant_lines)
@@ -171,12 +179,7 @@ class TestFuncRules(TestCase):
         self.assertIn("  var mu1 = muldivr(10, 2, 3);", mutant_lines)
         self.assertIn("  var mu2 = muldivc(10, 2, 3);", mutant_lines)
         self.assertIn("  var mu3 = muldiv(10, 2, 3);", mutant_lines)
-        self.assertIn("  var mu4 = divmod(10, 2, 3);", mutant_lines)
-        self.assertIn("  var ia = cell_at(t, 0);", mutant_lines)
-        self.assertIn("  var ca = slice_at(t, 0);", mutant_lines)
-        self.assertIn("  var sa = tuple_at(t, 0);", mutant_lines)
-        self.assertIn("  var ta = int_at(t, 0);", mutant_lines)
-        self.assertIn("  var ga = tuple_at(t, 0);", mutant_lines)
+        self.assertIn("  var mu4 = divmod(10, 2);", mutant_lines)
         self.assertIn("  ;", mutant_lines)
         self.assertIn("  throw_arg_if(1, 2, 3);", mutant_lines)
         self.assertIn("  throw_arg_unless(1, 2, 3);", mutant_lines)

@@ -166,10 +166,10 @@ class TestTactRules(TestCase):
         self.assertIn("    receive(msg: Slice) {}", mutant_lines)
         self.assertIn("    fun helper() {}", mutant_lines)
         self.assertIn("    store.replace(key, value);", mutant_lines)
-        self.assertIn("    let opt = maybeValue;", mutant_lines)
+        self.assertNotIn("    let opt = maybeValue;", mutant_lines)
         self.assertIn("    let amount = payload as uint128;", mutant_lines)
         self.assertIn("    let amount = payload as int256;", mutant_lines)
-        self.assertIn("field: Address;", mutant_lines)
+        self.assertNotIn("field: Address;", mutant_lines)
         self.assertNotIn("// field: Address?;", mutant_lines)
         self.assertIn("    let incoming = 0;", mutant_lines)
         self.assertIn("    if (0 > minValue) {}", mutant_lines)
@@ -209,6 +209,49 @@ class TestTactRules(TestCase):
         self.assertIn("    let reserveMode = ReserveAllExcept | 0;", mutant_lines)
         self.assertIn("    nativeReserve(amount, 0);", mutant_lines)
         self.assertIn("    nativeReserve(amount, 2);", mutant_lines)
+
+    def test_tact_rules_add_compile_safe_tact_families(self):
+        source = [
+            "let low = min(left, right);\n",
+            "let high = max(left, right);\n",
+            "let who = context().sender;\n",
+            "let reply = sender();\n",
+            "let empty = emptyCell();\n",
+            "let built = beginCell().endCell();\n",
+            "let outgoing = SendParameters { body: null, value: 1, to: sender() };\n",
+            "let seeded = SendParameters { body: emptyCell(), value: 1, to: sender() };\n",
+        ]
+
+        mutant_lines_by_lineno = self._mutant_lines_by_lineno(source)
+
+        self.assertIn("let low = max(left, right);", mutant_lines_by_lineno[1])
+        self.assertIn("let high = min(left, right);", mutant_lines_by_lineno[2])
+        self.assertIn("let who = sender();", mutant_lines_by_lineno[3])
+        self.assertIn("let reply = context().sender;", mutant_lines_by_lineno[4])
+        self.assertIn("let empty = beginCell().endCell();", mutant_lines_by_lineno[5])
+        self.assertIn("let built = emptyCell();", mutant_lines_by_lineno[6])
+        self.assertIn(
+            "let outgoing = SendParameters { body: emptyCell(), value: 1, to: sender() };",
+            mutant_lines_by_lineno[7],
+        )
+        self.assertIn(
+            "let seeded = SendParameters { body: null, value: 1, to: sender() };",
+            mutant_lines_by_lineno[8],
+        )
+
+    def test_foo_tact_fixture_covers_compile_safe_tact_rule_triggers(self):
+        source = Path("examples/foo.tact").read_text(encoding="utf-8").splitlines(keepends=True)
+
+        mutant_lines = self._mutant_lines(source)
+
+        self.assertIn("        let minBound = max(msg.amount, forced);", mutant_lines)
+        self.assertIn("        let maxBound = min(msg.amount, forced);", mutant_lines)
+        self.assertIn("        let ctxSender = sender();", mutant_lines)
+        self.assertIn("        let builtCell = emptyCell();", mutant_lines)
+        self.assertIn(
+            "        let preparedBody = SendParameters { bounce: false, mode: 0, value: 1, to: sender(), body: null };",
+            mutant_lines,
+        )
 
     def test_tact_rules_skip_imports_and_comment_only_lines(self):
         source = [
@@ -313,16 +356,16 @@ class TestTactRules(TestCase):
         self.assertIn("let flags = SendPayGasSeparately | SendIgnoreErrors | 0 | SendRemainingBalance;", mutant_lines_by_lineno[18])
         self.assertIn("let flags = SendPayGasSeparately | SendIgnoreErrors | SendRemainingValue | 0;", mutant_lines_by_lineno[18])
         self.assertIn("fun info() {}", mutant_lines_by_lineno[19])
-        self.assertIn("fun helper() {}", mutant_lines_by_lineno[20])
-        self.assertIn("mutates fun helper2() {}", mutant_lines_by_lineno[21])
+        self.assertNotIn("fun helper() {}", mutant_lines_by_lineno.get(20, set()))
+        self.assertNotIn("mutates fun helper2() {}", mutant_lines_by_lineno.get(21, set()))
         self.assertIn("external(msg: Slice) {}", mutant_lines_by_lineno[22])
-        self.assertIn("receive(msg: Slice) {}", mutant_lines_by_lineno[23])
+        self.assertNotIn("receive(msg: Slice) {}", mutant_lines_by_lineno.get(23, set()))
         self.assertIn("store.set(key, value);", mutant_lines_by_lineno[24])
         self.assertIn("let width1 = amount as int128;", mutant_lines_by_lineno[25])
         self.assertIn("let width1 = amount as uint256;", mutant_lines_by_lineno[25])
         self.assertIn("let width2 = amount as uint64;", mutant_lines_by_lineno[26])
-        self.assertIn("field1: Cell;", mutant_lines_by_lineno[27])
-        self.assertIn("field2: String;", mutant_lines_by_lineno[28])
+        self.assertNotIn("field1: Cell;", mutant_lines_by_lineno.get(27, set()))
+        self.assertNotIn("field2: String;", mutant_lines_by_lineno.get(28, set()))
         self.assertIn("let acl1 = sender() == owner;", mutant_lines_by_lineno[29])
         self.assertIn("let acl2 = self.owner != sender();", mutant_lines_by_lineno[30])
         self.assertIn("let acl3 = sender() != self.admin;", mutant_lines_by_lineno[31])

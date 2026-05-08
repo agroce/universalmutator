@@ -18,14 +18,19 @@ if (:[cond]) ==> if (true)
 
 # Bitwise/logical operator shuffle.  \w+ holes keep us from swallowing whole
 # type declarations while still matching SEND_MODE_* | SEND_MODE_* etc.
-:[a~\w+] | :[b~\w+] ==> :[a] ^ :[b]
 :[a] & :[b] ==> :[a] ^ :[b]
-
-:[lhs] is :[rhs] ==> :[lhs] !is :[rhs]
-:[lhs] !is :[rhs] ==> :[lhs] is :[rhs]
 
 # Comment-replacement for standalone assert statements.
 assert (:[cond]) throw :[err]; ==> // assert (:[cond]) throw :[err];
+assert (:[cond]) throw :[err]; ==> assert (!(:[cond])) throw :[err];
+
+assert (:[cond]) throw :[err]; ==> 
+throw :[err]; ==> 
+:[obj].save(:[args]); ==> 
+contract.setData(:[args]); ==> 
+acceptExternalMessage(); ==> 
+commitContractDataAndActions(); ==> 
+contract.setCodePostponed(:[args]); ==> 
 
 # Non-literal / non-ton value initialisers (e.g. value: msgValue).
 value: :[expr~[a-zA-Z0-9_.]+] ==> value: 0
@@ -60,10 +65,14 @@ varuint16 ==> varint16
 varint16 ==> varuint16
 varuint32 ==> varint32
 varint32 ==> varuint32
+:[lhs] *= :[rhs] ==> :[lhs] %= :[rhs]
+:[lhs] %= :[rhs] ==> :[lhs] *= :[rhs]
 as uint:[n~(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-6])] ==> as int:[n]
 as int:[n~(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-6])] ==> as uint:[n]
 :[expr]! ==> :[expr]
 throwIfOpcodeDoesNotMatch: :[err] ==> throwIfOpcodeDoesNotMatch: 63
+assertEndAfterReading: true ==> assertEndAfterReading: false
+assertEndAfterReading: false ==> assertEndAfterReading: true
 blockchain.now ==> blockchain.logicalTime
 blockchain.logicalTime ==> blockchain.currentBlockLogicalTime
 blockchain.currentBlockLogicalTime ==> blockchain.logicalTime
@@ -87,6 +96,7 @@ random.getSeed ==> random.uint256
 :[recv].loadUint(:[args]) ==> :[recv].loadInt(:[args])
 :[recv].preloadInt(:[args]) ==> :[recv].preloadUint(:[args])
 :[recv].preloadUint(:[args]) ==> :[recv].preloadInt(:[args])
+:[recv].storeRef(:[args]) ==> :[recv].storeMaybeRef(:[args])
 :[recv].storeInt(:[args]) ==> :[recv].storeUint(:[args])
 :[recv].storeUint(:[args]) ==> :[recv].storeInt(:[args])
 :[recv].remainingBitsCount() ==> :[recv].remainingRefsCount()
@@ -99,6 +109,7 @@ random.getSeed ==> random.uint256
 :[recv].getLastBits(:[args]) ==> :[recv].getFirstBits(:[args])
 :[recv~(?!\s*fun\b).*].getStorageDuePayment() ==> :[recv].getStoragePaidPayment()
 :[recv~(?!\s*fun\b).*].getStoragePaidPayment() ==> :[recv].getStorageDuePayment()
+:[msg].send(:[mode]) ==> :[msg].sendAndEstimateFee(:[mode])
 :[recv~(?!\s*fun\b).*].sendAndEstimateFee(:[args]) ==> :[recv].estimateFeeWithoutSending(:[args])
 :[recv~(?!\s*fun\b).*].estimateFeeWithoutSending(:[args]) ==> :[recv].sendAndEstimateFee(:[args])
 :[recv~(?!\s*fun\b).*].isInternal() ==> :[recv].isExternal()
@@ -249,6 +260,8 @@ reserveToncoinsOnBalance(:[amount], 0) ==> reserveToncoinsOnBalance(:[amount], 1
 reserveToncoinsOnBalance(:[amount], 2) ==> reserveToncoinsOnBalance(:[amount], 0)
 reserveToncoinsOnBalance(:[amount], 0) ==> reserveToncoinsOnBalance(:[amount], 2)
 reserveToncoinsOnBalance(:[amount], 1) ==> reserveToncoinsOnBalance(:[amount], 0)
+reserveToncoinsOnBalance(:[amount], :[mode]) ==> reserveExtraCurrenciesOnBalance(:[amount], null, :[mode])
+reserveExtraCurrenciesOnBalance(:[amount], :[extra], :[mode]) ==> reserveToncoinsOnBalance(:[amount], :[mode])
 reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0) ==> reserveExtraCurrenciesOnBalance(:[amount], :[extra], 1)
 reserveExtraCurrenciesOnBalance(:[amount], :[extra], 2) ==> reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0)
 reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0) ==> reserveExtraCurrenciesOnBalance(:[amount], :[extra], 2)
@@ -259,6 +272,7 @@ value: 1 ==> value: 0
 # such as ton("0.01") get re-escaped by generic Comby substitution.
 
 BounceMode.NoBounce ==> BounceMode.RichBounce
+BounceMode.RichBounce ==> BounceMode.NoBounce
 BounceMode.Only256BitsOfBody ==> BounceMode.RichBounce
 BounceMode.RichBounceOnlyRootCell ==> BounceMode.RichBounce
 

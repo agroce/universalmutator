@@ -93,25 +93,31 @@ repeat(\(.*\)) ==> repeat(0)
 \brandom\s*\( ==> get_seed(
 \bget_seed\s*\( ==> random(
 
-# Mutate documented slice/cell load helpers.
-(?<!~)\bload_ref\s*\( ==> preload_ref(
-\bpreload_ref\s*\( ==> load_ref(
-(?<!~)\bload_dict\s*\( ==> preload_dict(
-\bpreload_dict\s*\( ==> load_dict(
-(?<!~)\bload_maybe_ref\s*\( ==> preload_maybe_ref(
-\bpreload_maybe_ref\s*\( ==> load_maybe_ref(
-(?<!~)\bload_int\s*\( ==> preload_int(
-\bpreload_int\s*\( ==> load_int(
-(?<!~)\bload_uint\s*\( ==> preload_uint(
-\bpreload_uint\s*\( ==> load_uint(
-(?<!~)\bload_bits\s*\( ==> preload_bits(
-\bpreload_bits\s*\( ==> load_bits(
+# Convert non-consuming preloads into consuming reads only when the receiver is
+# a simple variable, which preserves expression result shapes.
+\bpreload_ref\s*\(\s*([A-Za-z_]\w*)\s*\) ==> \1~load_ref()
+\bpreload_dict\s*\(\s*([A-Za-z_]\w*)\s*\) ==> \1~load_dict()
+\bpreload_int\s*\(\s*([A-Za-z_]\w*)\s*,\s*([^)\n]+)\) ==> \1~load_int(\2)
+\bpreload_uint\s*\(\s*([A-Za-z_]\w*)\s*,\s*([^)\n]+)\) ==> \1~load_uint(\2)
+\bpreload_bits\s*\(\s*([A-Za-z_]\w*)\s*,\s*([^)\n]+)\) ==> \1~load_bits(\2)
+(\b[A-Za-z_]\w*)\.preload_ref\s*\(\s*\) ==> \1~load_ref()
+(\b[A-Za-z_]\w*)\.preload_dict\s*\(\s*\) ==> \1~load_dict()
+(\b[A-Za-z_]\w*)\.preload_int\s*\(\s*([^)\n]+)\) ==> \1~load_int(\2)
+(\b[A-Za-z_]\w*)\.preload_uint\s*\(\s*([^)\n]+)\) ==> \1~load_uint(\2)
+(\b[A-Za-z_]\w*)\.preload_bits\s*\(\s*([^)\n]+)\) ==> \1~load_bits(\2)
+(\b[A-Za-z_]\w*)~load_ref\s*\(\s*\) ==> \1.preload_ref()
+(\b[A-Za-z_]\w*)~load_dict\s*\(\s*\) ==> \1.preload_dict()
+(\b[A-Za-z_]\w*)~load_int\s*\(\s*([^)\n]+)\) ==> \1.preload_int(\2)
+(\b[A-Za-z_]\w*)~load_uint\s*\(\s*([^)\n]+)\) ==> \1.preload_uint(\2)
+(\b[A-Za-z_]\w*)~load_bits\s*\(\s*([^)\n]+)\) ==> \1.preload_bits(\2)
 
 # Mutate documented integer load/store helpers.
 \bload_uint\b ==> load_int
 \bload_int\b ==> load_uint
 \bstore_uint\b ==> store_int
 \bstore_int\b ==> store_uint
+\bstore_ref\b ==> store_dict
+\bstore_dict\b ==> store_ref
 
 # Store coins/int/uint as zero.
 (\.store_coins\s*\()\s*[^,\)]+ ==> \g<1>0
@@ -123,19 +129,11 @@ repeat(\(.*\)) ==> repeat(0)
 ((?<![\.~])\bstore_uint\s*\(\s*[^,\n]+,\s*)[^,\)\n]+(,\s*[^)\n]+\)) ==> \g<1>0\2
 ((?<![\.~])\bstore_int\s*\(\s*[^,\n]+,\s*)[^,\)\n]+(,\s*[^)\n]+\)) ==> \g<1>0\2
 
-# Swap modifying vs non-modifying call notation for numeric built-ins.
-(\b[A-Za-z_]\w*)\.load_int\s*\( ==> \1~load_int(
-(\b[A-Za-z_]\w*)~load_int\s*\( ==> \1.load_int(
-(\b[A-Za-z_]\w*)\.load_uint\s*\( ==> \1~load_uint(
-(\b[A-Za-z_]\w*)~load_uint\s*\( ==> \1.load_uint(
-(\b[A-Za-z_]\w*)\.load_bits\s*\( ==> \1~load_bits(
-(\b[A-Za-z_]\w*)~load_bits\s*\( ==> \1.load_bits(
-(\b[A-Za-z_]\w*)\.store_int\s*\( ==> \1~store_int(
-(\b[A-Za-z_]\w*)~store_int\s*\( ==> \1.store_int(
-(\b[A-Za-z_]\w*)\.store_uint\s*\( ==> \1~store_uint(
-(\b[A-Za-z_]\w*)~store_uint\s*\( ==> \1.store_uint(
-
-# Mutate documented slice/builder inspection helpers.
+# Mutate documented slice extent and inspection helpers.
+\bskip_bits\s*\( ==> first_bits(
+\bfirst_bits\s*\( ==> skip_bits(
+\bskip_last_bits\s*\( ==> slice_last(
+\bslice_last\s*\( ==> skip_last_bits(
 \bslice_refs\s*\( ==> slice_bits(
 \bslice_bits\s*\( ==> slice_refs(
 \bbuilder_refs\s*\( ==> builder_bits(
@@ -146,6 +144,8 @@ repeat(\(.*\)) ==> repeat(0)
 \bslice_data_empty\?\s*\( ==> slice_empty?(
 \bslice_refs_empty\?\s*\( ==> slice_data_empty?(
 \bslice_data_empty\?\s*\( ==> slice_refs_empty?(
+\bcell_null\?\s*\( ==> dict_empty?(
+\bdict_empty\?\s*\( ==> cell_null?(
 
 # Swap signed/unsigned dictionary helpers.
 \bidict_([A-Za-z0-9_]+\??)(?=[^A-Za-z0-9_]|$) ==> udict_\1
@@ -159,12 +159,7 @@ repeat(\(.*\)) ==> repeat(0)
 \bmuldiv\b ==> muldivr
 \bmuldivr\b ==> muldivc
 \bmuldivc\b ==> muldiv
-\bmuldivmod\b ==> divmod
-\bint_at\s*\( ==> cell_at(
-\bcell_at\s*\( ==> slice_at(
-\bslice_at\s*\( ==> tuple_at(
-\btuple_at\s*\( ==> int_at(
-\bat\s*\( ==> tuple_at(
+\bmuldivmod\s*\(\s*([^,;\n]+)\s*,\s*([^,;\n]+)\s*,\s*([^)\n]+)\) ==> divmod(\1, \2)
 
 # Mutate numeric send/reserve mode literals when passed directly to stdlib helpers.
 (\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>1\2

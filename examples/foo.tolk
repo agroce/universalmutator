@@ -23,12 +23,18 @@ struct FeeWindow {
     paid: coins
 }
 
+struct WalletShim {
+}
+
 fun FeeWindow.getStorageDuePayment(self): coins {
     return self.due;
 }
 
 fun FeeWindow.getStoragePaidPayment(self): coins {
     return self.paid;
+}
+
+fun WalletShim.save(mutate self) {
 }
 
 fun calculateForwardFee(cells: int, bits: int, isMasterchain: bool): coins {
@@ -142,6 +148,61 @@ fun helper(mutate cs: slice, mutate amount: int, target: Cell<address>?, body: s
     var msg = AllowedMessage.fromSlice(body, { throwIfOpcodeDoesNotMatch: ERR_INVALID_OP });
     amount += cs.remainingBitsCount();
     return (cs, amount, parsed, msg);
+}
+
+fun sideEffectCoverage(flag: bool, code: cell, mutate wallet: WalletShim) {
+    if(flag) {
+        throw ERR;
+    }
+    wallet.save();
+    contract.setData(code);
+    contract.setCodePostponed(code);
+}
+
+fun optionCoverage(body: slice) {
+    var strictTail = AllowedMessage.fromSlice(body, { assertEndAfterReading: true });
+    var looseTail = AllowedMessage.fromSlice(body, { assertEndAfterReading: false });
+    return (strictTail, looseTail);
+}
+
+fun returnUnaryCoverage(flag: bool, amount: int): int {
+    var denied = !flag;
+    var inverted = ~amount;
+    var negated = -amount;
+    var acc = amount;
+
+    acc %= 3;
+    if(flag) {
+        return ~amount;
+    }
+    if (denied) {
+        return -amount;
+    }
+    return inverted + negated;
+}
+
+fun boolUnaryCoverage(flag: bool): bool {
+    return !flag;
+}
+
+fun compareCoverage(a: int, b: int): int {
+    assert (a == b) throw ERR;
+    assert (a != b) throw ERR;
+    assert (a >= b) throw ERR;
+    assert (a <= b) throw ERR;
+    if (a == b) {
+        return 1;
+    }
+    if (a != b) {
+        return 2;
+    }
+    if (a >= b) {
+        return 3;
+    }
+    if (a <= b) {
+        return 4;
+    }
+    return 0;
 }
 
 get fun currentCounter(): int {
