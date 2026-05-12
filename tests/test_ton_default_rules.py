@@ -70,6 +70,11 @@ class TestTonDefaultRules(TestCase):
             "let both = left && right;\n",
             "let eq = a == b;\n",
             "let ge = a >= b;\n",
+            "let sum = a + b;\n",
+            "let diff = a - b;\n",
+            "let mul = a * b;\n",
+            "let div = a / b;\n",
+            "let band = a & b;\n",
             "count += 1;\n",
             "mask <<= 1;\n",
         ]
@@ -88,6 +93,11 @@ class TestTonDefaultRules(TestCase):
         self.assertIn("let both = left || right;", mutant_lines)
         self.assertIn("let eq = a != b;", mutant_lines)
         self.assertIn("let ge = a > b;", mutant_lines)
+        self.assertIn("let sum = a - b;", mutant_lines)
+        self.assertIn("let diff = a + b;", mutant_lines)
+        self.assertIn("let mul = a / b;", mutant_lines)
+        self.assertIn("let div = a * b;", mutant_lines)
+        self.assertIn("let band = a | b;", mutant_lines)
         self.assertIn("count -= 1;", mutant_lines)
         self.assertIn("mask >>= 1;", mutant_lines)
         self.assertIn("while (false) {", mutant_lines)

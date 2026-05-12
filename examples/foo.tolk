@@ -205,6 +205,20 @@ fun compareCoverage(a: int, b: int): int {
     return 0;
 }
 
+fun compareAndBitsCoverage(a: int, b: int): bool {
+    assert (a < b) throw ERR;
+    assert (a > b) throw ERR;
+    var bits = a | b;
+
+    if (a < b) {
+        return a > b;
+    }
+    if (a > b) {
+        return a < b;
+    }
+    return bits > 0;
+}
+
 get fun currentCounter(): int {
     return 0;
 }

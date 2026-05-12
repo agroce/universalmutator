@@ -41,6 +41,14 @@ class TestTactRules(TestCase):
         self.assertEqual(len(tact_rule_lines), len(set(tact_rule_lines)))
         self.assertFalse(set(tact_rule_lines) & set(common_rule_lines))
 
+    def test_tact_rules_do_not_redeclare_shared_ton_arithmetic_families(self):
+        text = Path("universalmutator/static/tact.rules").read_text(encoding="utf-8")
+
+        self.assertNotIn(r"(?<!\+)\+(?![\+=]) ==> -", text)
+        self.assertNotIn(r"(?<!-)-(?![-=>]) ==> +", text)
+        self.assertNotIn(r"\*(?!=) ==> /", text)
+        self.assertNotIn(r"/(?!=|\*|/) ==> *", text)
+
     def test_tact_default_rules_generate_expected_mutants(self):
         source = [
             "fun main() {\n",

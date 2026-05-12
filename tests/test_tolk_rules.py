@@ -59,6 +59,15 @@ class TestTolkRules(TestCase):
             "    var z: varuint16 = 0;\n",
             "    return x + y + z;\n",
             "}\n",
+            "fun compareAndBits(a: int, b: int): bool {\n",
+            "    assert (a < b) throw ERR;\n",
+            "    assert (a > b) throw ERR;\n",
+            "    var bits = a | b;\n",
+            "    if (a < b) {\n",
+            "        return a > b;\n",
+            "    }\n",
+            "    return a < b;\n",
+            "}\n",
             "fun stdlibOps(c: cell, s: slice) {\n",
             "    var nowTs = blockchain.now();\n",
             "    var lt = blockchain.logicalTime();\n",
@@ -146,6 +155,13 @@ class TestTolkRules(TestCase):
         self.assertIn("    var x = a as int32;", mutant_lines)
         self.assertIn("    var y = b as uint32;", mutant_lines)
         self.assertIn("    var z: varint16 = 0;", mutant_lines)
+        self.assertIn("    assert (a <= b) throw ERR;", mutant_lines)
+        self.assertIn("    assert (a >= b) throw ERR;", mutant_lines)
+        self.assertIn("    var bits = a & b;", mutant_lines)
+        self.assertIn("    var bits = a ^ b;", mutant_lines)
+        self.assertIn("    if (a <= b) {", mutant_lines)
+        self.assertIn("        return a >= b;", mutant_lines)
+        self.assertIn("    return a <= b;", mutant_lines)
         self.assertIn("    var nowTs = blockchain.logicalTime();", mutant_lines)
         self.assertIn("    var lt = blockchain.currentBlockLogicalTime();", mutant_lines)
         self.assertIn("    var blockLt = blockchain.logicalTime();", mutant_lines)

@@ -26,6 +26,15 @@
 # Negate whole assert conditions without disturbing syntax or layout.
 (^\s*)assert\s*\(([^;\n]+)\)\s*throw\s+([^;\n]+);\s*$ ==> \1assert (!(\2)) throw \3;
 
+# Relax comparison boundaries only in executable expression contexts, not in
+# generic or union-type syntax.
+(^\s*assert\s*\()([^\n;<>]+?)\s<\s([^\n;<>]+?)(\)\s*throw\s+[^;\n]+;\s*$) ==> \1\2 <= \3\4
+(^\s*assert\s*\()([^\n;<>]+?)\s>\s([^\n;<>]+?)(\)\s*throw\s+[^;\n]+;\s*$) ==> \1\2 >= \3\4
+(^\s*if\s*\()([^\n;<>]+?)\s<\s([^\n;<>]+?)(\)\s*\{?\s*$) ==> \1\2 <= \3\4
+(^\s*if\s*\()([^\n;<>]+?)\s>\s([^\n;<>]+?)(\)\s*\{?\s*$) ==> \1\2 >= \3\4
+(^\s*return\s+)([^\n;<>]+?)\s<\s([^\n;<>]+?)(;\s*$) ==> \1\2 <= \3\4
+(^\s*return\s+)([^\n;<>]+?)\s>\s([^\n;<>]+?)(;\s*$) ==> \1\2 >= \3\4
+
 # Tolk conditional forcing. Skip `is` / `!is` type guards to preserve narrowing.
 \bif (?!\(.*(?:\bis\b|!is\b).*\))(\(.*\)) ==> if (!\1)
 \bif(?!\(.*(?:\bis\b|!is\b).*\))(\(.*\)) ==> if(!\1)
@@ -34,10 +43,13 @@
 \bif (?!\(.*(?:\bis\b|!is\b).*\))\(.*\) ==> if (true)
 \bif(?!\(.*(?:\bis\b|!is\b).*\))\(.*\) ==> if(true)
 
-# Bitwise operator shuffle with XOR
+# Bitwise operator shuffle with XOR. Keep `|` mutations anchored to local value
+# assignments so they do not collide with Tolk union types.
 ([^\^])\^([^\^]) ==> \1&\2
 ([^\^])\^([^\^]) ==> \1|\2
 ([^&])&([^&]) ==> \1^\2
+(^\s*(?:var|val)\s+[A-Za-z_]\w*\s*=\s*)([^;\n|]+?)(\s*)\|(\s*)([^;\n|]+)(;\s*$) ==> \1\2\3&\4\5\6
+(^\s*(?:var|val)\s+[A-Za-z_]\w*\s*=\s*)([^;\n|]+?)(\s*)\|(\s*)([^;\n|]+)(;\s*$) ==> \1\2\3^\4\5\6
 
 ([=(:,]\s*)!(?!\s*is\b)(\s*(?:\(|[A-Za-z_])) ==> \1\2
 (^\s*return\s+)!(?!\s*is\b)(\s*(?:\(|[A-Za-z_])) ==> \1\2

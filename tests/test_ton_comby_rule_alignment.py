@@ -9,6 +9,28 @@ class TestTonCombyRuleAlignment(TestCase):
         mutator.parseRules([filename], comby=True)
         return (Path("universalmutator/comby") / filename).read_text(encoding="utf-8")
 
+    def _rule_lines(self, path):
+        return {
+            line.strip()
+            for line in Path(path).read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        }
+
+    def test_ton_common_has_no_exact_overlap_with_language_specific_rules(self):
+        cases = [
+            ("static", "tact.rules"),
+            ("static", "tolk.rules"),
+            ("static", "func.rules"),
+            ("comby", "tact.rules"),
+            ("comby", "tolk.rules"),
+            ("comby", "func.rules"),
+        ]
+
+        for folder, specific in cases:
+            common = self._rule_lines(Path("universalmutator") / folder / "ton_common.rules")
+            other = self._rule_lines(Path("universalmutator") / folder / specific)
+            self.assertFalse(common & other, f"{folder}/{specific} overlaps with ton_common.rules")
+
     def test_ton_common_comby_rules_cover_shared_ton_defaults(self):
         text = self._read_comby_rules("ton_common.rules")
 
@@ -21,6 +43,11 @@ class TestTonCombyRuleAlignment(TestCase):
             ":[lhs~(?!.*(?:\\bis\\b|!is\\b)).*] || :[rhs~(?!.*(?:\\bis\\b|!is\\b)).*] ==> :[lhs] && :[rhs]",
             text,
         )
+        self.assertIn(":[lhs] + :[rhs] ==> :[lhs] - :[rhs]", text)
+        self.assertIn(":[lhs] - :[rhs] ==> :[lhs] + :[rhs]", text)
+        self.assertIn(":[lhs] * :[rhs] ==> :[lhs] / :[rhs]", text)
+        self.assertIn(":[lhs] / :[rhs] ==> :[lhs] * :[rhs]", text)
+        self.assertIn(":[lhs] & :[rhs] ==> :[lhs] | :[rhs]", text)
         self.assertNotIn("if (:[cond]) ==> if (!(:[cond]))", text)
         self.assertIn("while (:[cond]) ==> while (false)", text)
         self.assertIn("break; ==> continue;", text)
@@ -108,6 +135,14 @@ class TestTonCombyRuleAlignment(TestCase):
         self.assertIn("value: :[expr~[a-zA-Z0-9_.]+] ==> value: 0", text)
         self.assertIn("assert (:[lhs] == :[rhs]) throw :[err] ==> assert (:[lhs] != :[rhs]) throw :[err]", text)
         self.assertIn("if (:[lhs] == :[rhs]) ==> if (:[lhs] != :[rhs])", text)
+        self.assertIn("assert (:[lhs] < :[rhs]) throw :[err] ==> assert (:[lhs] <= :[rhs]) throw :[err]", text)
+        self.assertIn("assert (:[lhs] > :[rhs]) throw :[err] ==> assert (:[lhs] >= :[rhs]) throw :[err]", text)
+        self.assertIn("if (:[lhs] < :[rhs]) ==> if (:[lhs] <= :[rhs])", text)
+        self.assertIn("if (:[lhs] > :[rhs]) ==> if (:[lhs] >= :[rhs])", text)
+        self.assertIn("return :[lhs] < :[rhs]; ==> return :[lhs] <= :[rhs];", text)
+        self.assertIn("return :[lhs] > :[rhs]; ==> return :[lhs] >= :[rhs];", text)
+        self.assertIn("var :[name] = :[lhs] | :[rhs]; ==> var :[name] = :[lhs] & :[rhs];", text)
+        self.assertIn("var :[name] = :[lhs] | :[rhs]; ==> var :[name] = :[lhs] ^ :[rhs];", text)
         self.assertNotIn("while (:[cond]) ==> while (0==1)", text)
         self.assertNotIn("break; ==> continue;", text)
         self.assertIn("calculateSizeStrict(:[args]) ==> calculateSize(:[args])", text)
@@ -141,7 +176,6 @@ class TestTonCombyRuleAlignment(TestCase):
         self.assertNotIn("mutate self ==> self", text)
         self.assertNotIn(":[lhs] is :[rhs] ==> :[lhs] !is :[rhs]", text)
         self.assertNotIn(":[lhs] !is :[rhs] ==> :[lhs] is :[rhs]", text)
-        self.assertNotIn(":[a~\\w+] | :[b~\\w+] ==> :[a] ^ :[b]", text)
         self.assertNotIn("uint:[n~(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-6])] ==> int:[n]", text)
         self.assertNotIn("calculateForwardFee(:[args]) ==> calculateForwardFeeWithoutLumpPrice(:[args])", text)
         self.assertNotIn("stringSha256(:[s]) ==> stringSha256_32(:[s])", text)

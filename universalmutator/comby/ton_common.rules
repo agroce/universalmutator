@@ -15,6 +15,15 @@ false ==> true
 :[lhs~(?!.*(?:\bis\b|!is\b)).*] && :[rhs~(?!.*(?:\bis\b|!is\b)).*] ==> :[lhs] || :[rhs]
 :[lhs~(?!.*(?:\bis\b|!is\b)).*] || :[rhs~(?!.*(?:\bis\b|!is\b)).*] ==> :[lhs] && :[rhs]
 
+# Conservative infix arithmetic/bitwise swaps. Keep the operator surrounded
+# by spaces so we do not collide with assignments, unary minus, or FunC's
+# specialized `~/` and `^/` operators in generic matching mode.
+:[lhs] + :[rhs] ==> :[lhs] - :[rhs]
+:[lhs] - :[rhs] ==> :[lhs] + :[rhs]
+:[lhs] * :[rhs] ==> :[lhs] / :[rhs]
+:[lhs] / :[rhs] ==> :[lhs] * :[rhs]
+:[lhs] & :[rhs] ==> :[lhs] | :[rhs]
+
 while (:[cond]) ==> while (false)
 while(:[cond]) ==> while(false)
 

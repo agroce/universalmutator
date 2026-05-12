@@ -38,6 +38,8 @@ value: :[expr~[a-zA-Z0-9_.]+] ==> value: 0
 # Comparison swaps inside assert and if.
 assert (:[lhs] == :[rhs]) throw :[err] ==> assert (:[lhs] != :[rhs]) throw :[err]
 assert (:[lhs] != :[rhs]) throw :[err] ==> assert (:[lhs] == :[rhs]) throw :[err]
+assert (:[lhs] < :[rhs]) throw :[err] ==> assert (:[lhs] <= :[rhs]) throw :[err]
+assert (:[lhs] > :[rhs]) throw :[err] ==> assert (:[lhs] >= :[rhs]) throw :[err]
 assert (:[lhs] >= :[rhs]) throw :[err] ==> assert (:[lhs] > :[rhs]) throw :[err]
 assert (:[lhs] >= :[rhs]) throw :[err] ==> assert (:[lhs] == :[rhs]) throw :[err]
 assert (:[lhs] <= :[rhs]) throw :[err] ==> assert (:[lhs] < :[rhs]) throw :[err]
@@ -45,10 +47,16 @@ assert (:[lhs] <= :[rhs]) throw :[err] ==> assert (:[lhs] == :[rhs]) throw :[err
 
 if (:[lhs] == :[rhs]) ==> if (:[lhs] != :[rhs])
 if (:[lhs] != :[rhs]) ==> if (:[lhs] == :[rhs])
+if (:[lhs] < :[rhs]) ==> if (:[lhs] <= :[rhs])
+if (:[lhs] > :[rhs]) ==> if (:[lhs] >= :[rhs])
 if (:[lhs] >= :[rhs]) ==> if (:[lhs] > :[rhs])
 if (:[lhs] >= :[rhs]) ==> if (:[lhs] == :[rhs])
 if (:[lhs] <= :[rhs]) ==> if (:[lhs] < :[rhs])
 if (:[lhs] <= :[rhs]) ==> if (:[lhs] == :[rhs])
+return :[lhs] < :[rhs]; ==> return :[lhs] <= :[rhs];
+return :[lhs] > :[rhs]; ==> return :[lhs] >= :[rhs];
+var :[name] = :[lhs] | :[rhs]; ==> var :[name] = :[lhs] & :[rhs];
+var :[name] = :[lhs] | :[rhs]; ==> var :[name] = :[lhs] ^ :[rhs];
 
 lazy :[rest] ==> :[rest]
 get fun :[rest] ==> fun :[rest]

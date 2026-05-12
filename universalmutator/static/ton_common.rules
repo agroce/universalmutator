@@ -21,6 +21,15 @@
 ^(?!.*(?:\bis\b|!is\b))(.*)&&(.+)$ ==> \1||\2
 ^(?!.*(?:\bis\b|!is\b))(.*)\|\|(.+)$ ==> \1&&\2
 
+# Safe infix arithmetic/bitwise swaps shared across TON languages.
+# Keep these operand-shaped so we do not touch unary minus, assignments,
+# comments, or FunC-specific operators such as `~/` and `^/`.
+([A-Za-z0-9_\)\]])(\s*)\+(\s*)([A-Za-z0-9_\(\[]) ==> \1\2-\3\4
+([A-Za-z0-9_\)\]])(\s*)-(\s*)([A-Za-z0-9_\(\[]) ==> \1\2+\3\4
+([A-Za-z0-9_\)\]])(\s*)\*(\s*)([A-Za-z0-9_\(\[]) ==> \1\2/\3\4
+([A-Za-z0-9_\)\]])(\s*)/(\s*)([A-Za-z0-9_\(\[]) ==> \1\2*\3\4
+([A-Za-z0-9_\)\]])(\s*)&(\s*)([A-Za-z0-9_\(\[]) ==> \1\2|\3\4
+
 # Loop forcing shared by Tact, FunC, and Tolk.
 \bwhile (\(.*\)) ==> while (false)
 \bwhile(\(.*\)) ==> while(false)
