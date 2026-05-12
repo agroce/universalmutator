@@ -54,6 +54,18 @@ If there are many mutants, the next commands are:
 - `prune_mutants`
 - `intersect_mutants`
 
+## Running in Acton
+
+### Tolk in Acton
+
+```sh
+mutate contracts/src/Contract.tolk tolk --cmd "acton build"  --mutantDir mutants
+
+analyze_mutants contracts/src/Contract.tolk "acton test" \
+  --mutantDir mutants \
+  --prefix tolk
+```
+
 ## Running in Blueprint
 
 ### Tolk in Blueprint
