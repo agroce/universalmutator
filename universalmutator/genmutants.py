@@ -172,7 +172,7 @@ def main():
     if not os.path.isdir(mdir):
         if os.path.exists(mdir):
             print(f"mutantDir '{mdir}' is not a directory")
-            os.exit(1)
+            sys.exit(1)
         else:
             try:
                 os.mkdir(mdir)
