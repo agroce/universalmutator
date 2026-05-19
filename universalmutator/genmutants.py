@@ -169,6 +169,17 @@ def main():
     if mdir[-1] != "/":
         mdir += "/"
 
+    if not os.path.isdir(mdir):
+        if os.path.exists(mdir):
+            print(f"mutantDir '{mdir}' is not a directory")
+            os.exit(1)
+        else:
+            try:
+                os.mkdir(mdir)
+            except Exception as error:
+                print("Attempted to create mutantDir '{mdir}'; failed due to '{error}'")
+                sys.exit(1)
+
     ignoreFile = parsed.ignore
     compileFile = parsed.compile
 
