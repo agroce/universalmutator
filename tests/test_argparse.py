@@ -59,14 +59,22 @@ class TestHelpOutput(unittest.TestCase):
                          msg=f"{module} --help returned {result.returncode}\n{result.stderr}")
         self.assertIn("usage", result.stdout.lower())
 
-    def test_mutate_help(self): self._check_help(MODULES["mutate"])
-    def test_analyze_help(self): self._check_help(MODULES["analyze_mutants"])
-    def test_check_covered_help(self): self._check_help(MODULES["check_covered"])
-    def test_find_missing_help(self): self._check_help(MODULES["find_missing"])
-    def test_intersect_mutants_help(self):self._check_help(MODULES["intersect_mutants"])
-    def test_prioritize_mutants_help(self):self._check_help(MODULES["prioritize_mutants"])
-    def test_prune_mutants_help(self): self._check_help(MODULES["prune_mutants"])
-    def test_show_mutants_help(self): self._check_help(MODULES["show_mutants"])
+    def test_mutate_help(self):
+        self._check_help(MODULES["mutate"])
+    def test_analyze_help(self):
+        self._check_help(MODULES["analyze_mutants"])
+    def test_check_covered_help(self):
+        self._check_help(MODULES["check_covered"])
+    def test_find_missing_help(self):
+        self._check_help(MODULES["find_missing"])
+    def test_intersect_mutants_help(self):
+        self._check_help(MODULES["intersect_mutants"])
+    def test_prioritize_mutants_help(self):
+        self._check_help(MODULES["prioritize_mutants"])
+    def test_prune_mutants_help(self):
+        self._check_help(MODULES["prune_mutants"])
+    def test_show_mutants_help(self):
+        self._check_help(MODULES["show_mutants"])
 
 
 # 2. Missing required positional args goes to exit code 2
