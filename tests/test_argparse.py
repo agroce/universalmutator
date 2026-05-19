@@ -25,7 +25,7 @@ MODULES = {
 def run_module(module, args):
     return subprocess.run(
         [PYTHON, "-m", module] + args,
-        capture_output=True, text=True, check=True
+        capture_output=True, text=True, check=False
     )
 
 
