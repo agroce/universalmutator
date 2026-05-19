@@ -177,7 +177,7 @@ def main():
             try:
                 os.mkdir(mdir)
             except Exception as error:
-                print("Attempted to create mutantDir '{mdir}'; failed due to '{error}'")
+                print(f"Attempted to create mutantDir '{mdir}'; failed due to '{error}'")
                 sys.exit(1)
 
     ignoreFile = parsed.ignore
