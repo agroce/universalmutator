@@ -72,7 +72,6 @@ class TestHelpOutput(unittest.TestCase):
     def test_prioritize_mutants_help(self):
         self._check_help(MODULES["prioritize_mutants"])
     def test_prune_mutants_help(self):
-        
         self._check_help(MODULES["prune_mutants"])
     def test_show_mutants_help(self):
         self._check_help(MODULES["show_mutants"])
