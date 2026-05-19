@@ -1,39 +1,30 @@
 from __future__ import print_function
 
-import sys
+import argparse
 import glob
 
 
 def main():
 
-    args = sys.argv
+    parser = argparse.ArgumentParser(prog="check_covered",
+                                     description="Filter mutants to those on lines covered by a coverage file.")
+    parser.add_argument("sourcefile", help="source file being mutated")
+    parser.add_argument("coverfile", help="coverage file")
+    parser.add_argument("outfile", help="output file to write covered mutant names into")
+    parser.add_argument("--mutantDir", default=".",
+                        help="directory with all mutants; defaults to current directory")
+    parser.add_argument("--tstl", action="store_true", default=False,
+                        help="process coverfile that is output from TSTL internal report")
+    parsed = parser.parse_args()
 
-    if ("--help" in args) or (len(sys.argv) < 4):
-        if len(sys.argv) < 4:
-            print("ERROR: check_covered requires at least three arguments\n")
-        print("USAGE: check_covered <sourcefile> <coverfile> <outfile> [--tstl] [--mutantDir directory]")
-        print("       --mutantDir: directory to put generated mutants in; defaults to current directory")
-        print("       --tstl: process <coverfile> that is output from TSTL internal report")
-        sys.exit(0)
-
-    mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
-
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    mdir = parsed.mutantDir
     if mdir[-1] != "/":
         mdir += "/"
 
-    src = args[1]
-    coverFile = args[2]
-    outFile = args[3]
-
-    tstl = "--tstl" in sys.argv
+    src = parsed.sourcefile
+    coverFile = parsed.coverfile
+    outFile = parsed.outfile
+    tstl = parsed.tstl
 
     srcBase = src.split("/")[-1]
     srcEnd = src.split(".")[-1]

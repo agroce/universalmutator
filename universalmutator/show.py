@@ -1,51 +1,30 @@
 from __future__ import print_function
-import sys
+import argparse
 
 from universalmutator import utils
 
 
 def main():
 
-    args = sys.argv
+    parser = argparse.ArgumentParser(prog="show_mutants",
+                                     description="Display mutants listed in an input file.")
+    parser.add_argument("infile", help="input file listing mutants")
+    parser.add_argument("--concise", action="store_true", default=False,
+                        help="display in concise mutant format")
+    parser.add_argument("--mutantDir", default=".",
+                        help="directory with all mutants; defaults to current directory")
+    parser.add_argument("--sourceDir", default=".",
+                        help="directory of source files; defaults to current directory")
+    parsed = parser.parse_args()
 
-    if ("--help" in args) or (len(sys.argv) < 2):
-        if len(sys.argv) < 2:
-            print("ERROR: show_mutants requires at least one argument\n")
-        print("USAGE: show_mutants <infile> [--mutantDir <dir>] [--sourceDir <dir>]")
-        print("       --mutantDir: directory with all mutants; defaults to current directory")
-        print("       --sourceDir: directory of source files; defaults to current directory")
-        print("       --concise:   display in concise mutant format")
-        sys.exit(0)
+    infile = parsed.infile
+    concise = parsed.concise
 
-    infile = sys.argv[1]
-
-    concise = "--concise" in sys.argv
-    if concise:
-        args.remove("--concise")
-
-    mdir = "."
-    try:
-        mdirpos = args.index("--mutantDir")
-    except ValueError:
-        mdirpos = -1
-
-    if mdirpos != -1:
-        mdir = args[mdirpos + 1]
-        args.remove("--mutantDir")
-        args.remove(mdir)
+    mdir = parsed.mutantDir
     if mdir[-1] != "/":
         mdir += "/"
 
-    sdir = "."
-    try:
-        sdirpos = args.index("--sourceDir")
-    except ValueError:
-        sdirpos = -1
-
-    if sdirpos != -1:
-        sdir = args[sdirpos + 1]
-        args.remove("--sourceDir")
-        args.remove(sdir)
+    sdir = parsed.sourceDir
     if sdir[-1] != "/":
         sdir += "/"
 
