@@ -1,15 +1,22 @@
 from __future__ import print_function
+import argparse
 import glob
-import sys
 
 from universalmutator import utils
 
 
 def main():
 
-    f = sys.argv[1]
-    d1 = sys.argv[2]
-    d2 = sys.argv[3]
+    parser = argparse.ArgumentParser(prog="find_missing",
+                                     description="Show mutants present in one directory but not another.")
+    parser.add_argument("f", help="base source filename (e.g. foo.py)")
+    parser.add_argument("d1", help="first mutant directory")
+    parser.add_argument("d2", help="second mutant directory")
+    parsed = parser.parse_args()
+
+    f = parsed.f
+    d1 = parsed.d1
+    d2 = parsed.d2
 
     fsplit = f.split(".")
     pattern = "/" + fsplit[0] + ".mutant.*." + fsplit[-1]

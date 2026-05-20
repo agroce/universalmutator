@@ -1,6 +1,9 @@
 from __future__ import print_function
 import re
-import pkgutil
+try:
+    from importlib import resources as importlib_resources
+except ImportError:
+    import importlib_resources
 import random
 import os
 from json.decoder import JSONDecodeError
@@ -16,11 +19,14 @@ def parseRules(ruleFiles, comby=False):
                 rulePath = os.path.join('comby', ruleFile)
             else:
                 rulePath = os.path.join('static', ruleFile)
-            data = pkgutil.get_data('universalmutator', rulePath)
-            if data is None:
-                raise FileNotFoundError(rulePath)
-            for line in data.decode('utf-8', errors='replace').splitlines(True):
-                rulesText.append((line, "builtin:" + ruleFile))
+            resource = importlib_resources.files('universalmutator')
+            for part in rulePath.split(os.sep):
+                resource = resource.joinpath(part)
+
+            with resource.open('rb') as builtInRule:
+                for line in builtInRule:
+                    line = line.decode('utf-8', errors='replace')
+                    rulesText.append((line, "builtin:" + ruleFile))
         except BaseException:
             print("FAILED TO FIND RULE", ruleFile, "AS BUILT-IN...")
             try:
