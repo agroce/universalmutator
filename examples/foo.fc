@@ -1,0 +1,276 @@
+;; Compile-aware FunC fixture for TON mutation rules.
+#include "stdlib.fc";
+
+{-
+
+This file intentionally exercises a broad slice of func.rules.
+The code is small enough to compile quickly, but rich enough to
+generate mutants for operator swaps, stdlib helper swaps, method
+specifiers, send/reserve modes, and statement rewrites.
+
+THROW_IF
+THROW_UNLESS
+
+-}
+
+() noop() inline {
+}
+
+() continue() inline {
+}
+
+() break() inline {
+}
+
+const upper_throw_if = "THROW_IF";
+const upper_throw_unless = "THROW_UNLESS";
+const modifying_builtin_tokens = "~divmod ~moddiv";
+
+(int) inline_sum(int a, int b) inline {
+    return a + b;
+}
+
+(int) ref_sum(int a, int b) inline_ref {
+    return a - b;
+}
+
+(int) noisy_method() impure method_id(123) {
+    return 123;
+}
+
+(int) default_method() method_id {
+    return 7;
+}
+
+() save_data(cell c) impure inline_ref {
+    set_data(c);
+}
+
+cell make_sample_cell() inline_ref {
+    cell child = begin_cell().store_uint(7, 8).end_cell();
+    return begin_cell()
+        .store_uint(0xAB, 8)
+        .store_int(-5, 8)
+        .store_ref(child)
+        .store_maybe_ref(child)
+        .store_dict(null())
+        .store_uint(0xCC, 8)
+        .end_cell();
+}
+
+int coverage_ops(int a, int b) impure {
+    int cond = a != b;
+    int count = 2;
+    int steps = 0;
+
+    ifnot (cond) {
+        a += 5;
+    }
+    ifnot(cond) {
+        b += 1;
+    }
+    b -= 6;
+    a *= 7;
+    b /= 2;
+    a ~/= 2;
+    b ^/= 2;
+    a &= 1;
+    b |= 2;
+    a ^= 3;
+    a <<= 1;
+    b >>= 1;
+
+    var shift_left = a << 2;
+    var shift_right = b >> 2;
+    var tval = true;
+    var fval = false;
+    var x = a ^ 1;
+    var y = a & 1;
+    var z = a | 1;
+    var round_div = a ~/ 2;
+    var ceil_div = b ^/ 2;
+    a ~%= 2;
+    b ^%= 2;
+    var round_mod = a ~% 2;
+    var ceil_mod = b ^% 2;
+
+    while (steps < 2) {
+        steps += 1;
+        continue();
+    }
+    while(steps < 3) {
+        steps += 1;
+    }
+
+    break();
+
+    repeat (count) {
+        a += 1;
+    }
+    repeat(count) {
+        b += 1;
+    }
+
+    do {
+        count -= 1;
+    } until (count == 0);
+
+    do {
+        steps -= 1;
+    } until(steps == 0);
+
+    var diva = a / 2;
+    a /= 2;
+    a %= 2;
+    var moda = b % 2;
+    noop();
+
+    return a + b + shift_left + shift_right + x + y + z + tval + fval + diva + moda
+        + round_div + ceil_div + round_mod + ceil_mod;
+}
+
+() comparison_ops(int a, int b) inline_ref {
+    if (a == b) {
+        noop();
+    }
+    if (a != b) {
+        noop();
+    }
+    if (a >= b) {
+        noop();
+    }
+    if (a <= b) {
+        noop();
+    }
+    if(a > b) {
+        noop();
+    }
+
+    throw_unless(40, a == b);
+    throw_unless(41, a != b);
+    throw_unless(42, a >= b);
+    throw_unless(43, a <= b);
+}
+
+() stdlib_ops(cell input_cell) impure inline_ref {
+    slice s = input_cell.begin_parse();
+    builder b = begin_cell().store_uint(1, 8);
+    cell extra = begin_cell().store_uint(2, 8).end_cell();
+    tuple t = empty_tuple();
+    t~tpush(1);
+    t~tpush(extra);
+    int a = 10;
+    int c = 3;
+
+    var lr = load_ref(s);
+    var pr = preload_ref(s);
+    var ld = load_dict(s);
+    var pd = preload_dict(s);
+    var lm = load_maybe_ref(s);
+    var pm = preload_maybe_ref(s);
+    var ldi = load_int(s, 8);
+    var pdi = preload_int(s, 8);
+    var ldu = load_uint(s, 8);
+    var pdu = preload_uint(s, 8);
+    var ldb = load_bits(s, 8);
+    var pdb = preload_bits(s, 8);
+    var mpr = s.preload_ref();
+    var mpd = s.preload_dict();
+    var mpi = s.preload_int(8);
+    var mpu = s.preload_uint(8);
+    var mpb = s.preload_bits(8);
+    var tlr = s~load_ref();
+    var tld = s~load_dict();
+    var lu = s~load_uint(8);
+    var li = s~load_int(8);
+    var lb = s~load_bits(8);
+    var su = b.store_uint(1, 32);
+    var si = b.store_int(1, 32);
+    var mdi = s.load_int(8);
+    var mdu = s.load_uint(8);
+    var mdb = s.load_bits(8);
+    var sr = store_ref(b, extra);
+    var sd = store_dict(b, extra);
+    var msr = b.store_ref(extra);
+    var msd = b.store_dict(extra);
+    var bti = b~store_int(1, 8);
+    var btu = b~store_uint(1, 8);
+    var sb = skip_bits(s, 1);
+    var fb = first_bits(s, 1);
+    var sl = skip_last_bits(s, 1);
+    var fl = slice_last(s, 1);
+    var refs = slice_refs(s);
+    var bits = slice_bits(s);
+    var empty = slice_empty?(s);
+    var dempty = slice_data_empty?(s);
+    var rempty = slice_refs_empty?(s);
+    var brefs = builder_refs(b);
+    var bbits = builder_bits(b);
+    var cn = cell_null?(extra);
+    var de = dict_empty?(extra);
+    var n = now();
+    var lt = cur_lt();
+    var blt = block_lt();
+    var rnd = random();
+    var seed = get_seed();
+    var di = idict_get_ref?(extra, 256, 0);
+    var du = udict_set_ref(extra, 256, 0, extra);
+    send_raw_message(extra, 0);
+    send_raw_message(extra, 1);
+    send_raw_message(extra, 2);
+    send_raw_message(extra, 16);
+    send_raw_message(extra, 32);
+    send_raw_message(extra, 64);
+    send_raw_message(extra, 128);
+    send_raw_message(extra, 1024);
+    raw_reserve(100, 0);
+    raw_reserve(100, 1);
+    raw_reserve(100, 2);
+    raw_reserve(100, 16);
+    raw_reserve(100, 32);
+    raw_reserve(100, 64);
+    raw_reserve(100, 128);
+    raw_reserve(100, 1024);
+    raw_reserve_extra(100, extra, 0);
+    raw_reserve_extra(100, extra, 1);
+    raw_reserve_extra(100, extra, 2);
+    raw_reserve_extra(100, extra, 16);
+    raw_reserve_extra(100, extra, 32);
+    raw_reserve_extra(100, extra, 64);
+    raw_reserve_extra(100, extra, 128);
+    raw_reserve_extra(100, extra, 1024);
+    var dm = divmod(10, 3);
+    var md = moddiv(10, 3);
+    var md2 = a~divmod(c);
+    var md3 = a~moddiv(c);
+    var mu1 = muldiv(10, 2, 3);
+    var mu2 = muldivr(10, 2, 3);
+    var mu3 = muldivc(10, 2, 3);
+    var mu4 = muldivmod(10, 2, 3);
+    var ia = int_at(t, 0);
+    var ca = cell_at(t, 0);
+    var sa = slice_at(t, 0);
+    var ta = tuple_at(t, 0);
+    var ga = at(t, 0);
+    var grams = begin_cell().store_grams(123);
+    var coins = begin_cell().store_coins(456);
+    var grams_fn = store_grams(begin_cell(), 321);
+    var coins_fn = store_coins(begin_cell(), 654);
+    var store_u = store_uint(begin_cell(), 11, 16);
+    save_data(extra);
+    set_data(extra);
+    accept_message();
+    commit();
+    set_code(extra);
+    throw_arg_if(1, a > 0, 3);
+    throw_arg_unless(1, c > 0, 3);
+}
+
+() main() impure {
+    cell sample = make_sample_cell();
+    int score = inline_sum(2, 3) + ref_sum(9, 4) + noisy_method() + default_method();
+    int changed = coverage_ops(score, 6);
+    stdlib_ops(sample);
+    throw_unless(33, changed != 0);
+    throw_if(34, changed == 0);
+}

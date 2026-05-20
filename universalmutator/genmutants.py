@@ -4,6 +4,7 @@ from tabulate import tabulate
 import argparse
 import os
 import random
+import re
 import sys
 import shutil
 import subprocess
@@ -24,6 +25,12 @@ from universalmutator import vyper_handler
 from universalmutator import fe_handler
 from universalmutator import r_handler
 from universalmutator import fortran_handler
+
+# TON languages
+from universalmutator import tact_handler
+from universalmutator import func_handler
+from universalmutator import tolk_handler
+
 
 def nullHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
     return "VALID"
@@ -47,6 +54,8 @@ def checkCombyDeadCode(deadCodeLines, mutant):
     return True
 
 def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
+    backupName = None
+    outFile = ".um.mutant_output." + str(os.getpid())
     if "MUTANT" not in cmd:
         # We asssume if the MUTANT isn't part of the command,
         # we need to move it into place, before, e.g., make
@@ -54,8 +63,8 @@ def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         shutil.copy(sourceFile, backupName)
         shutil.copy(tmpMutantName, sourceFile)
     try:
-        with open(".um.mutant_output." + str(os.getpid()), 'w') as file:
-            r = subprocess.call([cmd.replace("MUTANT", tmpMutantName)],
+        with open(outFile, 'w') as file:
+            r = subprocess.call(cmd.replace("MUTANT", tmpMutantName),
                                 shell=True, stderr=file, stdout=file)
         if r == 0:
             return "VALID"
@@ -64,6 +73,14 @@ def cmdHandler(tmpMutantName, mutant, sourceFile, uniqueMutants):
         # If we moved the mutant in, restore original
         if "MUTANT" not in cmd:
             shutil.copy(backupName, sourceFile)
+        try:
+            os.remove(backupName)
+        except OSError:
+            pass
+        try:
+            os.remove(outFile)
+        except OSError:
+            pass
 
 
 def toGarbage(code):
@@ -78,6 +95,12 @@ def toGarbage(code):
     return newCode
 
 cmd = None
+
+
+def comby_language_for_extension(ending):
+    if ending in [".tact", ".fc", ".func", ".tolk"]:
+        return ".generic"
+    return ending
 
 def main():
     global cmd
@@ -211,7 +234,11 @@ def main():
                  ".R": "r",
                  ".sol": "solidity",
                  ".vy": "vyper",
-                 ".fe": "fe"}
+                 ".fe": "fe",
+                 ".tact": "tact",
+                 ".fc": "func",
+                 ".func": "func",
+                 ".tolk": "tolk"}
 
     print("*** UNIVERSALMUTATOR ***")
 
@@ -229,7 +256,12 @@ def main():
                 "lisp": lisp_handler,
                 "solidity": solidity_handler,
                 "vyper": vyper_handler,
-                "fe": fe_handler}
+                "fe": fe_handler,
+
+                # TON languages
+                "tact": tact_handler,
+                "func": func_handler,
+                "tolk": tolk_handler}
 
     cLikeLanguages = [
         "c",
@@ -240,14 +272,15 @@ def main():
         "c++",
         "rust",
         "solidity",
-        "go"]
+        "go",
+    ]
 
     try:
         handlers["custom"] == custom_handler
     except BaseException:
         pass
 
-    base = (".".join((sourceFile.split(".")[:-1]))).split("/")[-1]
+    base = os.path.splitext(os.path.basename(sourceFile))[0]
 
     if parsed.only is None:
         if parsed.language_or_rules is None:
@@ -268,22 +301,25 @@ def main():
             if language.lower() in handlers:
                 language = language.lower()
 
-        if language in cLikeLanguages:
-            otherRules.append("c_like.rules")
+        if language in ["tact", "func", "tolk"]:
+            rules = ["ton_common.rules", language + ".rules"] + otherRules
+        else:
+            if language in cLikeLanguages:
+                otherRules.append("c_like.rules")
 
-        if language == "vyper":
-            otherRules.append("python.rules")
-            otherRules.append("solidity.rules")
+            if language == "vyper":
+                otherRules.append("python.rules")
+                otherRules.append("solidity.rules")
 
-        if language == "fe":
-            otherRules.append("python.rules")
-            otherRules.append("solidity.rules")
+            if language == "fe":
+                otherRules.append("python.rules")
+                otherRules.append("solidity.rules")
 
-        rules = ["universal.rules", language + ".rules"] + otherRules
-        if fuzz:
-            if language == "none":
-                fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
-                rules = list(set(fuzzRules + rules))
+            rules = ["universal.rules", language + ".rules"] + otherRules
+            if fuzz:
+                if language == "none":
+                    fuzzRules = ["universal.rules", "c_like.rules", "python.rules", "vyper.rules", "solidity.rules"]
+                    rules = list(set(fuzzRules + rules))
     else:
         rules = [parsed.only]
         if parsed.language_or_rules is not None and ".rules" not in parsed.language_or_rules:
@@ -310,11 +346,26 @@ def main():
     mutants = []
 
     if comby:
-        mutants = mutator.mutants_comby(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
-                                ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz, language=ending)
+        mutants = mutator.mutants_comby(
+            source,
+            ruleFiles=rules,
+            mutateTestCode=mutateTestCode,
+            mutateBoth=mutateBoth,
+            ignorePatterns=ignorePatterns,
+            ignoreStringOnly=not mutateInStrings,
+            fuzzing=fuzz,
+            language=comby_language_for_extension(ending)
+        )
     else:
-        mutants = mutator.mutants_regexp(source, ruleFiles=rules, mutateTestCode=mutateTestCode, mutateBoth=mutateBoth,
-                              ignorePatterns=ignorePatterns, ignoreStringOnly=not mutateInStrings, fuzzing=fuzz)
+        mutants = mutator.mutants_regexp(
+            source,
+            ruleFiles=rules,
+            mutateTestCode=mutateTestCode,
+            mutateBoth=mutateBoth,
+            ignorePatterns=ignorePatterns,
+            ignoreStringOnly=not mutateInStrings,
+            fuzzing=fuzz
+        )
     if fuzz:
         if len(mutants) == 0:
             sys.exit(255)
@@ -383,10 +434,10 @@ def main():
         if comby:
             sourceJoined = ''.join(source)
             print("PROCESSING MUTANT:",
-              "range" + str(mutant[0]) + ":", sourceJoined[mutant[0][0]:mutant[0][1]].replace("\n", "\\n"), " ==> ", mutant[1], end="...")
+                  "range" + str(mutant[0]) + ":", sourceJoined[mutant[0][0]:mutant[0][1]].replace("\n", "\\n"), " ==> ", mutant[1], end="...")
         else:
             print("PROCESSING MUTANT:",
-              str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
+                  str(mutant[0]) + ":", source[mutant[0] - 1][:-1], " ==> ", mutant[1][:-1], end="...")
         if (not comby) and showRules:
             print("(FROM:", mutant[2][1], end=")...")
 
@@ -422,13 +473,49 @@ def main():
     if doSwaps:
         print("TRYING CODE SWAPS...")
         swapList = []
+        def swap_candidate(line, inBlockComment, inFuncBlockComment):
+            stripped = line.strip()
+            if stripped == "":
+                return False, inBlockComment, inFuncBlockComment
+            if inBlockComment:
+                if "*/" in line:
+                    inBlockComment = False
+                return False, inBlockComment, inFuncBlockComment
+            if inFuncBlockComment:
+                if "-}" in line:
+                    inFuncBlockComment = False
+                return False, inBlockComment, inFuncBlockComment
+            if "/*" in line:
+                if "*/" not in line or line.index("/*") > line.index("*/"):
+                    inBlockComment = True
+                if stripped.startswith("/*"):
+                    return False, inBlockComment, inFuncBlockComment
+            if "{-" in line:
+                if "-}" not in line or line.index("{-") > line.index("-}"):
+                    inFuncBlockComment = True
+                if stripped.startswith("{-"):
+                    return False, inBlockComment, inFuncBlockComment
+            if stripped.startswith("//") or stripped.startswith(";;") or stripped.startswith("#"):
+                return False, inBlockComment, inFuncBlockComment
+            return True, inBlockComment, inFuncBlockComment
+
+        def swap_equivalent(lineA, lineB):
+            return lineA.strip() == lineB.strip()
+
+        inBlockComment = False
+        inFuncBlockComment = False
         for lineNo in range(len(source)):
             if lineNo + 1 in deadCodeLines:
                 continue
-            swapList.append(lineNo)
+            line = source[lineNo]
+            ok, inBlockComment, inFuncBlockComment = swap_candidate(line, inBlockComment, inFuncBlockComment)
+            if ok:
+                swapList.append(lineNo)
         for i in range(0, len(swapList)-1):
             a = swapList[i]
             b = swapList[i+1]
+            if swap_equivalent(source[a], source[b]):
+                continue
             mutant = [a + 1] # Only the line is valid here
             print("TRYING TO SWAP LINES", a + 1, "AND", b + 1, end="...")
             newSource = source[:a]

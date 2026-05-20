@@ -1,0 +1,67 @@
+# Shared TON regex mutations used by Tact, FunC, and Tolk by default.
+#
+# This ruleset intentionally keeps only syntax-safe common families.
+# It replaces the previous TON default of blindly layering
+# universal.rules + c_like.rules on top of language-specific rules.
+
+# Boolean literal flip.
+\btrue\b ==> false
+\bfalse\b ==> true
+
+# Safe comparison swaps that do not touch generic/type angle brackets.
+(?<![<>=!])==(?!=) ==> !=
+!=(?!=) ==> ==
+(?<!<)<=(?!=) ==> <
+(?<!<)<=(?!=) ==> ==
+(?<!>)>=(?!=) ==> >
+(?<!>)>=(?!=) ==> ==
+
+# Logical operator swap. Skip lines with Tolk type guards; changing
+# `value is T && ...` to `||` breaks narrowing and often stops compiling.
+^(?!.*(?:\bis\b|!is\b))(.*)&&(.+)$ ==> \1||\2
+^(?!.*(?:\bis\b|!is\b))(.*)\|\|(.+)$ ==> \1&&\2
+
+# Safe infix arithmetic/bitwise swaps shared across TON languages.
+# Keep these operand-shaped so we do not touch unary minus, assignments,
+# comments, or FunC-specific operators such as `~/` and `^/`.
+([A-Za-z0-9_\)\]])(\s*)\+(\s*)([A-Za-z0-9_\(\[]) ==> \1\2-\3\4
+([A-Za-z0-9_\)\]])(\s*)-(\s*)([A-Za-z0-9_\(\[]) ==> \1\2+\3\4
+([A-Za-z0-9_\)\]])(\s*)\*(\s*)([A-Za-z0-9_\(\[]) ==> \1\2/\3\4
+([A-Za-z0-9_\)\]])(\s*)/(\s*)([A-Za-z0-9_\(\[]) ==> \1\2*\3\4
+([A-Za-z0-9_\)\]])(\s*)&(\s*)([A-Za-z0-9_\(\[]) ==> \1\2|\3\4
+
+# Loop forcing shared by Tact, FunC, and Tolk.
+\bwhile (\(.*\)) ==> while (false)
+\bwhile(\(.*\)) ==> while(false)
+
+# Statement-only loop control swap.
+(^\s*)break(\s*;) ==> \1continue\2
+(^\s*)continue(\s*;) ==> \1break\2
+
+# Arithmetic assignment operator shuffle.
+\+= ==> -=
+\+= ==> *=
+\+= ==> /=
+-= ==> +=
+-= ==> *=
+-= ==> /=
+\*= ==> +=
+\*= ==> -=
+\*= ==> /=
+(?<![~^])/= ==> +=
+(?<![~^])/= ==> -=
+(?<![~^])/= ==> *=
+
+# Bitwise assignment operator shuffle.
+\&= ==> |=
+\&= ==> ^=
+\|= ==> &=
+\|= ==> ^=
+\^= ==> &=
+\^= ==> |=
+
+# Shift assignment/operator shuffle.
+<<= ==> >>=
+>>= ==> <<=
+<<(?!=) ==> >>
+>>(?!=) ==> <<

@@ -1,0 +1,186 @@
+# Tact (TON) comby rules.
+#
+# Notes:
+# - ton_common.rules now provides the shared TON-safe operator/control-flow
+#   families for default --comby runs.
+# - This file keeps Tact-specific mutations aligned with static/tact.rules where
+#   Comby patterns are syntax-aware and straightforward. Shared TON families
+#   should stay in ton_common.rules to avoid dead duplicate rules in default runs.
+
+//:[comment] ==> DO_NOT_MUTATE
+///:[comment] ==> DO_NOT_MUTATE
+/*:[comment]*/ ==> DO_NOT_MUTATE
+
+import :[rest] ==> DO_NOT_MUTATE
+
+# Line-anchored comment replacement stays regex-only; this Comby layer has no
+# safe line-scope guard for declaration/control-flow exclusions.
+
+if (:[cond]) ==> if (!(:[cond]))
+if (:[cond]) ==> if (false)
+if (:[cond]) ==> if (true)
+:[lhs~.*\s]^:[rhs~.*] ==> :[lhs]&:[rhs]
+:[lhs~.*\s]^:[rhs~.*] ==> :[lhs]|:[rhs]
+until (:[cond]) ==> until (0==1)
+repeat (:[count]) ==> repeat (0)
+throwIf(:[x]) ==> throwUnless(:[x])
+throwUnless(:[x]) ==> throwIf(:[x])
+require(:[cond], :[msg]); ==> throwUnless(0, :[cond]);
+require(:[cond], :[msg]); ==> throwIf(0, :[cond]);
+require(:[cond], :[msg]); ==> 
+throw(:[code~\d+]); ==> throw(0);
+throwIf(:[code~\d+], :[cond]); ==> throwIf(0, :[cond]);
+throwUnless(:[code~\d+], :[cond]); ==> throwUnless(0, :[cond]);
+nativeThrow(:[code~\d+]); ==> nativeThrow(0);
+nativeThrowIf(:[code~\d+], :[cond]); ==> nativeThrowIf(0, :[cond]);
+nativeThrowUnless(:[code~\d+], :[cond]); ==> nativeThrowUnless(0, :[cond]);
+throw(:[code]); ==> 
+throwIf(:[code], :[cond]); ==> 
+throwUnless(:[code], :[cond]); ==> 
+nativeThrow(:[code]); ==> 
+nativeThrowIf(:[code], :[cond]); ==> 
+nativeThrowUnless(:[code], :[cond]); ==> 
+nativeThrowIf(:[code], :[cond]) ==> nativeThrowUnless(:[code], :[cond])
+nativeThrowUnless(:[code], :[cond]) ==> nativeThrowIf(:[code], :[cond])
+
+bounce: true ==> bounce: false
+bounce: false ==> bounce: true
+mode: 0 ==> mode: 64
+mode: 1 ==> mode: 0
+mode: 2 ==> mode: 0
+mode: 16 ==> mode: 0
+mode: 32 ==> mode: 0
+mode: 64 ==> mode: 0
+mode: 64 ==> mode: 128
+mode: 128 ==> mode: 0
+mode: 128 ==> mode: 64
+mode: 1024 ==> mode: 0
+
+SendDefaultMode ==> SendRemainingValue
+SendPayGasSeparately ==> 0
+SendPayFwdFeesSeparately ==> 0
+SendIgnoreErrors ==> 0
+SendBounceIfActionFail ==> 0
+SendDestroyIfZero ==> 0
+SendRemainingValue ==> SendDefaultMode
+SendRemainingValue ==> SendRemainingBalance
+SendRemainingValue ==> 0
+SendRemainingBalance ==> SendDefaultMode
+SendRemainingBalance ==> SendRemainingValue
+SendRemainingBalance ==> 0
+SendOnlyEstimateFee ==> 0
+ReserveExact ==> ReserveAllExcept
+ReserveAllExcept ==> ReserveExact
+ReserveAllExcept ==> ReserveAtMost
+ReserveAtMost ==> ReserveExact
+ReserveAtMost ==> ReserveAllExcept
+ReserveAddOriginalBalance ==> 0
+ReserveInvertSign ==> 0
+ReserveBounceIfActionFail ==> 0
+nativeReserve(:[amount], 0) ==> nativeReserve(:[amount], 1)
+nativeReserve(:[amount], 1) ==> nativeReserve(:[amount], 0)
+nativeReserve(:[amount], 1) ==> nativeReserve(:[amount], 2)
+nativeReserve(:[amount], 2) ==> nativeReserve(:[amount], 0)
+nativeReserve(:[amount], 2) ==> nativeReserve(:[amount], 1)
+nativeReserve(:[amount], 4) ==> nativeReserve(:[amount], 0)
+nativeReserve(:[amount], 8) ==> nativeReserve(:[amount], 0)
+nativeReserve(:[amount], 16) ==> nativeReserve(:[amount], 0)
+
+value: 0 ==> value: 1
+value: 1 ==> value: 0
+context().value ==> 0
+ctx.value ==> 0
+now() ==> 0
+now() ==> curLt()
+curLt() ==> blockLt()
+blockLt() ==> curLt()
+inMsg() ==> context().raw
+context().raw ==> inMsg()
+sender() ==> context().sender
+context().sender ==> sender()
+sender() ==> myAddress()
+myAddress() ==> sender()
+myBalance() ==> context().value
+myStorageDue() ==> gasConsumed()
+gasConsumed() ==> myStorageDue()
+gasConsumed() ==> context().readForwardFee()
+context().readForwardFee() ==> gasConsumed()
+randomInt() ==> getSeed()
+getSeed() ==> randomInt()
+randomInt() ==> nativeRandom()
+nativeRandom() ==> randomInt()
+setSeed(:[seed]) ==> nativeRandomize(:[seed])
+nativeRandomize(:[seed]) ==> setSeed(:[seed])
+nativePrepareRandom() ==> nativeRandomizeLt()
+nativeRandomizeLt() ==> nativePrepareRandom()
+nativeRandomInterval(:[max]) ==> random(0, :[max])
+random(0, :[max]) ==> nativeRandomInterval(:[max])
+random(:[min], :[max]) ==> random(:[max], :[min])
+abs(:[x]) ==> sign(:[x])
+sign(:[x]) ==> abs(:[x])
+min(:[x], :[y]) ==> max(:[x], :[y])
+max(:[x], :[y]) ==> min(:[x], :[y])
+mulShiftRight(:[x], :[y], :[z]) ==> mulShiftRightRound(:[x], :[y], :[z])
+mulShiftRight(:[x], :[y], :[z]) ==> mulShiftRightCeil(:[x], :[y], :[z])
+mulShiftRightRound(:[x], :[y], :[z]) ==> mulShiftRight(:[x], :[y], :[z])
+mulShiftRightRound(:[x], :[y], :[z]) ==> mulShiftRightCeil(:[x], :[y], :[z])
+mulShiftRightCeil(:[x], :[y], :[z]) ==> mulShiftRight(:[x], :[y], :[z])
+mulShiftRightCeil(:[x], :[y], :[z]) ==> mulShiftRightRound(:[x], :[y], :[z])
+log(:[num], 2) ==> log(:[num], 10)
+log(:[num], 10) ==> log(:[num], 2)
+pow(2, :[exp]) ==> pow(10, :[exp])
+pow(10, :[exp]) ==> pow(2, :[exp])
+
+as uint256 ==> as uint128
+as uint128 ==> as uint64
+as uint64 ==> as uint32
+as uint32 ==> as uint64
+as uint16 ==> as uint8
+as uint8 ==> as uint16
+as uint256 ==> as int256
+as uint128 ==> as int128
+as uint64 ==> as int64
+as uint32 ==> as int32
+as uint16 ==> as int16
+as uint8 ==> as int8
+as int256 ==> as int128
+as int128 ==> as int64
+as int64 ==> as int32
+as int32 ==> as int16
+as int16 ==> as int8
+as int8 ==> as int16
+as int256 ==> as uint256
+as int128 ==> as uint128
+as int64 ==> as uint64
+as int32 ==> as uint32
+as int16 ==> as uint16
+as int8 ==> as uint8
+as coins ==> as uint64
+as remaining ==> as bytes32
+
+sender() == owner ==> sender() != owner
+sender() != owner ==> sender() == owner
+sender() == self.:[field] ==> sender() != self.:[field]
+sender() != self.:[field] ==> sender() == self.:[field]
+self.:[field] == sender() ==> self.:[field] != sender()
+self.:[field] != sender() ==> self.:[field] == sender()
+myAddress() == :[target] ==> myAddress() != :[target]
+myAddress() != :[target] ==> myAddress() == :[target]
+
+acceptMessage(); ==> 
+
+inline fun :[rest] ==> fun :[rest]
+get fun :[rest] ==> fun :[rest]
+
+message(0x:[opcode~[0-9a-fA-F]{8}]) ==> message(0xFFFFFFFF)
+
+external(:[args]) ==> receive(:[args])
+receive(:[args]) ==> external(:[args])
+
+emptyCell() ==> beginCell().endCell()
+beginCell().endCell() ==> emptyCell()
+body: null ==> body: emptyCell()
+body: emptyCell() ==> body: null
+
+:[recv].set(:[args]) ==> :[recv].replace(:[args])
+:[recv].replace(:[args]) ==> :[recv].set(:[args])

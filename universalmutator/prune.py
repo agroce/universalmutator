@@ -40,24 +40,19 @@ def main():
             mutants.append(utils.readMutant(name, original, mutantDir=mdir))
     print("READ", len(mutants), "MUTANTS")
 
-    constraints = {}
-    constraints["orig"] = []
-    constraints["mutant"] = []
-    constraints["change"] = []
-    constraints["function"] = []
-    constraints["contract"] = []
-    constraints["source"] = []
-    constraints["line"] = []
-    for v in constraints.keys():
-        constraints["!" + v] = []
-    for v in constraints.keys():
-        constraints[v + "_RE"] = []
+    base_fields = ["orig", "mutant", "change", "function", "contract", "source", "line"]
+    constraints = {field: [] for field in base_fields}
+    constraints.update({"!" + field: [] for field in base_fields})
+    constraints.update({field + "_RE": [] for field in base_fields})
+    constraints.update({"!" + field + "_RE": [] for field in base_fields})
 
     baseTypes = set()
 
     with open(config, 'r') as cfile:
         for line in cfile:
             r = line.rstrip('\n')
+            if not r.strip() or r.lstrip().startswith("#"):
+                continue
             (ctype, crule) = r.split(": ", 1)
             if ctype not in constraints:
                 print("INVALID CONSTRAINT TYPE IN PRUNING RULE:", line)
@@ -94,7 +89,7 @@ def main():
                 elif not regexp:
                     matched = c in properties[field]
                 else:
-                    matched = regexp.search(c, properties[field])
+                    matched = c.search(properties[field])
                 result = not ((matched is None) or (matched is False))
                 if negated:
                     result = not result

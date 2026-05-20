@@ -5,7 +5,6 @@ try:
 except ImportError:
     import importlib_resources
 import random
-from comby import Comby
 import os
 from json.decoder import JSONDecodeError
 
@@ -20,15 +19,13 @@ def parseRules(ruleFiles, comby=False):
                 rulePath = os.path.join('comby', ruleFile)
             else:
                 rulePath = os.path.join('static', ruleFile)
-            #with pkg_resources.resource_stream('universalmutator', rulePath) as builtInRule:
-            #^^ change this line
             resource = importlib_resources.files('universalmutator')
             for part in rulePath.split(os.sep):
                 resource = resource.joinpath(part)
 
             with resource.open('rb') as builtInRule:
                 for line in builtInRule:
-                    line = line.decode()
+                    line = line.decode('utf-8', errors='replace')
                     rulesText.append((line, "builtin:" + ruleFile))
         except BaseException:
             print("FAILED TO FIND RULE", ruleFile, "AS BUILT-IN...")
@@ -46,7 +43,9 @@ def parseRules(ruleFiles, comby=False):
 
     for (r, ruleSource) in rulesText:
         ruleLineNo += 1
-        if r == "\n":
+        # Normalize CRLF/CR newlines so rule parsing behaves the same on Windows and Unix.
+        r = r.rstrip("\r\n")
+        if r == "":
             continue
         if " ==> " not in r:
             if " ==>" in r:
@@ -74,10 +73,7 @@ def parseRules(ruleFiles, comby=False):
                 print("FAILED TO COMPILE RULE:", r, "FROM", ruleSource)
                 print("*" * 60)
                 continue
-        if (len(s[1]) > 0) and (s[1][-1] == "\n"):
-            rhs = s[1][:-1]
-        else:
-            rhs = s[1]
+        rhs = s[1]
         if rhs == "DO_NOT_MUTATE":
             ignoreRules.append(lhs)
         elif rhs == "SKIP_MUTATING_REST":
@@ -91,6 +87,12 @@ def parseRules(ruleFiles, comby=False):
 
 def mutants_comby(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False,
             ignorePatterns=None, ignoreStringOnly=False, fuzzing=False, language=".generic"):
+    try:
+        from comby import Comby
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "The Python 'comby' package is required to generate --comby mutants"
+        ) from exc
     if ruleFiles is None:
         ruleFiles = ["universal.rules"]
     comby = Comby()
@@ -99,6 +101,12 @@ def mutants_comby(source, ruleFiles=None, mutateTestCode=False, mutateBoth=False
     for lhs in ignorePatterns:
         ignoreRules.append(lhs)
     source = ''.join(source)
+    if language == ".generic":
+        # Comby's .generic matcher fails on unbalanced single quotes inside
+        # // comments (common in English text). Replacing them with spaces
+        # keeps offsets intact and is safe for TON languages that have no
+        # char-literal syntax using '.
+        source = source.replace("'", " ")
     mutants = []
 
     # Lines that match with DO_NOT_MUTATE and other ignore rules will be skipped
@@ -143,6 +151,8 @@ def mutants_regexp(source, ruleFiles=None, mutateTestCode=False, mutateBoth=Fals
     print("MUTATING WITH RULES:", ", ".join(ruleFiles))
 
     (rules, ignoreRules, skipRules) = parseRules(ruleFiles)
+    func_ruleset = any(os.path.basename(rule) == "func.rules" for rule in ruleFiles)
+    numeric_literal_pattern = r"(\D)(\d+)(\D)"
 
     for p in ignorePatterns:
         try:
@@ -159,6 +169,8 @@ def mutants_regexp(source, ruleFiles=None, mutateTestCode=False, mutateBoth=Fals
     lineno = 0
     stringSkipped = 0
     inTestCode = False
+    inBlockComment = False
+    inFuncBlockComment = False
     targetLine = None
     if fuzzing:
         # Pick a random target line, ignore others
@@ -168,6 +180,24 @@ def mutants_regexp(source, ruleFiles=None, mutateTestCode=False, mutateBoth=Fals
     for l in source:
         lineno += 1
         if fuzzing and (lineno != targetLine):
+            continue
+        if l.strip() == "":
+            continue
+        if inBlockComment:
+            if "*/" in l:
+                inBlockComment = False
+            continue
+        if inFuncBlockComment:
+            if "-}" in l:
+                inFuncBlockComment = False
+            continue
+        if "/*" in l:
+            if "*/" not in l or l.index("/*") > l.index("*/"):
+                inBlockComment = True
+            continue
+        if "{-" in l:
+            if "-}" not in l or l.index("{-") > l.index("-}"):
+                inFuncBlockComment = True
             continue
         if inTestCode:
             if "@END_TEST_CODE" in l:
@@ -187,8 +217,18 @@ def mutants_regexp(source, ruleFiles=None, mutateTestCode=False, mutateBoth=Fals
                 break
         if skipLine:
             continue
+        skipDenseNumericRules = False
+        if func_ruleset and ("store_uint" in l or "store_int" in l):
+            if re.search(r"\d\s*[+-]\s*\d", l):
+                numeric_literals = re.findall(r"(?<![A-Za-z_])\d+(?![A-Za-z_])", l)
+                if len(numeric_literals) >= 5:
+                    # FunC often computes bit lengths as long sums.
+                    # Mutating individual numbers here creates many INVALID mutants and slows runs down.
+                    skipDenseNumericRules = True
         abandon = False
         for ((lhs, rhs), ruleUsed) in rules:
+            if skipDenseNumericRules and lhs.pattern == numeric_literal_pattern:
+                continue
             skipPos = len(l)
             for skipRule in skipRules:
                 skipp = skipRule.search(l, 0)

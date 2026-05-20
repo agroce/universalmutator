@@ -1,0 +1,288 @@
+# Tolk (TON) comby rules.
+#
+# Notes:
+# - ton_common.rules now provides the shared TON-safe operator/control-flow
+#   families for default --comby runs.
+# - These rules mirror conservative Tolk-specific surface-syntax edits.
+
+/*:[comment]*/ ==> DO_NOT_MUTATE
+
+import :[rest] ==> DO_NOT_MUTATE
+
+# Line-anchored comment replacement stays regex-only; this Comby layer has no
+# safe line-scope guard for declaration/control-flow exclusions.
+
+if (:[cond]) ==> if (!(:[cond]))
+if (:[cond]) ==> if (false)
+if (:[cond]) ==> if (true)
+
+# Bitwise/logical operator shuffle.  \w+ holes keep us from swallowing whole
+# type declarations while still matching SEND_MODE_* | SEND_MODE_* etc.
+:[a] & :[b] ==> :[a] ^ :[b]
+
+# Comment-replacement for standalone assert statements.
+assert (:[cond]) throw :[err]; ==> // assert (:[cond]) throw :[err];
+assert (:[cond]) throw :[err]; ==> assert (!(:[cond])) throw :[err];
+
+assert (:[cond]) throw :[err]; ==> 
+throw :[err]; ==> 
+:[obj].save(:[args]); ==> 
+contract.setData(:[args]); ==> 
+acceptExternalMessage(); ==> 
+commitContractDataAndActions(); ==> 
+contract.setCodePostponed(:[args]); ==> 
+
+# Non-literal / non-ton value initialisers (e.g. value: msgValue).
+value: :[expr~[a-zA-Z0-9_.]+] ==> value: 0
+
+# Comparison swaps inside assert and if.
+assert (:[lhs] == :[rhs]) throw :[err] ==> assert (:[lhs] != :[rhs]) throw :[err]
+assert (:[lhs] != :[rhs]) throw :[err] ==> assert (:[lhs] == :[rhs]) throw :[err]
+assert (:[lhs] < :[rhs]) throw :[err] ==> assert (:[lhs] <= :[rhs]) throw :[err]
+assert (:[lhs] > :[rhs]) throw :[err] ==> assert (:[lhs] >= :[rhs]) throw :[err]
+assert (:[lhs] >= :[rhs]) throw :[err] ==> assert (:[lhs] > :[rhs]) throw :[err]
+assert (:[lhs] >= :[rhs]) throw :[err] ==> assert (:[lhs] == :[rhs]) throw :[err]
+assert (:[lhs] <= :[rhs]) throw :[err] ==> assert (:[lhs] < :[rhs]) throw :[err]
+assert (:[lhs] <= :[rhs]) throw :[err] ==> assert (:[lhs] == :[rhs]) throw :[err]
+
+if (:[lhs] == :[rhs]) ==> if (:[lhs] != :[rhs])
+if (:[lhs] != :[rhs]) ==> if (:[lhs] == :[rhs])
+if (:[lhs] < :[rhs]) ==> if (:[lhs] <= :[rhs])
+if (:[lhs] > :[rhs]) ==> if (:[lhs] >= :[rhs])
+if (:[lhs] >= :[rhs]) ==> if (:[lhs] > :[rhs])
+if (:[lhs] >= :[rhs]) ==> if (:[lhs] == :[rhs])
+if (:[lhs] <= :[rhs]) ==> if (:[lhs] < :[rhs])
+if (:[lhs] <= :[rhs]) ==> if (:[lhs] == :[rhs])
+return :[lhs] < :[rhs]; ==> return :[lhs] <= :[rhs];
+return :[lhs] > :[rhs]; ==> return :[lhs] >= :[rhs];
+var :[name] = :[lhs] | :[rhs]; ==> var :[name] = :[lhs] & :[rhs];
+var :[name] = :[lhs] | :[rhs]; ==> var :[name] = :[lhs] ^ :[rhs];
+
+lazy :[rest] ==> :[rest]
+get fun :[rest] ==> fun :[rest]
+@inline ==> @noinline
+@noinline ==> @inline
+@inline_ref ==> @inline
+@pure ==> 
+mutate :[param]: :[type] ==> :[param]: :[type]
+fun :[name](:[before], :[arg]: :[type] = :[default], :[after]) ==> fun :[name](:[before], :[arg]: :[type], :[after])
+fun :[name](:[arg]: :[type] = :[default], :[after]) ==> fun :[name](:[arg]: :[type], :[after])
+fun :[name](:[before], :[arg]: :[type] = :[default]) ==> fun :[name](:[before], :[arg]: :[type])
+
+varuint16 ==> varint16
+varint16 ==> varuint16
+varuint32 ==> varint32
+varint32 ==> varuint32
+:[lhs] *= :[rhs] ==> :[lhs] %= :[rhs]
+:[lhs] %= :[rhs] ==> :[lhs] *= :[rhs]
+as uint:[n~(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-6])] ==> as int:[n]
+as int:[n~(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-6])] ==> as uint:[n]
+:[expr]! ==> :[expr]
+throwIfOpcodeDoesNotMatch: :[err] ==> throwIfOpcodeDoesNotMatch: 63
+assertEndAfterReading: true ==> assertEndAfterReading: false
+assertEndAfterReading: false ==> assertEndAfterReading: true
+blockchain.now ==> blockchain.logicalTime
+blockchain.logicalTime ==> blockchain.currentBlockLogicalTime
+blockchain.currentBlockLogicalTime ==> blockchain.logicalTime
+calculateSizeStrict(:[args]) ==> calculateSize(:[args])
+calculateSize(:[args]) ==> calculateSizeStrict(:[args])
+random.uint256 ==> random.getSeed
+random.getSeed ==> random.uint256
+:[recv].loadRef(:[args]) ==> :[recv].preloadRef(:[args])
+:[recv].preloadRef(:[args]) ==> :[recv].loadRef(:[args])
+:[recv].loadInt(:[args]) ==> :[recv].preloadInt(:[args])
+:[recv].preloadInt(:[args]) ==> :[recv].loadInt(:[args])
+:[recv].loadUint(:[args]) ==> :[recv].preloadUint(:[args])
+:[recv].preloadUint(:[args]) ==> :[recv].loadUint(:[args])
+:[recv].loadBits(:[args]) ==> :[recv].preloadBits(:[args])
+:[recv].preloadBits(:[args]) ==> :[recv].loadBits(:[args])
+:[recv].loadDict(:[args]) ==> :[recv].preloadDict(:[args])
+:[recv].preloadDict(:[args]) ==> :[recv].loadDict(:[args])
+:[recv].loadMaybeRef(:[args]) ==> :[recv].preloadMaybeRef(:[args])
+:[recv].preloadMaybeRef(:[args]) ==> :[recv].loadMaybeRef(:[args])
+:[recv].loadInt(:[args]) ==> :[recv].loadUint(:[args])
+:[recv].loadUint(:[args]) ==> :[recv].loadInt(:[args])
+:[recv].preloadInt(:[args]) ==> :[recv].preloadUint(:[args])
+:[recv].preloadUint(:[args]) ==> :[recv].preloadInt(:[args])
+:[recv].storeRef(:[args]) ==> :[recv].storeMaybeRef(:[args])
+:[recv].storeInt(:[args]) ==> :[recv].storeUint(:[args])
+:[recv].storeUint(:[args]) ==> :[recv].storeInt(:[args])
+:[recv].remainingBitsCount() ==> :[recv].remainingRefsCount()
+:[recv].remainingRefsCount() ==> :[recv].remainingBitsCount()
+:[recv].isEmpty() ==> :[recv].isEndOfBits()
+:[recv].isEmpty() ==> :[recv].isEndOfRefs()
+:[recv].isEndOfBits() ==> :[recv].isEmpty()
+:[recv].isEndOfRefs() ==> :[recv].isEmpty()
+:[recv].getFirstBits(:[args]) ==> :[recv].getLastBits(:[args])
+:[recv].getLastBits(:[args]) ==> :[recv].getFirstBits(:[args])
+:[recv~(?!\s*fun\b).*].getStorageDuePayment() ==> :[recv].getStoragePaidPayment()
+:[recv~(?!\s*fun\b).*].getStoragePaidPayment() ==> :[recv].getStorageDuePayment()
+:[msg].send(:[mode]) ==> :[msg].sendAndEstimateFee(:[mode])
+:[recv~(?!\s*fun\b).*].sendAndEstimateFee(:[args]) ==> :[recv].estimateFeeWithoutSending(:[args])
+:[recv~(?!\s*fun\b).*].estimateFeeWithoutSending(:[args]) ==> :[recv].sendAndEstimateFee(:[args])
+:[recv~(?!\s*fun\b).*].isInternal() ==> :[recv].isExternal()
+:[recv~(?!\s*fun\b).*].isExternal() ==> :[recv].isInternal()
+:[recv~(?!\s*fun\b).*].loadMessageOp(:[args]) ==> :[recv].loadMessageQueryId(:[args])
+:[recv~(?!\s*fun\b).*].loadMessageQueryId(:[args]) ==> :[recv].loadMessageOp(:[args])
+:[recv~(?!\s*fun\b).*].storeMessageOp(:[args]) ==> :[recv].storeMessageQueryId(:[args])
+:[recv~(?!\s*fun\b).*].storeMessageQueryId(:[args]) ==> :[recv].storeMessageOp(:[args])
+:[recv~(?!\s*fun\b).*].iDictGet(:[args]) ==> :[recv].uDictGet(:[args])
+:[recv~(?!\s*fun\b).*].uDictGet(:[args]) ==> :[recv].iDictGet(:[args])
+:[recv~(?!\s*fun\b).*].iDictSet(:[args]) ==> :[recv].uDictSet(:[args])
+:[recv~(?!\s*fun\b).*].uDictSet(:[args]) ==> :[recv].iDictSet(:[args])
+:[recv~(?!\s*fun\b).*].iDictSetRef(:[args]) ==> :[recv].uDictSetRef(:[args])
+:[recv~(?!\s*fun\b).*].uDictSetRef(:[args]) ==> :[recv].iDictSetRef(:[args])
+:[recv~(?!\s*fun\b).*].iDictSetIfNotExists(:[args]) ==> :[recv].uDictSetIfNotExists(:[args])
+:[recv~(?!\s*fun\b).*].uDictSetIfNotExists(:[args]) ==> :[recv].iDictSetIfNotExists(:[args])
+:[recv~(?!\s*fun\b).*].iDictSetIfExists(:[args]) ==> :[recv].uDictSetIfExists(:[args])
+:[recv~(?!\s*fun\b).*].uDictSetIfExists(:[args]) ==> :[recv].iDictSetIfExists(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetRef(:[args]) ==> :[recv].uDictGetRef(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetRef(:[args]) ==> :[recv].iDictGetRef(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetRefOrNull(:[args]) ==> :[recv].uDictGetRefOrNull(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetRefOrNull(:[args]) ==> :[recv].iDictGetRefOrNull(:[args])
+:[recv~(?!\s*fun\b).*].iDictDelete(:[args]) ==> :[recv].uDictDelete(:[args])
+:[recv~(?!\s*fun\b).*].uDictDelete(:[args]) ==> :[recv].iDictDelete(:[args])
+:[recv~(?!\s*fun\b).*].iDictSetAndGet(:[args]) ==> :[recv].uDictSetAndGet(:[args])
+:[recv~(?!\s*fun\b).*].uDictSetAndGet(:[args]) ==> :[recv].iDictSetAndGet(:[args])
+:[recv~(?!\s*fun\b).*].iDictSetAndGetRefOrNull(:[args]) ==> :[recv].uDictSetAndGetRefOrNull(:[args])
+:[recv~(?!\s*fun\b).*].uDictSetAndGetRefOrNull(:[args]) ==> :[recv].iDictSetAndGetRefOrNull(:[args])
+:[recv~(?!\s*fun\b).*].iDictDeleteAndGet(:[args]) ==> :[recv].uDictDeleteAndGet(:[args])
+:[recv~(?!\s*fun\b).*].uDictDeleteAndGet(:[args]) ==> :[recv].iDictDeleteAndGet(:[args])
+:[recv~(?!\s*fun\b).*].iDictSetBuilder(:[args]) ==> :[recv].uDictSetBuilder(:[args])
+:[recv~(?!\s*fun\b).*].uDictSetBuilder(:[args]) ==> :[recv].iDictSetBuilder(:[args])
+:[recv~(?!\s*fun\b).*].iDictSetBuilderIfNotExists(:[args]) ==> :[recv].uDictSetBuilderIfNotExists(:[args])
+:[recv~(?!\s*fun\b).*].uDictSetBuilderIfNotExists(:[args]) ==> :[recv].iDictSetBuilderIfNotExists(:[args])
+:[recv~(?!\s*fun\b).*].iDictSetBuilderIfExists(:[args]) ==> :[recv].uDictSetBuilderIfExists(:[args])
+:[recv~(?!\s*fun\b).*].uDictSetBuilderIfExists(:[args]) ==> :[recv].iDictSetBuilderIfExists(:[args])
+:[recv~(?!\s*fun\b).*].iDictDeleteFirstAndGet(:[args]) ==> :[recv].uDictDeleteFirstAndGet(:[args])
+:[recv~(?!\s*fun\b).*].uDictDeleteFirstAndGet(:[args]) ==> :[recv].iDictDeleteFirstAndGet(:[args])
+:[recv~(?!\s*fun\b).*].iDictDeleteLastAndGet(:[args]) ==> :[recv].uDictDeleteLastAndGet(:[args])
+:[recv~(?!\s*fun\b).*].uDictDeleteLastAndGet(:[args]) ==> :[recv].iDictDeleteLastAndGet(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetFirst(:[args]) ==> :[recv].uDictGetFirst(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetFirst(:[args]) ==> :[recv].iDictGetFirst(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetFirstAsRef(:[args]) ==> :[recv].uDictGetFirstAsRef(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetFirstAsRef(:[args]) ==> :[recv].iDictGetFirstAsRef(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetLast(:[args]) ==> :[recv].uDictGetLast(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetLast(:[args]) ==> :[recv].iDictGetLast(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetLastAsRef(:[args]) ==> :[recv].uDictGetLastAsRef(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetLastAsRef(:[args]) ==> :[recv].iDictGetLastAsRef(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetNext(:[args]) ==> :[recv].uDictGetNext(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetNext(:[args]) ==> :[recv].iDictGetNext(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetNextOrEqual(:[args]) ==> :[recv].uDictGetNextOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetNextOrEqual(:[args]) ==> :[recv].iDictGetNextOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetPrev(:[args]) ==> :[recv].uDictGetPrev(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetPrev(:[args]) ==> :[recv].iDictGetPrev(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetPrevOrEqual(:[args]) ==> :[recv].uDictGetPrevOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetPrevOrEqual(:[args]) ==> :[recv].iDictGetPrevOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetFirst(:[args]) ==> :[recv].iDictGetLast(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetLast(:[args]) ==> :[recv].iDictGetFirst(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetFirst(:[args]) ==> :[recv].uDictGetLast(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetLast(:[args]) ==> :[recv].uDictGetFirst(:[args])
+:[recv~(?!\s*fun\b).*].sDictGetFirst(:[args]) ==> :[recv].sDictGetLast(:[args])
+:[recv~(?!\s*fun\b).*].sDictGetLast(:[args]) ==> :[recv].sDictGetFirst(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetFirstAsRef(:[args]) ==> :[recv].iDictGetLastAsRef(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetLastAsRef(:[args]) ==> :[recv].iDictGetFirstAsRef(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetFirstAsRef(:[args]) ==> :[recv].uDictGetLastAsRef(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetLastAsRef(:[args]) ==> :[recv].uDictGetFirstAsRef(:[args])
+:[recv~(?!\s*fun\b).*].sDictGetFirstAsRef(:[args]) ==> :[recv].sDictGetLastAsRef(:[args])
+:[recv~(?!\s*fun\b).*].sDictGetLastAsRef(:[args]) ==> :[recv].sDictGetFirstAsRef(:[args])
+:[recv~(?!\s*fun\b).*].iDictDeleteFirstAndGet(:[args]) ==> :[recv].iDictDeleteLastAndGet(:[args])
+:[recv~(?!\s*fun\b).*].iDictDeleteLastAndGet(:[args]) ==> :[recv].iDictDeleteFirstAndGet(:[args])
+:[recv~(?!\s*fun\b).*].uDictDeleteFirstAndGet(:[args]) ==> :[recv].uDictDeleteLastAndGet(:[args])
+:[recv~(?!\s*fun\b).*].uDictDeleteLastAndGet(:[args]) ==> :[recv].uDictDeleteFirstAndGet(:[args])
+:[recv~(?!\s*fun\b).*].sDictDeleteFirstAndGet(:[args]) ==> :[recv].sDictDeleteLastAndGet(:[args])
+:[recv~(?!\s*fun\b).*].sDictDeleteLastAndGet(:[args]) ==> :[recv].sDictDeleteFirstAndGet(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetNext(:[args]) ==> :[recv].iDictGetPrev(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetPrev(:[args]) ==> :[recv].iDictGetNext(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetNext(:[args]) ==> :[recv].uDictGetPrev(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetPrev(:[args]) ==> :[recv].uDictGetNext(:[args])
+:[recv~(?!\s*fun\b).*].sDictGetNext(:[args]) ==> :[recv].sDictGetPrev(:[args])
+:[recv~(?!\s*fun\b).*].sDictGetPrev(:[args]) ==> :[recv].sDictGetNext(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetNextOrEqual(:[args]) ==> :[recv].iDictGetPrevOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].iDictGetPrevOrEqual(:[args]) ==> :[recv].iDictGetNextOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetNextOrEqual(:[args]) ==> :[recv].uDictGetPrevOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].uDictGetPrevOrEqual(:[args]) ==> :[recv].uDictGetNextOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].sDictGetNextOrEqual(:[args]) ==> :[recv].sDictGetPrevOrEqual(:[args])
+:[recv~(?!\s*fun\b).*].sDictGetPrevOrEqual(:[args]) ==> :[recv].sDictGetNextOrEqual(:[args])
+# String-argument hash helper swaps stay regex-only for now; Comby's generic
+# matcher re-escapes quoted holes and produces invalid Tolk source.
+SEND_MODE_REGULAR ==> SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE
+SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE ==> SEND_MODE_REGULAR
+SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE ==> SEND_MODE_CARRY_ALL_BALANCE
+SEND_MODE_CARRY_ALL_BALANCE ==> SEND_MODE_REGULAR
+SEND_MODE_CARRY_ALL_BALANCE ==> SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE
+SEND_MODE_ESTIMATE_FEE_ONLY ==> 0
+SEND_MODE_IGNORE_ERRORS ==> 0
+SEND_MODE_PAY_FEES_SEPARATELY ==> 0
+SEND_MODE_BOUNCE_ON_ACTION_FAIL ==> 0
+SEND_MODE_DESTROY ==> 0
+RESERVE_MODE_EXACT_AMOUNT ==> RESERVE_MODE_ALL_BUT_AMOUNT
+RESERVE_MODE_ALL_BUT_AMOUNT ==> RESERVE_MODE_EXACT_AMOUNT
+RESERVE_MODE_AT_MOST ==> RESERVE_MODE_EXACT_AMOUNT
+RESERVE_MODE_EXACT_AMOUNT ==> RESERVE_MODE_AT_MOST
+RESERVE_MODE_INCREASE_BY_ORIGINAL_BALANCE ==> 0
+RESERVE_MODE_NEGATE_AMOUNT ==> 0
+RESERVE_MODE_BOUNCE_ON_ACTION_FAIL ==> 0
+
+:[msg].send(0) ==> :[msg].send(64)
+:[msg].send(1) ==> :[msg].send(0)
+:[msg].send(2) ==> :[msg].send(0)
+:[msg].send(16) ==> :[msg].send(0)
+:[msg].send(32) ==> :[msg].send(0)
+:[msg].send(64) ==> :[msg].send(0)
+:[msg].send(64) ==> :[msg].send(128)
+:[msg].send(128) ==> :[msg].send(0)
+:[msg].send(128) ==> :[msg].send(64)
+:[msg].send(1024) ==> :[msg].send(0)
+:[msg].sendAndEstimateFee(0) ==> :[msg].sendAndEstimateFee(64)
+:[msg].sendAndEstimateFee(1) ==> :[msg].sendAndEstimateFee(0)
+:[msg].sendAndEstimateFee(2) ==> :[msg].sendAndEstimateFee(0)
+:[msg].sendAndEstimateFee(16) ==> :[msg].sendAndEstimateFee(0)
+:[msg].sendAndEstimateFee(32) ==> :[msg].sendAndEstimateFee(0)
+:[msg].sendAndEstimateFee(64) ==> :[msg].sendAndEstimateFee(0)
+:[msg].sendAndEstimateFee(64) ==> :[msg].sendAndEstimateFee(128)
+:[msg].sendAndEstimateFee(128) ==> :[msg].sendAndEstimateFee(0)
+:[msg].sendAndEstimateFee(128) ==> :[msg].sendAndEstimateFee(64)
+:[msg].sendAndEstimateFee(1024) ==> :[msg].sendAndEstimateFee(0)
+:[msg].estimateFeeWithoutSending(0) ==> :[msg].estimateFeeWithoutSending(64)
+:[msg].estimateFeeWithoutSending(1) ==> :[msg].estimateFeeWithoutSending(0)
+:[msg].estimateFeeWithoutSending(2) ==> :[msg].estimateFeeWithoutSending(0)
+:[msg].estimateFeeWithoutSending(16) ==> :[msg].estimateFeeWithoutSending(0)
+:[msg].estimateFeeWithoutSending(32) ==> :[msg].estimateFeeWithoutSending(0)
+:[msg].estimateFeeWithoutSending(64) ==> :[msg].estimateFeeWithoutSending(0)
+:[msg].estimateFeeWithoutSending(64) ==> :[msg].estimateFeeWithoutSending(128)
+:[msg].estimateFeeWithoutSending(128) ==> :[msg].estimateFeeWithoutSending(0)
+:[msg].estimateFeeWithoutSending(128) ==> :[msg].estimateFeeWithoutSending(64)
+:[msg].estimateFeeWithoutSending(1024) ==> :[msg].estimateFeeWithoutSending(0)
+sendRawMessage(:[msg], 0) ==> sendRawMessage(:[msg], 64)
+sendRawMessage(:[msg], 1) ==> sendRawMessage(:[msg], 0)
+sendRawMessage(:[msg], 2) ==> sendRawMessage(:[msg], 0)
+sendRawMessage(:[msg], 16) ==> sendRawMessage(:[msg], 0)
+sendRawMessage(:[msg], 32) ==> sendRawMessage(:[msg], 0)
+sendRawMessage(:[msg], 64) ==> sendRawMessage(:[msg], 0)
+sendRawMessage(:[msg], 64) ==> sendRawMessage(:[msg], 128)
+sendRawMessage(:[msg], 128) ==> sendRawMessage(:[msg], 0)
+sendRawMessage(:[msg], 128) ==> sendRawMessage(:[msg], 64)
+sendRawMessage(:[msg], 1024) ==> sendRawMessage(:[msg], 0)
+reserveToncoinsOnBalance(:[amount], 0) ==> reserveToncoinsOnBalance(:[amount], 1)
+reserveToncoinsOnBalance(:[amount], 2) ==> reserveToncoinsOnBalance(:[amount], 0)
+reserveToncoinsOnBalance(:[amount], 0) ==> reserveToncoinsOnBalance(:[amount], 2)
+reserveToncoinsOnBalance(:[amount], 1) ==> reserveToncoinsOnBalance(:[amount], 0)
+reserveToncoinsOnBalance(:[amount], :[mode]) ==> reserveExtraCurrenciesOnBalance(:[amount], null, :[mode])
+reserveExtraCurrenciesOnBalance(:[amount], :[extra], :[mode]) ==> reserveToncoinsOnBalance(:[amount], :[mode])
+reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0) ==> reserveExtraCurrenciesOnBalance(:[amount], :[extra], 1)
+reserveExtraCurrenciesOnBalance(:[amount], :[extra], 2) ==> reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0)
+reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0) ==> reserveExtraCurrenciesOnBalance(:[amount], :[extra], 2)
+reserveExtraCurrenciesOnBalance(:[amount], :[extra], 1) ==> reserveExtraCurrenciesOnBalance(:[amount], :[extra], 0)
+value: 0 ==> value: 1
+value: 1 ==> value: 0
+# Function-like value initializers stay regex-only for now; quoted arguments
+# such as ton("0.01") get re-escaped by generic Comby substitution.
+
+BounceMode.NoBounce ==> BounceMode.RichBounce
+BounceMode.RichBounce ==> BounceMode.NoBounce
+BounceMode.Only256BitsOfBody ==> BounceMode.RichBounce
+BounceMode.RichBounceOnlyRootCell ==> BounceMode.RichBounce
+
+struct (:[opcode~(?:0x[0-9A-Fa-f]+|0b[01]+)]) :[name] { ==> struct (0x00000000) :[name] {
+struct (:[opcode~(?:0x[0-9A-Fa-f]+|0b[01]+)]) :[name] { ==> struct (0xFFFFFFFF) :[name] {

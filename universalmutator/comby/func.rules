@@ -1,0 +1,193 @@
+# FunC (TON) comby rules.
+
+#include :[rest] ==> DO_NOT_MUTATE
+
+# Line-anchored comment replacement stays regex-only; this Comby layer has no
+# safe line-scope guard for declaration/control-flow exclusions.
+
+# Bitwise/logical operator shuffle.  \w+ holes avoid swallowing whole type
+# declarations while still matching SEND_MODE_* | SEND_MODE_* etc.
+:[a~\w+] ^ :[b~\w+] ==> :[a] & :[b]
+:[a~\w+] ^ :[b~\w+] ==> :[a] | :[b]
+:[a~\w+] & :[b~\w+] ==> :[a] ^ :[b]
+:[a~\w+] | :[b~\w+] ==> :[a] ^ :[b]
+
+if (:[cond]) ==> if (0)
+if(:[cond]) ==> if(0)
+if (:[cond]) ==> if (1)
+if(:[cond]) ==> if(1)
+throw_if(:[x]) ==> throw_unless(:[x])
+throw_unless(:[x]) ==> throw_if(:[x])
+throw_arg_if(:[arg], :[err], :[cond]) ==> throw_arg_unless(:[arg], :[err], :[cond])
+throw_arg_unless(:[arg], :[err], :[cond]) ==> throw_arg_if(:[arg], :[err], :[cond])
+THROW_IF ==> THROW_UNLESS
+THROW_UNLESS ==> THROW_IF
+
+inline_ref ==> inline
+inline_ref ==> 
+impure ==> 
+accept_message(); ==> ;
+commit(); ==> ;
+set_code(:[code]); ==> ;
+
+now() ==> cur_lt()
+cur_lt() ==> block_lt()
+block_lt() ==> cur_lt()
+
+random() ==> get_seed()
+get_seed() ==> random()
+
+load_uint(:[s], :[len]) ==> load_int(:[s], :[len])
+load_int(:[s], :[len]) ==> load_uint(:[s], :[len])
+store_uint(:[b], :[x], :[len]) ==> store_int(:[b], :[x], :[len])
+store_int(:[b], :[x], :[len]) ==> store_uint(:[b], :[x], :[len])
+:[s]~load_uint(:[len]) ==> :[s]~load_int(:[len])
+:[s]~load_int(:[len]) ==> :[s]~load_uint(:[len])
+:[b~[A-Za-z_][A-Za-z0-9_]*].store_uint(:[x], :[len]) ==> :[b].store_int(:[x], :[len])
+:[b~[A-Za-z_][A-Za-z0-9_]*].store_int(:[x], :[len]) ==> :[b].store_uint(:[x], :[len])
+:[b].store_coins(:[x]) ==> :[b].store_coins(0)
+:[b].store_grams(:[x]) ==> :[b].store_grams(0)
+:[b~[A-Za-z_][A-Za-z0-9_]*].store_uint(:[x], :[len]) ==> :[b].store_uint(0, :[len])
+:[b~[A-Za-z_][A-Za-z0-9_]*].store_int(:[x], :[len]) ==> :[b].store_int(0, :[len])
+store_coins(:[b], :[x]) ==> store_coins(:[b], 0)
+store_grams(:[b], :[x]) ==> store_grams(:[b], 0)
+store_uint(:[b], :[x], :[len]) ==> store_uint(:[b], 0, :[len])
+store_int(:[b], :[x], :[len]) ==> store_int(:[b], 0, :[len])
+
+# Implicit-receiver (method-chain) swaps that static covers via regex.
+.store_uint(:[x], :[len]) ==> .store_int(:[x], :[len])
+.store_int(:[x], :[len]) ==> .store_uint(:[x], :[len])
+.store_uint(:[x~[a-zA-Z0-9_.!()]+], :[len]) ==> .store_uint(0, :[len])
+.store_int(:[x~[a-zA-Z0-9_.!()]+], :[len]) ==> .store_int(0, :[len])
+
+# Convert non-consuming preloads into consuming reads only when the receiver is
+# a simple variable, which preserves expression result shapes.
+preload_ref(:[s~[A-Za-z_][A-Za-z0-9_]*]) ==> :[s]~load_ref()
+preload_dict(:[s~[A-Za-z_][A-Za-z0-9_]*]) ==> :[s]~load_dict()
+preload_int(:[s~[A-Za-z_][A-Za-z0-9_]*], :[len]) ==> :[s]~load_int(:[len])
+preload_uint(:[s~[A-Za-z_][A-Za-z0-9_]*], :[len]) ==> :[s]~load_uint(:[len])
+preload_bits(:[s~[A-Za-z_][A-Za-z0-9_]*], :[len]) ==> :[s]~load_bits(:[len])
+:[s~[A-Za-z_][A-Za-z0-9_]*].preload_ref() ==> :[s]~load_ref()
+:[s~[A-Za-z_][A-Za-z0-9_]*].preload_dict() ==> :[s]~load_dict()
+:[s~[A-Za-z_][A-Za-z0-9_]*].preload_int(:[len]) ==> :[s]~load_int(:[len])
+:[s~[A-Za-z_][A-Za-z0-9_]*].preload_uint(:[len]) ==> :[s]~load_uint(:[len])
+:[s~[A-Za-z_][A-Za-z0-9_]*].preload_bits(:[len]) ==> :[s]~load_bits(:[len])
+:[s~[A-Za-z_][A-Za-z0-9_]*]~load_ref() ==> :[s].preload_ref()
+:[s~[A-Za-z_][A-Za-z0-9_]*]~load_dict() ==> :[s].preload_dict()
+:[s~[A-Za-z_][A-Za-z0-9_]*]~load_int(:[len]) ==> :[s].preload_int(:[len])
+:[s~[A-Za-z_][A-Za-z0-9_]*]~load_uint(:[len]) ==> :[s].preload_uint(:[len])
+:[s~[A-Za-z_][A-Za-z0-9_]*]~load_bits(:[len]) ==> :[s].preload_bits(:[len])
+
+# Comment-replacement for common standalone FunC statements.
+throw_unless(:[x]); ==> ;; throw_unless(:[x]);
+throw_if(:[x]); ==> ;; throw_if(:[x]);
+save_data(:[args]); ==> ;; save_data(:[args]);
+set_data(:[args]); ==> ;; set_data(:[args]);
+send_raw_message(:[args]); ==> ;; send_raw_message(:[args]);
+
+# Comparison swaps inside throw_unless.
+throw_unless(:[err], :[lhs] == :[rhs]) ==> throw_unless(:[err], :[lhs] != :[rhs])
+throw_unless(:[err], :[lhs] != :[rhs]) ==> throw_unless(:[err], :[lhs] == :[rhs])
+throw_unless(:[err], :[lhs] >= :[rhs]) ==> throw_unless(:[err], :[lhs] > :[rhs])
+throw_unless(:[err], :[lhs] >= :[rhs]) ==> throw_unless(:[err], :[lhs] == :[rhs])
+throw_unless(:[err], :[lhs] <= :[rhs]) ==> throw_unless(:[err], :[lhs] < :[rhs])
+throw_unless(:[err], :[lhs] <= :[rhs]) ==> throw_unless(:[err], :[lhs] == :[rhs])
+
+# Comparison swaps inside if.
+if (:[lhs] == :[rhs]) ==> if (:[lhs] != :[rhs])
+if (:[lhs] != :[rhs]) ==> if (:[lhs] == :[rhs])
+if (:[lhs] >= :[rhs]) ==> if (:[lhs] > :[rhs])
+if (:[lhs] >= :[rhs]) ==> if (:[lhs] == :[rhs])
+if (:[lhs] <= :[rhs]) ==> if (:[lhs] < :[rhs])
+if (:[lhs] <= :[rhs]) ==> if (:[lhs] == :[rhs])
+
+# Inline swap (static also mutates inline -> inline_ref and inline -> empty).
+inline ==> inline_ref
+inline ==>
+
+ifnot (:[cond]) ==> ifnot (0)
+ifnot (:[cond]) ==> ifnot (1)
+until (:[cond]) ==> until (0)
+repeat (:[count]) ==> repeat (0)
+
+skip_bits(:[s], :[len]) ==> first_bits(:[s], :[len])
+first_bits(:[s], :[len]) ==> skip_bits(:[s], :[len])
+skip_last_bits(:[s], :[len]) ==> slice_last(:[s], :[len])
+slice_last(:[s], :[len]) ==> skip_last_bits(:[s], :[len])
+slice_refs(:[s]) ==> slice_bits(:[s])
+slice_bits(:[s]) ==> slice_refs(:[s])
+builder_refs(:[b]) ==> builder_bits(:[b])
+builder_bits(:[b]) ==> builder_refs(:[b])
+slice_empty?(:[s]) ==> slice_refs_empty?(:[s])
+slice_refs_empty?(:[s]) ==> slice_empty?(:[s])
+slice_empty?(:[s]) ==> slice_data_empty?(:[s])
+slice_data_empty?(:[s]) ==> slice_empty?(:[s])
+slice_refs_empty?(:[s]) ==> slice_data_empty?(:[s])
+slice_data_empty?(:[s]) ==> slice_refs_empty?(:[s])
+cell_null?(:[c]) ==> dict_empty?(:[c])
+dict_empty?(:[c]) ==> cell_null?(:[c])
+
+:[lhs~.*[^~^]\s*]/=:[rhs] ==> :[lhs]~/=:[rhs]
+:[lhs~.*[^~^]\s*]/=:[rhs] ==> :[lhs]^/=:[rhs]
+:[lhs]~/=:[rhs] ==> :[lhs]/=:[rhs]
+:[lhs]~/=:[rhs] ==> :[lhs]^/=:[rhs]
+:[lhs]^/=:[rhs] ==> :[lhs]/=:[rhs]
+:[lhs]^/=:[rhs] ==> :[lhs]~/=:[rhs]
+:[lhs~.*[^*/~^]\s*]/:[rhs~(?![*/]).*] ==> :[lhs]~/:[rhs]
+:[lhs~.*[^*/~^]\s*]/:[rhs~(?![*/]).*] ==> :[lhs]^/:[rhs]
+:[lhs]~/:[rhs] ==> :[lhs]/:[rhs]
+:[lhs]~/:[rhs] ==> :[lhs]^/:[rhs]
+:[lhs]^/:[rhs] ==> :[lhs]/:[rhs]
+:[lhs]^/:[rhs] ==> :[lhs]~/:[rhs]
+:[lhs~.*[^~^]\s*]%=:[rhs] ==> :[lhs]~%=:[rhs]
+:[lhs~.*[^~^]\s*]%=:[rhs] ==> :[lhs]^%=:[rhs]
+:[lhs]~%=:[rhs] ==> :[lhs]%=:[rhs]
+:[lhs]~%=:[rhs] ==> :[lhs]^%=:[rhs]
+:[lhs]^%=:[rhs] ==> :[lhs]%=:[rhs]
+:[lhs]^%=:[rhs] ==> :[lhs]~%=:[rhs]
+:[lhs~.*[^~^]\s*]%:[rhs~(?![=]).*] ==> :[lhs]~%:[rhs]
+:[lhs~.*[^~^]\s*]%:[rhs~(?![=]).*] ==> :[lhs]^%:[rhs]
+:[lhs]~%:[rhs] ==> :[lhs]%:[rhs]
+:[lhs]~%:[rhs] ==> :[lhs]^%:[rhs]
+:[lhs]^%:[rhs] ==> :[lhs]%:[rhs]
+:[lhs]^%:[rhs] ==> :[lhs]~%:[rhs]
+
+divmod(:[a], :[b]) ==> moddiv(:[a], :[b])
+moddiv(:[a], :[b]) ==> divmod(:[a], :[b])
+:[a]~divmod(:[b]) ==> :[a]~moddiv(:[b])
+:[a]~moddiv(:[b]) ==> :[a]~divmod(:[b])
+muldiv(:[a], :[b], :[c]) ==> muldivr(:[a], :[b], :[c])
+muldivr(:[a], :[b], :[c]) ==> muldivc(:[a], :[b], :[c])
+muldivc(:[a], :[b], :[c]) ==> muldiv(:[a], :[b], :[c])
+muldivmod(:[a], :[b], :[c]) ==> divmod(:[a], :[b])
+store_ref(:[b], :[c]) ==> store_dict(:[b], :[c])
+store_dict(:[b], :[c]) ==> store_ref(:[b], :[c])
+.store_ref(:[c]) ==> .store_dict(:[c])
+.store_dict(:[c]) ==> .store_ref(:[c])
+idict_:[suffix](:[args]) ==> udict_:[suffix](:[args])
+udict_:[suffix](:[args]) ==> idict_:[suffix](:[args])
+
+send_raw_message(:[msg], 0) ==> send_raw_message(:[msg], 1)
+send_raw_message(:[msg], 1) ==> send_raw_message(:[msg], 0)
+send_raw_message(:[msg], 2) ==> send_raw_message(:[msg], 0)
+send_raw_message(:[msg], 16) ==> send_raw_message(:[msg], 0)
+send_raw_message(:[msg], 32) ==> send_raw_message(:[msg], 0)
+send_raw_message(:[msg], 64) ==> send_raw_message(:[msg], 128)
+send_raw_message(:[msg], 128) ==> send_raw_message(:[msg], 64)
+send_raw_message(:[msg], 1024) ==> send_raw_message(:[msg], 0)
+raw_reserve(:[amount], 0) ==> raw_reserve(:[amount], 1)
+raw_reserve(:[amount], 1) ==> raw_reserve(:[amount], 0)
+raw_reserve(:[amount], 2) ==> raw_reserve(:[amount], 0)
+raw_reserve(:[amount], 16) ==> raw_reserve(:[amount], 0)
+raw_reserve(:[amount], 32) ==> raw_reserve(:[amount], 0)
+raw_reserve(:[amount], 64) ==> raw_reserve(:[amount], 128)
+raw_reserve(:[amount], 128) ==> raw_reserve(:[amount], 64)
+raw_reserve(:[amount], 1024) ==> raw_reserve(:[amount], 0)
+raw_reserve_extra(:[amount], :[extra], 0) ==> raw_reserve_extra(:[amount], :[extra], 1)
+raw_reserve_extra(:[amount], :[extra], 1) ==> raw_reserve_extra(:[amount], :[extra], 0)
+raw_reserve_extra(:[amount], :[extra], 2) ==> raw_reserve_extra(:[amount], :[extra], 0)
+raw_reserve_extra(:[amount], :[extra], 16) ==> raw_reserve_extra(:[amount], :[extra], 0)
+raw_reserve_extra(:[amount], :[extra], 32) ==> raw_reserve_extra(:[amount], :[extra], 0)
+raw_reserve_extra(:[amount], :[extra], 64) ==> raw_reserve_extra(:[amount], :[extra], 128)
+raw_reserve_extra(:[amount], :[extra], 128) ==> raw_reserve_extra(:[amount], :[extra], 64)
+raw_reserve_extra(:[amount], :[extra], 1024) ==> raw_reserve_extra(:[amount], :[extra], 0)

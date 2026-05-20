@@ -1,0 +1,188 @@
+# FunC (TON) rules.
+
+^\s*#include\s ==> DO_NOT_MUTATE
+
+;; ==> SKIP_MUTATING_REST
+
+throw_if ==> throw_unless
+throw_unless ==> throw_if
+throw_arg_if ==> throw_arg_unless
+throw_arg_unless ==> throw_arg_if
+THROW_IF ==> THROW_UNLESS
+THROW_UNLESS ==> THROW_IF
+
+# Comment replacement.
+^(?![ \t]*(?:[{}.]|#|;;|\(|(?:else|if|ifnot|while|repeat|do|until|return|const|global|forall|int|cell|slice|builder|tuple|cont|var)\b|.*[{}].*))([ \t]*)(.*\S.*;\s*)\n ==> \1;; \2\n
+
+# Shared boolean/operator/control-flow families live in ton_common.rules.
+
+# FunC conditional forcing. Anchor to real statements so throw_if calls are safe.
+(^\s*)if (\(.*\)) ==> \1if (0)
+(^\s*)if(\(.*\)) ==> \1if(0)
+(^\s*)if (\(.*\)) ==> \1if (1)
+(^\s*)if(\(.*\)) ==> \1if(1)
+
+# Bitwise operator shuffle with XOR.
+([^\^])\^(?![/%])([^\^]) ==> \1&\2
+([^\^])\^(?![/%])([^\^]) ==> \1|\2
+([^&])&([^&]) ==> \1^\2
+([^|])\|([^|]) ==> \1^\2
+
+# Division assignment operator shuffle.
+(?<![~^])/= ==> ~/=
+(?<![~^])/= ==> ^/=
+~/= ==> /=
+~/= ==> ^/=
+\^/= ==> /=
+\^/= ==> ~/=
+
+# Division operator shuffle
+([^*/~^])/([^*/]) ==> \1~/\2
+([^*/~^])/([^*/]) ==> \1^/\2
+~/(?![=]) ==> /
+~/(?![=]) ==> ^/
+\^/(?![=]) ==> /
+\^/(?![=]) ==> ~/
+
+# Modulo assignment operator shuffle.
+(?<![~^])%= ==> ~%=
+(?<![~^])%= ==> ^%=
+~%= ==> %=
+~%= ==> ^%=
+\^%= ==> %=
+\^%= ==> ~%=
+
+# Modulo operator shuffle.
+(?<![~^])%(?![=]) ==> ~%
+(?<![~^])%(?![=]) ==> ^%
+~%(?![=]) ==> %
+~%(?![=]) ==> ^%
+\^%(?![=]) ==> %
+\^%(?![=]) ==> ~%
+
+# If Not False/True.
+ifnot (\(.*\)) ==> ifnot (0)
+ifnot(\(.*\)) ==> ifnot(0)
+ifnot (\(.*\)) ==> ifnot (1)
+ifnot(\(.*\)) ==> ifnot(1)
+
+# Until False 
+until (\(.*\)) ==> until (0)
+until(\(.*\)) ==> until(0)
+
+# Repeat Zero.
+repeat (\(.*\)) ==> repeat (0)
+repeat(\(.*\)) ==> repeat(0)
+
+# Mutate documented function specifiers.
+\binline_ref\b ==> inline
+\binline\b ==> inline_ref
+\binline_ref\b ==> 
+\binline\b ==> 
+\bimpure\b ==> 
+
+# Mutate documented gas/state management helpers.
+(^\s*)accept_message\s*\(\s*\)\s*; ==> \1;
+(^\s*)commit\s*\(\s*\)\s*; ==> \1;
+(^\s*)set_code\s*\(\s*[^;\n]+\)\s*; ==> \1;
+
+# Mutate documented time/random helpers.
+\bnow\s*\( ==> cur_lt(
+\bcur_lt\s*\( ==> block_lt(
+\bblock_lt\s*\( ==> cur_lt(
+\brandom\s*\( ==> get_seed(
+\bget_seed\s*\( ==> random(
+
+# Convert non-consuming preloads into consuming reads only when the receiver is
+# a simple variable, which preserves expression result shapes.
+\bpreload_ref\s*\(\s*([A-Za-z_]\w*)\s*\) ==> \1~load_ref()
+\bpreload_dict\s*\(\s*([A-Za-z_]\w*)\s*\) ==> \1~load_dict()
+\bpreload_int\s*\(\s*([A-Za-z_]\w*)\s*,\s*([^)\n]+)\) ==> \1~load_int(\2)
+\bpreload_uint\s*\(\s*([A-Za-z_]\w*)\s*,\s*([^)\n]+)\) ==> \1~load_uint(\2)
+\bpreload_bits\s*\(\s*([A-Za-z_]\w*)\s*,\s*([^)\n]+)\) ==> \1~load_bits(\2)
+(\b[A-Za-z_]\w*)\.preload_ref\s*\(\s*\) ==> \1~load_ref()
+(\b[A-Za-z_]\w*)\.preload_dict\s*\(\s*\) ==> \1~load_dict()
+(\b[A-Za-z_]\w*)\.preload_int\s*\(\s*([^)\n]+)\) ==> \1~load_int(\2)
+(\b[A-Za-z_]\w*)\.preload_uint\s*\(\s*([^)\n]+)\) ==> \1~load_uint(\2)
+(\b[A-Za-z_]\w*)\.preload_bits\s*\(\s*([^)\n]+)\) ==> \1~load_bits(\2)
+(\b[A-Za-z_]\w*)~load_ref\s*\(\s*\) ==> \1.preload_ref()
+(\b[A-Za-z_]\w*)~load_dict\s*\(\s*\) ==> \1.preload_dict()
+(\b[A-Za-z_]\w*)~load_int\s*\(\s*([^)\n]+)\) ==> \1.preload_int(\2)
+(\b[A-Za-z_]\w*)~load_uint\s*\(\s*([^)\n]+)\) ==> \1.preload_uint(\2)
+(\b[A-Za-z_]\w*)~load_bits\s*\(\s*([^)\n]+)\) ==> \1.preload_bits(\2)
+
+# Mutate documented integer load/store helpers.
+\bload_uint\b ==> load_int
+\bload_int\b ==> load_uint
+\bstore_uint\b ==> store_int
+\bstore_int\b ==> store_uint
+\bstore_ref\b ==> store_dict
+\bstore_dict\b ==> store_ref
+
+# Store coins/int/uint as zero.
+(\.store_coins\s*\()\s*[^,\)]+ ==> \g<1>0
+(\.store_grams\s*\()\s*[^,\)]+ ==> \g<1>0
+(\.store_uint\s*\()\s*[^,\)]+ ==> \g<1>0
+(\.store_int\s*\()\s*[^,\)]+ ==> \g<1>0
+(\bstore_coins\s*\(\s*[^,]+,\s*)[^,\)]+ ==> \g<1>0
+(\bstore_grams\s*\(\s*[^,]+,\s*)[^,\)]+ ==> \g<1>0
+((?<![\.~])\bstore_uint\s*\(\s*[^,\n]+,\s*)[^,\)\n]+(,\s*[^)\n]+\)) ==> \g<1>0\2
+((?<![\.~])\bstore_int\s*\(\s*[^,\n]+,\s*)[^,\)\n]+(,\s*[^)\n]+\)) ==> \g<1>0\2
+
+# Mutate documented slice extent and inspection helpers.
+\bskip_bits\s*\( ==> first_bits(
+\bfirst_bits\s*\( ==> skip_bits(
+\bskip_last_bits\s*\( ==> slice_last(
+\bslice_last\s*\( ==> skip_last_bits(
+\bslice_refs\s*\( ==> slice_bits(
+\bslice_bits\s*\( ==> slice_refs(
+\bbuilder_refs\s*\( ==> builder_bits(
+\bbuilder_bits\s*\( ==> builder_refs(
+\bslice_empty\?\s*\( ==> slice_refs_empty?(
+\bslice_refs_empty\?\s*\( ==> slice_empty?(
+\bslice_empty\?\s*\( ==> slice_data_empty?(
+\bslice_data_empty\?\s*\( ==> slice_empty?(
+\bslice_refs_empty\?\s*\( ==> slice_data_empty?(
+\bslice_data_empty\?\s*\( ==> slice_refs_empty?(
+\bcell_null\?\s*\( ==> dict_empty?(
+\bdict_empty\?\s*\( ==> cell_null?(
+
+# Swap signed/unsigned dictionary helpers.
+\bidict_([A-Za-z0-9_]+\??)(?=[^A-Za-z0-9_]|$) ==> udict_\1
+\budict_([A-Za-z0-9_]+\??)(?=[^A-Za-z0-9_]|$) ==> idict_\1
+
+# Swap closely related built-ins with non-symbolic names.
+\bdivmod\b ==> moddiv
+\bmoddiv\b ==> divmod
+(?<![A-Za-z0-9_])~divmod\b ==> ~moddiv
+(?<![A-Za-z0-9_])~moddiv\b ==> ~divmod
+\bmuldiv\b ==> muldivr
+\bmuldivr\b ==> muldivc
+\bmuldivc\b ==> muldiv
+\bmuldivmod\s*\(\s*([^,;\n]+)\s*,\s*([^,;\n]+)\s*,\s*([^)\n]+)\) ==> divmod(\1, \2)
+
+# Mutate numeric send/reserve mode literals when passed directly to stdlib helpers.
+(\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>1\2
+(\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b1\b([^;\n]*\)) ==> \g<1>0\2
+(\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b2\b([^;\n]*\)) ==> \g<1>0\2
+(\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b16\b([^;\n]*\)) ==> \g<1>0\2
+(\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b32\b([^;\n]*\)) ==> \g<1>0\2
+(\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b64\b([^;\n]*\)) ==> \g<1>128\2
+(\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b128\b([^;\n]*\)) ==> \g<1>64\2
+(\bsend_raw_message\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b1024\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>1\2
+(\braw_reserve\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b1\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b2\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b16\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b32\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b64\b([^;\n]*\)) ==> \g<1>128\2
+(\braw_reserve\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b128\b([^;\n]*\)) ==> \g<1>64\2
+(\braw_reserve\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b1024\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve_extra\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>1\2
+(\braw_reserve_extra\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b1\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve_extra\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b2\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve_extra\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b16\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve_extra\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b32\b([^;\n]*\)) ==> \g<1>0\2
+(\braw_reserve_extra\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b64\b([^;\n]*\)) ==> \g<1>128\2
+(\braw_reserve_extra\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b128\b([^;\n]*\)) ==> \g<1>64\2
+(\braw_reserve_extra\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b1024\b([^;\n]*\)) ==> \g<1>0\2

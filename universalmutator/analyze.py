@@ -13,9 +13,14 @@ import random
 import os
 import py_compile
 
+
+def _basename(path):
+    return os.path.basename(path.replace("\\", "/"))
+
+
 def main():
 
-    isWindows = platform.system()
+    isWindows = platform.system() == "Windows"
 
 
     parser = argparse.ArgumentParser(prog="analyze_mutants",
@@ -77,8 +82,8 @@ def main():
             for l in file:
                 ignore.append(l.split()[0])
 
-    srcBase = src.split("/")[-1]
-    srcEnd = "." + ((src.split(".")[-1]).split("/")[-1])
+    srcBase = _basename(src)
+    srcEnd = os.path.splitext(srcBase)[1]
 
     count = 0.0
     killCount = 0.0
@@ -98,7 +103,7 @@ def main():
         newMutants = []
         for f1 in onlyMutants:
             for f2 in allTheMutants:
-                if f2.split("/")[-1] == f1:
+                if _basename(f2) == f1:
                     newMutants.append(f2)
         allTheMutants = newMutants
 
@@ -146,7 +151,7 @@ def main():
                         notkilled.flush()
                 for f in allTheMutants:
                     if resume:
-                        if (f.split("/")[-1] in alreadyKilled) or (f.split("/")[-1] in alreadyNotKilled):
+                        if (_basename(f) in alreadyKilled) or (_basename(f) in alreadyNotKilled):
                             continue
                     if f in ignore:
                         print(f, "SKIPPED")
@@ -170,16 +175,19 @@ def main():
                         sys.stdout.flush()
                     print("RUNNING", f + "...")
                     sys.stdout.flush()
+                    backup_path = src + ".um.backup"
                     try:
-                        shutil.copy(src, src + ".um.backup")
-                        shutil.copy(f, src)
-                        if srcEnd == ".py":
+                        if "MUTANT" not in tstCmd[0]:
+                            shutil.copy(src, backup_path)
+                            shutil.copy(f, src)
+                        if srcEnd == ".py" and "MUTANT" not in tstCmd[0]:
                             py_compile.compile(src)
 
+                        expanded_cmd = tstCmd[0].replace("MUTANT", f)
                         if isWindows:
-                            ctstCmd = ['set "CURRENT_MUTANT_SOURCE=' + f + '" && ' + tstCmd[0]]
+                            ctstCmd = 'set "CURRENT_MUTANT_SOURCE=' + f + '" && ' + expanded_cmd
                         else:
-                            ctstCmd = ['export CURRENT_MUTANT_SOURCE="' + f + '"; ' + tstCmd[0]]
+                            ctstCmd = 'export CURRENT_MUTANT_SOURCE="' + f + '"; ' + expanded_cmd
                         start = time.time()
 
                         if not verbose:
@@ -219,18 +227,19 @@ def main():
                             break
                         if r == 0:
                             print(f, "NOT KILLED")
-                            notkilled.write(f.split("/")[-1] + "\n")
+                            notkilled.write(_basename(f) + "\n")
                             notkilled.flush()
                         else:
                             killCount += 1
                             print(f, "KILLED IN", runtime, "(RETURN CODE", str(r) + ")")
-                            killed.write(f.split("/")[-1] + "\n")
+                            killed.write(_basename(f) + "\n")
                             killed.flush()
                         print("  RUNNING SCORE:", killCount / count)
                         sys.stdout.flush()
                     finally:
-                        shutil.copy(src + ".um.backup", src)
-                        os.remove(src + ".um.backup")
+                        if os.path.exists(backup_path):
+                            shutil.copy(backup_path, src)
+                            os.remove(backup_path)
                 if os.path.exists(".um.mutant_output." + str(os.getpid())):
                     os.remove(".um.mutant_output." + str(os.getpid()))
 
@@ -251,7 +260,7 @@ def runCmd(cmd, sourceFile, mutantFile):
         shutil.copy(mutantFile, sourceFile)
     try:
         with open(".um.mutant_output." + str(os.getpid()), 'w') as file:
-            r = subprocess.call([cmd.replace("MUTANT", mutantFile)],
+            r = subprocess.call(cmd.replace("MUTANT", mutantFile),
                                 shell=True, stderr=file, stdout=file)
         if r == 0:
             return "VALID"

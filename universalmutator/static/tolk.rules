@@ -1,0 +1,254 @@
+# Tolk (TON) rules.
+#
+# Notes:
+# - ton_common.rules now provides the shared TON-safe operator/control-flow
+#   families for default runs.
+# - Here we keep Tolk-specific mutations anchored to documented syntax.
+
+^\s*import\s ==> DO_NOT_MUTATE
+^\s*//.* ==> DO_NOT_MUTATE
+
+/\* ==> SKIP_MUTATING_REST
+
+# Comment replacement. Keep it to standalone statements, not declarations or continuations.
+^(?![ \t]*(?:[{}.]|#|//|/\*|\*|@|(?:else|if|while|repeat|do|match|try|catch|return|fun|get|struct|enum|type|const|global|var|val)\b|[A-Za-z_]\w*\s*:|.*[{}].*))([ \t]*)((?:break|continue)\s*;|assert\s*\([^;\n]*\)\s*throw\s+[^;\n]+;|throw\s+[^;\n]+;|[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*(?:<<=|>>=|[+\-*/%&|^]?=)\s*[^;\n]+;|[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*\([^;\n]*\)\s*;)\s*\n ==> \1// \2\n
+
+(^\s*)assert\s*\([^;\n]*\)\s*throw\s+[^;\n]+;\s*$ ==> \1
+(^\s*)throw\s+[^;\n]+;\s*$ ==> \1
+(^\s*)(?:[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\.save\s*\([^;\n]*\)\s*;\s*$ ==> \1
+(^\s*)contract\.setData\s*\([^;\n]*\)\s*;\s*$ ==> \1
+(^\s*)acceptExternalMessage\s*\(\s*\)\s*;\s*$ ==> \1
+(^\s*)commitContractDataAndActions\s*\(\s*\)\s*;\s*$ ==> \1
+(^\s*)contract\.setCodePostponed\s*\([^;\n]*\)\s*;\s*$ ==> \1
+
+# Shared boolean/operator/control-flow families live in ton_common.rules.
+
+# Negate whole assert conditions without disturbing syntax or layout.
+(^\s*)assert\s*\(([^;\n]+)\)\s*throw\s+([^;\n]+);\s*$ ==> \1assert (!(\2)) throw \3;
+
+# Relax comparison boundaries only in executable expression contexts, not in
+# generic or union-type syntax.
+(^\s*assert\s*\()([^\n;<>]+?)\s<\s([^\n;<>]+?)(\)\s*throw\s+[^;\n]+;\s*$) ==> \1\2 <= \3\4
+(^\s*assert\s*\()([^\n;<>]+?)\s>\s([^\n;<>]+?)(\)\s*throw\s+[^;\n]+;\s*$) ==> \1\2 >= \3\4
+(^\s*if\s*\()([^\n;<>]+?)\s<\s([^\n;<>]+?)(\)\s*\{?\s*$) ==> \1\2 <= \3\4
+(^\s*if\s*\()([^\n;<>]+?)\s>\s([^\n;<>]+?)(\)\s*\{?\s*$) ==> \1\2 >= \3\4
+(^\s*return\s+)([^\n;<>]+?)\s<\s([^\n;<>]+?)(;\s*$) ==> \1\2 <= \3\4
+(^\s*return\s+)([^\n;<>]+?)\s>\s([^\n;<>]+?)(;\s*$) ==> \1\2 >= \3\4
+
+# Tolk conditional forcing. Skip `is` / `!is` type guards to preserve narrowing.
+\bif (?!\(.*(?:\bis\b|!is\b).*\))(\(.*\)) ==> if (!\1)
+\bif(?!\(.*(?:\bis\b|!is\b).*\))(\(.*\)) ==> if(!\1)
+\bif (?!\(.*(?:\bis\b|!is\b).*\))\(.*\) ==> if (false)
+\bif(?!\(.*(?:\bis\b|!is\b).*\))\(.*\) ==> if(false)
+\bif (?!\(.*(?:\bis\b|!is\b).*\))\(.*\) ==> if (true)
+\bif(?!\(.*(?:\bis\b|!is\b).*\))\(.*\) ==> if(true)
+
+# Bitwise operator shuffle with XOR. Keep `|` mutations anchored to local value
+# assignments so they do not collide with Tolk union types.
+([^\^])\^([^\^]) ==> \1&\2
+([^\^])\^([^\^]) ==> \1|\2
+([^&])&([^&]) ==> \1^\2
+(^\s*(?:var|val)\s+[A-Za-z_]\w*\s*=\s*)([^;\n|]+?)(\s*)\|(\s*)([^;\n|]+)(;\s*$) ==> \1\2\3&\4\5\6
+(^\s*(?:var|val)\s+[A-Za-z_]\w*\s*=\s*)([^;\n|]+?)(\s*)\|(\s*)([^;\n|]+)(;\s*$) ==> \1\2\3^\4\5\6
+
+([=(:,]\s*)!(?!\s*is\b)(\s*(?:\(|[A-Za-z_])) ==> \1\2
+(^\s*return\s+)!(?!\s*is\b)(\s*(?:\(|[A-Za-z_])) ==> \1\2
+([=(:,]\s*)~(\s*(?:\(|[A-Za-z_0-9])) ==> \1\2
+(^\s*return\s+)~(\s*(?:\(|[A-Za-z_0-9])) ==> \1\2
+([=(:,]\s*)-(\s*(?:\(|[A-Za-z_0-9])) ==> \1\2
+(^\s*return\s+)-(\s*(?:\(|[A-Za-z_0-9])) ==> \1\2
+
+# Drop lazy loading and force eager evaluation.
+(^|\s)lazy(\s+) ==> \1
+
+# Remove getter exposure while keeping the function body.
+\bget\s+fun\b ==> fun
+
+# Mutate documented function/method attributes.
+^(\s*)@inline\b ==> \1@noinline
+^(\s*)@noinline\b ==> \1@inline
+^(\s*)@inline_ref\b ==> \1@inline
+^(\s*)@pure\b ==> \1
+
+# Strip mutability from regular parameters. Leave `mutate self` alone:
+# removing it often turns a valid mutating method into a compiler error.
+\bmutate\s+(?!self\b)([A-Za-z_]\w+)(\s*:) ==> \1\2
+
+# Remove documented default parameter values from single-line function signatures.
+(\bfun\s+[A-Za-z_][\w\.]*\s*\([^)\n]*\b[A-Za-z_]\w*\s*:\s*[^=,\)\n]*?\S)\s*=\s*[^,\)\n]+(,\s*[^)\n]*\)) ==> \1\2
+(\bfun\s+[A-Za-z_][\w\.]*\s*\(\s*\b[A-Za-z_]\w*\s*:\s*[^=,\)\n]*?\S)\s*=\s*[^,\)\n]+(,\s*[^)\n]*\)) ==> \1\2
+(\bfun\s+[A-Za-z_][\w\.]*\s*\([^)\n]*\b[A-Za-z_]\w*\s*:\s*[^=,\)\n]*?\S)\s*=\s*[^,\)\n]+(\s*\)) ==> \1\2
+
+# Remove documented default field values from single-line struct declarations.
+(^\s*[A-Za-z_]\w*\s*:\s*[A-Za-z_][A-Za-z0-9_<>\?\|\(\),\s]*?)\s*=\s*[^,\n]+(\s*(?://[^\n]*)?$) ==> \1\2
+
+# Swap documented fixed-width signed/unsigned integer types, but do not touch
+# stdlib method names such as `random.uint256()`.
+(?<!\.)\buint([1-9]\d?|1\d\d|2[0-4]\d|25[0-6])\b ==> int\1
+(?<!\.)\bint([1-9]\d?|1\d\d|2[0-4]\d|25[0-6])\b ==> uint\1
+
+\*= ==> %=
+%= ==> *=
+
+# Swap documented variable-width signed/unsigned integer families.
+\bvaruint16\b ==> varint16
+\bvarint16\b ==> varuint16
+\bvaruint32\b ==> varint32
+\bvarint32\b ==> varuint32
+
+# Mutate explicit unsafe casts between signed/unsigned fixed-width integers.
+\bas\s+uint([1-9]\d?|1\d\d|2[0-4]\d|25[0-6])\b ==> as int\1
+\bas\s+int([1-9]\d?|1\d\d|2[0-4]\d|25[0-6])\b ==> as uint\1
+
+# Mutate documented deserialization options.
+(\bthrowIfOpcodeDoesNotMatch\s*:\s*)[\w]+ ==> \g<1>63
+(\bassertEndAfterReading\s*:\s*)true\b ==> \g<1>false
+(\bassertEndAfterReading\s*:\s*)false\b ==> \g<1>true
+
+# Relax documented non-null assertion.
+([A-Za-z0-9_)\]])!(?=[\.,;\)\]\s]) ==> \1
+
+# Swap closely related Tolk stdlib APIs documented in the FunC-to-Tolk mapping.
+\bblockchain\.now\b ==> blockchain.logicalTime
+\bblockchain\.logicalTime\b ==> blockchain.currentBlockLogicalTime
+\bblockchain\.currentBlockLogicalTime\b ==> blockchain.logicalTime
+\bcalculateSizeStrict\b ==> calculateSize
+\bcalculateSize\b ==> calculateSizeStrict
+^(?!\s*fun\b)(.*)\bcalculateForwardFeeWithoutLumpPrice\b ==> \1calculateForwardFee
+^(?!\s*fun\b)(.*)\bcalculateForwardFee\b ==> \1calculateForwardFeeWithoutLumpPrice
+^(?!\s*fun\b)(.*)\bcalculateGasFeeWithoutFlatPrice\b ==> \1calculateGasFee
+^(?!\s*fun\b)(.*)\bcalculateGasFee\b ==> \1calculateGasFeeWithoutFlatPrice
+^(?!\s*fun\b)(.*)\bacceptExternalMessage\b ==> \1commitContractDataAndActions
+^(?!\s*fun\b)(.*)\bcommitContractDataAndActions\b ==> \1acceptExternalMessage
+\brandom\.uint256\b ==> random.getSeed
+\brandom\.getSeed\b ==> random.uint256
+
+# Mutate documented stdlib parsing and serialization helpers.
+\.loadRef\s*\( ==> .preloadRef(
+\.preloadRef\s*\( ==> .loadRef(
+\.loadInt\s*\( ==> .preloadInt(
+\.preloadInt\s*\( ==> .loadInt(
+\.loadUint\s*\( ==> .preloadUint(
+\.preloadUint\s*\( ==> .loadUint(
+\.loadBits\s*\( ==> .preloadBits(
+\.preloadBits\s*\( ==> .loadBits(
+\.loadDict\s*\( ==> .preloadDict(
+\.preloadDict\s*\( ==> .loadDict(
+\.loadMaybeRef\s*\( ==> .preloadMaybeRef(
+\.preloadMaybeRef\s*\( ==> .loadMaybeRef(
+\.loadInt\s*\( ==> .loadUint(
+\.loadUint\s*\( ==> .loadInt(
+\.preloadInt\s*\( ==> .preloadUint(
+\.preloadUint\s*\( ==> .preloadInt(
+\.storeRef\s*\( ==> .storeMaybeRef(
+\.storeInt\s*\( ==> .storeUint(
+\.storeUint\s*\( ==> .storeInt(
+
+# Mutate documented slice inspection helpers.
+\.remainingBitsCount\s*\( ==> .remainingRefsCount(
+\.remainingRefsCount\s*\( ==> .remainingBitsCount(
+\.isEmpty\s*\( ==> .isEndOfBits(
+\.isEmpty\s*\( ==> .isEndOfRefs(
+\.isEndOfBits\s*\( ==> .isEmpty(
+\.isEndOfRefs\s*\( ==> .isEmpty(
+\.getFirstBits\s*\( ==> .getLastBits(
+\.getLastBits\s*\( ==> .getFirstBits(
+
+# Mutate documented address/message/payment helpers.
+^(?!\s*fun\b)(.*)\.getStorageDuePayment\s*\( ==> \1.getStoragePaidPayment(
+^(?!\s*fun\b)(.*)\.getStoragePaidPayment\s*\( ==> \1.getStorageDuePayment(
+^(?!\s*fun\b)(.*)\.send\s*\( ==> \1.sendAndEstimateFee(
+^(?!\s*fun\b)(.*)\.sendAndEstimateFee\s*\( ==> \1.estimateFeeWithoutSending(
+^(?!\s*fun\b)(.*)\.estimateFeeWithoutSending\s*\( ==> \1.sendAndEstimateFee(
+^(?!\s*fun\b)(.*)\.isInternal\s*\( ==> \1.isExternal(
+^(?!\s*fun\b)(.*)\.isExternal\s*\( ==> \1.isInternal(
+^(?!\s*fun\b)(.*)\.loadMessageOp\s*\( ==> \1.loadMessageQueryId(
+^(?!\s*fun\b)(.*)\.loadMessageQueryId\s*\( ==> \1.loadMessageOp(
+^(?!\s*fun\b)(.*)\.storeMessageOp\s*\( ==> \1.storeMessageQueryId(
+^(?!\s*fun\b)(.*)\.storeMessageQueryId\s*\( ==> \1.storeMessageOp(
+
+# Mutate documented low-level TVM dictionary helpers.
+^(?!\s*fun\b)(.*)\.iDict(Get|Set|SetRef|SetIfNotExists|SetIfExists|GetRef|GetRefOrNull|Delete|SetAndGet|SetAndGetRefOrNull|DeleteAndGet|SetBuilder|SetBuilderIfNotExists|SetBuilderIfExists|DeleteFirstAndGet|DeleteLastAndGet|GetFirst|GetFirstAsRef|GetLast|GetLastAsRef|GetNext|GetNextOrEqual|GetPrev|GetPrevOrEqual)\s*\( ==> \1.uDict\2(
+^(?!\s*fun\b)(.*)\.uDict(Get|Set|SetRef|SetIfNotExists|SetIfExists|GetRef|GetRefOrNull|Delete|SetAndGet|SetAndGetRefOrNull|DeleteAndGet|SetBuilder|SetBuilderIfNotExists|SetBuilderIfExists|DeleteFirstAndGet|DeleteLastAndGet|GetFirst|GetFirstAsRef|GetLast|GetLastAsRef|GetNext|GetNextOrEqual|GetPrev|GetPrevOrEqual)\s*\( ==> \1.iDict\2(
+^(?!\s*fun\b)(.*)\.((?:i|u|s)Dict)GetFirst(AsRef)?\s*\( ==> \1.\g<2>GetLast\g<3>(
+^(?!\s*fun\b)(.*)\.((?:i|u|s)Dict)GetLast(AsRef)?\s*\( ==> \1.\g<2>GetFirst\g<3>(
+^(?!\s*fun\b)(.*)\.((?:i|u|s)Dict)DeleteFirstAndGet\s*\( ==> \1.\g<2>DeleteLastAndGet(
+^(?!\s*fun\b)(.*)\.((?:i|u|s)Dict)DeleteLastAndGet\s*\( ==> \1.\g<2>DeleteFirstAndGet(
+^(?!\s*fun\b)(.*)\.((?:i|u|s)Dict)GetNextOrEqual\s*\( ==> \1.\g<2>GetPrevOrEqual(
+^(?!\s*fun\b)(.*)\.((?:i|u|s)Dict)GetPrevOrEqual\s*\( ==> \1.\g<2>GetNextOrEqual(
+^(?!\s*fun\b)(.*)\.((?:i|u|s)Dict)GetNext\s*\( ==> \1.\g<2>GetPrev(
+^(?!\s*fun\b)(.*)\.((?:i|u|s)Dict)GetPrev\s*\( ==> \1.\g<2>GetNext(
+
+# Mutate documented compile-time string helpers.
+\bstringCrc32\s*\( ==> stringCrc16(
+\bstringCrc16\s*\( ==> stringCrc32(
+\bstringSha256_32\s*\( ==> stringSha256(
+\bstringSha256\s*\( ==> stringSha256_32(
+
+# Mutate documented send mode constants used with stdlib messaging helpers.
+\bSEND_MODE_REGULAR\b ==> SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE
+\bSEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE\b ==> SEND_MODE_REGULAR
+\bSEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE\b ==> SEND_MODE_CARRY_ALL_BALANCE
+\bSEND_MODE_CARRY_ALL_BALANCE\b ==> SEND_MODE_REGULAR
+\bSEND_MODE_CARRY_ALL_BALANCE\b ==> SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE
+\bSEND_MODE_ESTIMATE_FEE_ONLY\b ==> 0
+\bSEND_MODE_IGNORE_ERRORS\b ==> 0
+\bSEND_MODE_PAY_FEES_SEPARATELY\b ==> 0
+\bSEND_MODE_BOUNCE_ON_ACTION_FAIL\b ==> 0
+\bSEND_MODE_DESTROY\b ==> 0
+\bRESERVE_MODE_EXACT_AMOUNT\b ==> RESERVE_MODE_ALL_BUT_AMOUNT
+\bRESERVE_MODE_ALL_BUT_AMOUNT\b ==> RESERVE_MODE_EXACT_AMOUNT
+\bRESERVE_MODE_AT_MOST\b ==> RESERVE_MODE_EXACT_AMOUNT
+\bRESERVE_MODE_EXACT_AMOUNT\b ==> RESERVE_MODE_AT_MOST
+\bRESERVE_MODE_INCREASE_BY_ORIGINAL_BALANCE\b ==> 0
+\bRESERVE_MODE_NEGATE_AMOUNT\b ==> 0
+\bRESERVE_MODE_BOUNCE_ON_ACTION_FAIL\b ==> 0
+(^\s*)reserveToncoinsOnBalance\s*\(\s*([^,;\n]+)\s*,\s*([^;\n]+)\)\s*;\s*$ ==> \1reserveExtraCurrenciesOnBalance(\2, null, \3);
+(^\s*)reserveExtraCurrenciesOnBalance\s*\(\s*([^,;\n]+)\s*,\s*([^,;\n]+)\s*,\s*([^;\n]+)\)\s*;\s*$ ==> \1reserveToncoinsOnBalance(\2, \4);
+
+# Mutate numeric send/reserve mode literals when passed directly to messaging helpers.
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>64\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b1\b([^;\n]*\)) ==> \g<1>0\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b2\b([^;\n]*\)) ==> \g<1>0\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b16\b([^;\n]*\)) ==> \g<1>0\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b32\b([^;\n]*\)) ==> \g<1>0\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b64\b([^;\n]*\)) ==> \g<1>0\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b64\b([^;\n]*\)) ==> \g<1>128\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b128\b([^;\n]*\)) ==> \g<1>0\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b128\b([^;\n]*\)) ==> \g<1>64\2
+(\.\s*(?:send|sendAndEstimateFee|estimateFeeWithoutSending)\s*\(\s*[^;\n]*?)\b1024\b([^;\n]*\)) ==> \g<1>0\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>64\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b1\b([^;\n]*\)) ==> \g<1>0\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b2\b([^;\n]*\)) ==> \g<1>0\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b16\b([^;\n]*\)) ==> \g<1>0\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b32\b([^;\n]*\)) ==> \g<1>0\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b64\b([^;\n]*\)) ==> \g<1>0\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b64\b([^;\n]*\)) ==> \g<1>128\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b128\b([^;\n]*\)) ==> \g<1>0\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b128\b([^;\n]*\)) ==> \g<1>64\2
+(\bsendRawMessage\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b1024\b([^;\n]*\)) ==> \g<1>0\2
+(\breserveToncoinsOnBalance\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>1\2
+(\breserveToncoinsOnBalance\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b2\b([^;\n]*\)) ==> \g<1>0\2
+(\breserveToncoinsOnBalance\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>2\2
+(\breserveToncoinsOnBalance\s*\(\s*[^,;\n]+,\s*[^;\n]*?)\b1\b([^;\n]*\)) ==> \g<1>0\2
+(\breserveExtraCurrenciesOnBalance\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>1\2
+(\breserveExtraCurrenciesOnBalance\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b2\b([^;\n]*\)) ==> \g<1>0\2
+(\breserveExtraCurrenciesOnBalance\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b0\b([^;\n]*\)) ==> \g<1>2\2
+(\breserveExtraCurrenciesOnBalance\s*\(\s*[^,;\n]+,\s*[^,;\n]+,\s*[^;\n]*?)\b1\b([^;\n]*\)) ==> \g<1>0\2
+
+# Mutate numeric message values in createMessage object literals.
+(^\s*value:\s*)0(\s*,\s*(?://[^\n]*)?$) ==> \g<1>1\2
+(^\s*value:\s*)([1-9]\d*)(\s*,\s*(?://[^\n]*)?$) ==> \g<1>0\3
+(^\s*value:\s*)ton\s*\(\s*[^)\n]+\s*\)(\s*,\s*(?://[^\n]*)?$) ==> \g<1>0\2
+(^\s*value:\s*)([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*\([^()\n]*\))(\s*,\s*(?://[^\n]*)?$) ==> \g<1>0\3
+(^\s*value:\s*)(?!0\b)(?![1-9]\d*\b)(?!ton\s*\()([^,\n]+?)(\s*,\s*(?://[^\n]*)?$) ==> \g<1>0\3
+
+# Flip documented bounce modes used when sending messages.
+\bBounceMode\.NoBounce\b ==> BounceMode.RichBounce
+\bBounceMode\.RichBounce\b ==> BounceMode.NoBounce
+\bBounceMode\.Only256BitsOfBody\b ==> BounceMode.RichBounce
+\bBounceMode\.RichBounceOnlyRootCell\b ==> BounceMode.RichBounce
+
+# Mutate numeric message opcodes/prefixes declared on struct headers.
+(^\s*struct\s+\()(?:0x[0-9A-Fa-f]+|0b[01]+)(\)\s+[A-Za-z_]\w*) ==> \g<1>0x00000000\2
+(^\s*struct\s+\()(?:0x[0-9A-Fa-f]+|0b[01]+)(\)\s+[A-Za-z_]\w*) ==> \g<1>0xFFFFFFFF\2
